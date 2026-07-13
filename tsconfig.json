@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "target": "ES2019",
-    "module": "commonjs",
     "lib": [
       "ES2019"
     ],
@@ -13,6 +12,12 @@
     "strictNullChecks": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
-    "isolatedModules": false
-  }
+    "isolatedModules": false,
+    "outDir": "./dist",
+    "noEmit": true // non emettere file .js, la compilazione la fa google apps script
+  },
+  "exclude": [
+    "dist/**",
+    "node_modules/**"
+  ]
 }
