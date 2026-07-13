@@ -108,7 +108,7 @@ class Beneficiario {
     if (idx.residenza >= 0) sheet.getRange(newRowIdx, idx.residenza + 1).setValue(data.residenza.trim());
     if (idx.domicilio >= 0) sheet.getRange(newRowIdx, idx.domicilio + 1).setValue(data.domicilio.trim());
     if (idx.inCaricoServizi >= 0) sheet.getRange(newRowIdx, idx.inCaricoServizi + 1).setValue(data.inCaricoServizi);
-    
+
     if (idx.dataInserimento >= 0) {
       sheet.getRange(newRowIdx, idx.dataInserimento + 1).setValue(new Date());
     } else {
