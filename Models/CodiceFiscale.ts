@@ -21,7 +21,7 @@ class CodiceFiscale {
     /**
      * Mappa ufficiale delle lettere di omocodia.
      */
-    private static get _mappaOmocodia(): Record<string, number> {
+    private static get _mappaOmocodia(): Record<string, string> {
         return {
             'L': '0', 'M': '1', 'N': '2', 'P': '3', 'Q': '4',
             'R': '5', 'S': '6', 'T': '7', 'U': '8', 'V': '9'
