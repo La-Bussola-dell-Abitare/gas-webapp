@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base target="_top">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #8e001c;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --success: #10b981;
+      --success-hover: #059669;
+      --success-light: #ecfdf5;
+      --bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --focus-ring: rgba(37, 99, 235, 0.15);
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 24px 16px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Header styling */
+    .header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+      padding: 32px 24px;
+      color: white;
+      text-align: center;
+      position: relative;
+    }
+
+    .header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+      font-weight: 400;
+    }
+
+    /* Tabs Navigation */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: #fafafa;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 16px;
+      border: none;
+      background: none;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      border-bottom: 2px solid transparent;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: white;
+    }
+
+    /* Form Content */
+    .form-content {
+      padding: 32px 24px;
+    }
+
+    .tab-pane {
+      display: none;
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Grid Layout for Forms */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 640px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="date"],
+    input[type="time"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: white;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px var(--focus-ring);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    /* Autocomplete dropdown styles */
+    .autocomplete-wrapper {
+      position: relative;
+    }
+
+    .autocomplete-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      max-height: 200px;
+      overflow-y: auto;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: var(--shadow-lg);
+      z-index: 10;
+      margin-top: 4px;
+      list-style: none;
+      display: none;
+    }
+
+    .autocomplete-list li {
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .autocomplete-list li:hover {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    /* Radio buttons / Switches */
+    .radio-group {
+      display: flex;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    /* Button and Loader */
+    .btn-container {
+      margin-top: 12px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: var(--success-hover);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 16px 24px;
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: var(--shadow-lg);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast-success {
+      background: var(--success);
+    }
+
+    .toast-error {
+      background: #ef4444;
+    }
+
+    /* Icon assets */
+    .icon {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1>Sportello La Bussola dell'Abitare</h1>
+      <p>Pannello Operativooo • Registrazione Accessi & Beneficiari</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('incontro-tab')">
+        <svg class="icon" viewBox="0 0 24 24">
+          <path
+            d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" />
+        </svg>
+        Nuovo Incontro
+      </button>
+      <button class="tab-btn" onclick="switchTab('beneficiario-tab')">
+        <svg class="icon" viewBox="0 0 24 24">
+          <path
+            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+        </svg>
+        Nuovo Beneficiario
+      </button>
+    </div>
+
+    <div class="form-content">
+
+      <!-- TAB INCONTRO -->
+      <div id="incontro-tab" class="tab-pane active">
+        <form id="incontro-form" onsubmit="handleIncontroSubmit(event)">
+          <div class="form-grid">
+
+            <div class="form-group full-width autocomplete-wrapper">
+              <label for="inc-beneficiario">Beneficiario *</label>
+              <input type="text" id="inc-beneficiario" placeholder="Cerca o inserisci Nome Cognome..." required
+                autocomplete="off" oninput="filterBeneficiaries()">
+              <ul id="beneficiaries-list" class="autocomplete-list"></ul>
+            </div>
+
+            <div class="form-group">
+              <label for="inc-operatore">Operatore *</label>
+              <select id="inc-operatore" required>
+                <option value="">Seleziona Operatore...</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="inc-tipo">Tipologia Incontro *</label>
+              <select id="inc-tipo" onchange="toggleSegnalazione()" required>
+                <option value="operatore">Primo Livello (Operatore)</option>
+                <option value="assistente">Secondo Livello (Ass. Sociale)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="inc-data">Data Incontro *</label>
+              <input type="date" id="inc-data" required>
+            </div>
+
+            <div class="form-group">
+              <label for="inc-ora-inizio">Ora Inizio *</label>
+              <input type="time" id="inc-ora-inizio" required>
+            </div>
+
+            <div class="form-group">
+              <label for="inc-ora-fine">Ora Fine *</label>
+              <input type="time" id="inc-ora-fine" required>
+            </div>
+
+            <div id="segnalazione-group" class="form-group">
+              <label>Richiede Scheda di Segnalazione? *</label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" name="segnalazione" value="Sì"> Sì
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="segnalazione" value="No" checked> No
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="inc-attivita">Attività Svolta *</label>
+              <input type="text" id="inc-attivita" list="attivita-options"
+                placeholder="Es. Segretariato sociale, Colloquio conoscitivo..." required>
+              <datalist id="attivita-options">
+                <option value="Segretariato sociale">
+                <option value="Colloquio conoscitivo">
+                <option value="Supporto alloggiativo">
+                <option value="Accompagnamento servizi">
+                <option value="Orientamento al lavoro">
+                <option value="Supporto burocratico/documenti">
+              </datalist>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="inc-descrizione">Descrizione Dettagliata</label>
+              <textarea id="inc-descrizione" placeholder="Annotazioni dell'attività svolta..."></textarea>
+            </div>
+
+          </div>
+
+          <div class="btn-container">
+            <button type="submit" id="btn-submit-incontro" class="btn btn-primary">
+              <span class="spinner" id="spinner-incontro"></span>
+              Registra Incontro
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- TAB BENEFICIARIO -->
+      <div id="beneficiario-tab" class="tab-pane">
+        <form id="beneficiario-form" onsubmit="handleBeneficiarioSubmit(event)">
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label for="ben-cf">Codice Fiscale *</label>
+              <input type="text" id="ben-cf" placeholder="16 caratteri" required maxlength="16"
+                style="text-transform: uppercase;" oninput="validateAndDecodeCF()">
+            </div>
+
+            <div class="form-group">
+              <label for="ben-nome">Nome *</label>
+              <input type="text" id="ben-nome" placeholder="Inserisci Nome" required>
+            </div>
+
+            <div class="form-group">
+              <label for="ben-cognome">Cognome *</label>
+              <input type="text" id="ben-cognome" placeholder="Inserisci Cognome" required>
+            </div>
+
+            <div class="form-group">
+              <label for="ben-data-nascita">Data di Nascita *</label>
+              <input type="date" id="ben-data-nascita" required>
+            </div>
+
+            <div class="form-group">
+              <label for="ben-luogo-nascita">Luogo o Stato di Nascita *</label>
+              <input type="text" id="ben-luogo-nascita" placeholder="Comune o Stato Estero" required>
+            </div>
+
+            <div class="form-group">
+              <label for="ben-sesso">Genere *</label>
+              <select id="ben-sesso" required>
+                <option value="">Seleziona...</option>
+                <option value="M">Maschile (M)</option>
+                <option value="F">Femminile (F)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="ben-telefono">Telefono</label>
+              <input type="text" id="ben-telefono" placeholder="Es. 3401234567">
+            </div>
+
+            <div class="form-group">
+              <label for="ben-email">Email</label>
+              <input type="email" id="ben-email" placeholder="Es. mario.rossi@gmail.com">
+            </div>
+
+            <div class="form-group">
+              <label for="ben-cittadinanza">Cittadinanza *</label>
+              <input type="text" id="ben-cittadinanza" placeholder="Es. Italiana, Rumena..." required>
+            </div>
+
+            <div class="form-group">
+              <label for="ben-residenza">Residenza (Comune/Indirizzo)</label>
+              <input type="text" id="ben-residenza" placeholder="Es. Roma, via delle Cave 12">
+            </div>
+
+            <div class="form-group">
+              <label for="ben-domicilio">Domicilio</label>
+              <input type="text" id="ben-domicilio" placeholder="Es. Stesso indirizzo, o via...">
+            </div>
+
+            <div class="form-group">
+              <label for="ben-stato-lavorativo">Stato Lavorativo</label>
+              <select id="ben-stato-lavorativo">
+                <option value="">Seleziona...</option>
+                <option value="Disoccupato">Disoccupato</option>
+                <option value="Occupato">Occupato</option>
+                <option value="Pensionato">Pensionato</option>
+                <option value="In cerca di prima occupazione">In cerca di prima occupazione</option>
+                <option value="Altro">Altro</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="ben-titolo-studio">Titolo di Studio</label>
+              <select id="ben-titolo-studio">
+                <option value="">Seleziona...</option>
+                <option value="Nessuno">Nessuno</option>
+                <option value="Licenza Media">Licenza Media</option>
+                <option value="Diploma Superiore">Diploma Superiore</option>
+                <option value="Laurea">Laurea</option>
+                <option value="Altro">Altro</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="ben-servizi">In carico ai Servizi Sociali? *</label>
+              <select id="ben-servizi" required>
+                <option value="No" selected>No</option>
+                <option value="Sì">Sì</option>
+              </select>
+            </div>
+
+          </div>
+
+          <div class="btn-container">
+            <button type="submit" id="btn-submit-beneficiario" class="btn btn-success">
+              <span class="spinner" id="spinner-beneficiario"></span>
+              Aggiungi Beneficiario
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // Liste per autocompletamento caricate dal server
+    let beneficiaries = [];
+    let operators = [];
+
+    // Caricamento dati iniziali
+    window.onload = function () {
+      // Imposta data odierna
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('inc-data').value = today;
+
+      // Recupera beneficiari
+      google.script.run
+        .withSuccessHandler(function (list) {
+          beneficiaries = list;
+        })
+        .getBeneficiariesList();
+
+      // Recupera operatori
+      google.script.run
+        .withSuccessHandler(function (list) {
+          operators = list;
+          const opSelect = document.getElementById('inc-operatore');
+          list.forEach(function (op) {
+            const option = document.createElement('option');
+            option.value = op;
+            option.textContent = op;
+            opSelect.appendChild(option);
+          });
+        })
+        .getOperatorsList();
+    };
+
+    // Gestore Tab
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+
+      const eventTarget = event.currentTarget;
+      if (eventTarget) {
+        eventTarget.classList.add('active');
+      }
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    // Mostra/Nascondi opzione segnalazione
+    function toggleSegnalazione() {
+      const type = document.getElementById('inc-tipo').value;
+      const group = document.getElementById('segnalazione-group');
+      if (type === 'assistente') {
+        group.style.display = 'none';
+      } else {
+        group.style.display = 'block';
+      }
+    }
+
+    // Autocompletamento beneficiari
+    function filterBeneficiaries() {
+      const input = document.getElementById('inc-beneficiario');
+      const val = input.value.toLowerCase().trim();
+      const listContainer = document.getElementById('beneficiaries-list');
+
+      listContainer.innerHTML = '';
+
+      if (!val) {
+        listContainer.style.display = 'none';
+        return;
+      }
+
+      const filtered = beneficiaries.filter(b => b.toLowerCase().includes(val));
+
+      if (filtered.length === 0) {
+        listContainer.style.display = 'none';
+        return;
+      }
+
+      filtered.forEach(b => {
+        const li = document.createElement('li');
+        li.textContent = b;
+        li.onclick = function () {
+          input.value = b;
+          listContainer.style.display = 'none';
+        };
+        listContainer.appendChild(li);
+      });
+
+      listContainer.style.display = 'block';
+    }
+
+    // Chiudi lista autocompletamento se clicca fuori
+    document.addEventListener('click', function (e) {
+      if (e.target.id !== 'inc-beneficiario') {
+        document.getElementById('beneficiaries-list').style.display = 'none';
+      }
+    });
+
+    // Decodifica Codice Fiscale
+    function validateAndDecodeCF() {
+      const cfInput = document.getElementById('ben-cf');
+      const cf = cfInput.value.toUpperCase().trim();
+
+      if (cf.length === 16) {
+        cfInput.disabled = true; // disabilita temporaneamente per evitare input doppi
+        google.script.run
+          .withSuccessHandler(function (res) {
+            cfInput.disabled = false;
+            if (res.success) {
+              if (res.dataNascita) {
+                document.getElementById('ben-data-nascita').value = res.dataNascita;
+              }
+              if (res.luogoNascita) {
+                document.getElementById('ben-luogo-nascita').value = res.luogoNascita;
+              }
+              if (res.sesso) {
+                document.getElementById('ben-sesso').value = res.sesso;
+              }
+              showToast("Codice Fiscale decodificato correttamente", "success");
+            }
+          })
+          .withFailureHandler(function () {
+            cfInput.disabled = false;
+          })
+          .decodeCF(cf);
+      }
+    }
+
+    // Toast Notification Helper
+    function showToast(message, type) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast show toast-${type}`;
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 4000);
+    }
+
+    // Invio form Incontro
+    function handleIncontroSubmit(e) {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById('btn-submit-incontro');
+      const spinner = document.getElementById('spinner-incontro');
+
+      submitBtn.disabled = true;
+      spinner.style.display = 'inline-block';
+
+      const data = {
+        beneficiario: document.getElementById('inc-beneficiario').value,
+        operatore: document.getElementById('inc-operatore').value,
+        tipoIncontro: document.getElementById('inc-tipo').value,
+        data: document.getElementById('inc-data').value,
+        oraInizio: document.getElementById('inc-ora-inizio').value,
+        oraFine: document.getElementById('inc-ora-fine').value,
+        attivita: document.getElementById('inc-attivita').value,
+        descrizione: document.getElementById('inc-descrizione').value,
+        segnalazione: document.querySelector('input[name="segnalazione"]:checked')?.value || "No"
+      };
+
+      google.script.run
+        .withSuccessHandler(function (response) {
+          submitBtn.disabled = false;
+          spinner.style.display = 'none';
+
+          if (response.success) {
+            showToast(response.message, "success");
+            document.getElementById('incontro-form').reset();
+            // Reimposta data odierna
+            document.getElementById('inc-data').value = new Date().toISOString().split('T')[0];
+          } else {
+            showToast("Errore: " + response.message, "error");
+          }
+        })
+        .withFailureHandler(function (err) {
+          submitBtn.disabled = false;
+          spinner.style.display = 'none';
+          showToast("Errore di rete: " + err.message, "error");
+        })
+        .submitMeeting(data);
+    }
+
+    // Invio form Beneficiario
+    function handleBeneficiarioSubmit(e) {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById('btn-submit-beneficiario');
+      const spinner = document.getElementById('spinner-beneficiario');
+
+      submitBtn.disabled = true;
+      spinner.style.display = 'inline-block';
+
+      const data = {
+        cf: document.getElementById('ben-cf').value,
+        nome: document.getElementById('ben-nome').value,
+        cognome: document.getElementById('ben-cognome').value,
+        dataNascita: document.getElementById('ben-data-nascita').value,
+        luogoNascita: document.getElementById('ben-luogo-nascita').value,
+        sesso: document.getElementById('ben-sesso').value,
+        telefono: document.getElementById('ben-telefono').value,
+        email: document.getElementById('ben-email').value,
+        cittadinanza: document.getElementById('ben-cittadinanza').value,
+        residenza: document.getElementById('ben-residenza').value,
+        domicilio: document.getElementById('ben-domicilio').value,
+        statoLavorativo: document.getElementById('ben-stato-lavorativo').value,
+        titoloStudio: document.getElementById('ben-titolo-studio').value,
+        inCaricoServizi: document.getElementById('ben-servizi').value
+      };
+
+      google.script.run
+        .withSuccessHandler(function (response) {
+          submitBtn.disabled = false;
+          spinner.style.display = 'none';
+
+          if (response.success) {
+            showToast(response.message, "success");
+
+            // Aggiungi alla lista beneficiari locale
+            let fullName = (data.nome.trim() + " " + data.cognome.trim());
+            const cfUpper = data.cf ? data.cf.toUpperCase().trim() : "";
+            if (cfUpper) {
+              fullName += " (" + cfUpper + ")";
+            }
+            if (beneficiaries.indexOf(fullName) === -1) {
+              beneficiaries.push(fullName);
+              beneficiaries.sort();
+            }
+
+            document.getElementById('beneficiario-form').reset();
+          } else {
+            showToast("Errore: " + response.message, "error");
+          }
+        })
+        .withFailureHandler(function (err) {
+          submitBtn.disabled = false;
+          spinner.style.display = 'none';
+          showToast("Errore di rete: " + err.message, "error");
+        })
+        .submitBeneficiary(data);
+    }
+  </script>
+</body>
+
+</html>
