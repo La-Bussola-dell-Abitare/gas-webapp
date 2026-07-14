@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2019",
+    "lib": [
+      "ES2019"
+    ],
+    "types": [
+      "google-apps-script"
+    ],
+    "strict": true,
+    "noImplicitAny": false,
+    "strictNullChecks": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "isolatedModules": false,
+    "rootDir": "./src",
+    "outDir": "./dist",
+    //    "noEmit": true // non emettere file .js, la compilazione la fa google apps script
+  },
+  "include": [
+    "src/**/*" // <--- DICE A TS DI COMPILARE SOLO QUELLO CHE C'È IN SRC
+  ],
+  "exclude": [
+    "dist/**",
+    "node_modules/**"
+  ]
+}
