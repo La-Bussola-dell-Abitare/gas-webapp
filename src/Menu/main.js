@@ -3,7 +3,7 @@ function onOpen() {
         .addItem("Apri Sportello (Web App)", "showWebAppSidebar")
         .addSubMenu(ui.createMenu("Beneficiari")
             .addItem("Aggiungi nucleo familiare", "Beneficiario.add")
-            .addItem("Modifica nucleo familiare", "")
+            .addItem("Modifica nucleo familiare", "showWebAppSidebar")
         )
         .addSubMenu(ui.createMenu('Incontri')
             .addItem("Nuovo incontro", "showWebAppSidebar")

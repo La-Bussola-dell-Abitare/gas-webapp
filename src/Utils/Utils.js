@@ -1,9 +1,9 @@
 function titleCase(str) {
-    return str
-        .toLowerCase()
-        .split(" ")
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
+  return str
+    .toLowerCase()
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 /**
@@ -13,34 +13,37 @@ function titleCase(str) {
  * @customfunction
  */
 function TITLECASE(str) {
-    try {
-        return titleCase(str);
-    } catch (e) {
-        return "Errore";
-    }
+  try {
+    return titleCase(str);
+  } catch (e) {
+    return "Errore";
+  }
 }
 
 /**
  * Trova l'indice di una colonna basandosi sui possibili nomi dell'intestazione (case-insensitive).
  */
 function findHeaderIndex(headers, keys) {
-    for (let i = 0; i < headers.length; i++) {
-        const h = headers[i].toLowerCase();
-        for (let j = 0; j < keys.length; j++) {
-            if (h.indexOf(keys[j].toLowerCase()) !== -1) {
-                return i;
-            }
-        }
+  // Convertiamo tutte le chiavi in minuscolo per il confronto
+  const lowerKeys = keys.map(k => k.toLowerCase().trim());
+
+  for (let i = 0; i < headers.length; i++) {
+    const header = headers[i].toString().toLowerCase().trim();
+
+    // Controlla se l'header esatto è presente nell'elenco delle chiavi accettate
+    if (lowerKeys.includes(header)) {
+      return i;
     }
-    return -1;
+  }
+  return -1; // Non trovato
 }
 
 /**
  * Converte in sicurezza un valore in stringa rimuovendo gli spazi.
  */
 function safeString(val) {
-    if (val === null || val === undefined) return "";
-    return val.toString().trim();
+  if (val === null || val === undefined) return "";
+  return val.toString().trim();
 }
 
 /**
@@ -52,6 +55,6 @@ function safeString(val) {
  * @returns {*} Il valore della cella o il fallback.
  */
 function getSheetVal(row, idx, key, fallback = "") {
-    const index = idx[key];
-    return (index >= 0 && index < row.length) ? safeString(row[index]) : fallback;
+  const index = idx[key];
+  return (index >= 0 && index < row.length) ? safeString(row[index]) : fallback;
 }

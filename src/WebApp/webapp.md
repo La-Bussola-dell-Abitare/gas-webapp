@@ -1,6 +1,13 @@
 # Tecnologie
 Bootstrap
 
+
+# Funzionamento
+All'accesso deve leggere i dati dei fogli google e salvarli in oggetti JS.
+Ogni volta che si fa una modifica a un oggetto, deve aggiornare anche i fogli google.
+Non deve manipolare direttamente i fogli google.
+Gli oggetti devono essere sempre sincronizzati con i fogli google.
+
 # Funzionalità
 ## Beneficiari
 - Aggiungere nucleo familiare
@@ -19,5 +26,6 @@ Bootstrap
 - Generare diario giornaliero (dato giorno)
 - Generare monitoraggio ufficiale da zero
 - Aggiungere riga a monitoraggio ufficiale
+- Visualizzare e filtrare documenti
 ## Appuntamenti
 - Aggiungere appuntamento

@@ -1,7 +1,7 @@
 ## Naming convention
 
 Il nome del foglio deve essere nel formato:  
-"Foglio Firme individuale AAAA/MM - Nome Beneficiario ( Nome Operatore)"
+"Foglio Firme individuale AAAA/MM - Nome Beneficiario (Nome Operatore)"
 ad esempio:
 
 * "Foglio Firme individuale 2026/01 - Mario Rossi (Lorenzo Mazza)"

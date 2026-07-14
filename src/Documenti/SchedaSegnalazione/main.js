@@ -1,7 +1,7 @@
 function testCreaDocumento() {
     const templateId = "1d8lSB1b40QGmZ5yC7ILh7fljzUHuqpllZnDjA0URnx0";
     const folderId = "1RJ_GC2VpCN8tBwsa48jV6sWo6szrqYRs";
-    const nomeDocumento = "Scheda Beneficiario - Mario Rossi";
+    const nomeDocumento = "Scheda Segnalazione - Mario Rossi";
 
     const dati = {
         //        operatore_nome: "Lorenzo Mazza",
