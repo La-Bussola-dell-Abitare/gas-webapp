@@ -1,17 +1,9 @@
 /**
- * @typedef {Object} OperatoreData
- * @property {string} name - Nome dell'operatore.
- * @property {string} surname - Cognome dell'operatore.
- * @property {Date | null} birthDate - Data di nascita.
- * @property {City} birthPlace - Il comune o la nazione di nascita.
- * @property {CodiceFiscale} taxCode - Il codice fiscale dell'operatore.
- * @property {string | null} [email=null] - L'indirizzo email.
- * @property {string | null} [phone=null] - Il numero di telefono.
- * @property {Citizenship} [citizenship=null] - La cittadinanza.
- * @property {string | null} [signatureFileId=null] - L'ID del file della firma.
- * @property {string} [operatore] - Nome utente o codice identificativo dell'operatore.
- * @property {string} [qualifica] - Qualifica professionale.
- * @property {string} [ruolo] - Ruolo interno.
+ * @typedef {PersonData & {
+ *   operatore?: string;
+ *   qualifica?: string;
+ *   ruolo?: string;
+ * }} OperatoreData
  */
 
 /**

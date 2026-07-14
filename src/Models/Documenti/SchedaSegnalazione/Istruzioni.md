@@ -1,6 +1,6 @@
 ## Naming convention
 
-Il nome del foglio deve essere nel formato:  
+Il nome del foglio deve essere nel formato:
 "Scheda segnalazione Numero Nucleo Familiare (Nome Cognome Intestatario) <- Nome Inviante"
 ad esempio:
 
