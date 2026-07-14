@@ -1,6 +1,12 @@
-/* Invece che variabili globali che vengono eseguite ad ogni funzione chiamata, uso dei getter copiando da https://stackoverflow.com/questions/70056310/avoid-repeating-use-global-variables-in-google-apps-script-or-not */
-
-const addGetter_ = (name, value, obj = this) => {
+/**
+ * Definisce un getter lazy-loaded per una proprietà dell'oggetto di destinazione.
+ * @private
+ * @param {string} name - Il nome della proprietà.
+ * @param {function(): *} value - La funzione che restituisce il valore.
+ * @param {Object} [obj=globalThis] - L'oggetto a cui aggiungere la proprietà.
+ * @return {Object} L'oggetto di destinazione modificato.
+ */
+const addGetter_ = (name, value, obj = globalThis) => {
     Object.defineProperty(obj, name, {
         enumerable: true,
         configurable: true,
@@ -11,15 +17,16 @@ const addGetter_ = (name, value, obj = this) => {
     });
     return obj;
 };
+
+// Registrazione dei getter globali lazy-loaded comuni
 [
     ['ss', () => SpreadsheetApp.getActiveSpreadsheet()],
     ['allSheets', () => ss.getSheets()],
     ['activeSheet', () => ss.getActiveSheet()],
-    ['today', () => Utilities.formatDate(new Date(), this.ss.getSpreadsheetTimeZone(), "dd/MM/yyyy")],
+    ['today', () => Utilities.formatDate(new Date(), globalThis.ss.getSpreadsheetTimeZone(), "dd/MM/yyyy")],
     ['ui', () => SpreadsheetApp.getUi()],
     ['timezone', () => Session.getScriptTimeZone()],
     ['scriptProperties', () => PropertiesService.getScriptProperties()],
     ['documentProperties', () => PropertiesService.getDocumentProperties()],
     ['userProperties', () => PropertiesService.getUserProperties()],
 ].forEach(([n, v]) => addGetter_(n, v));
-

@@ -297,6 +297,24 @@ class CodiceFiscale {
     getBirthplaceCountry() {
         return CodiceFiscale.getBirthplaceCountry(this.originale);
     }
+
+    /**
+     * Alias per retrocompatibilità con vecchie chiamate.
+     * @deprecated Usare getBirthdate()
+     * @return {Date}
+     */
+    getDataNascita() {
+        return this.getBirthdate();
+    }
+
+    /**
+     * Alias per retrocompatibilità con vecchie chiamate.
+     * @deprecated Usare getBirthplace()
+     * @return {string}
+     */
+    getLuogoNascita() {
+        return this.getBirthplace();
+    }
 }
 
 // =========================================================================

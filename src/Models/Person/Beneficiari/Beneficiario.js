@@ -1,10 +1,23 @@
 /**
+ * @typedef {Object} BeneficiarioDocuments
+ * @property {string} [cartaIdentita] - Tipo di carta d'identità ("Non posseduto", "cartacea", "elettronica").
+ * @property {boolean} [passaporto] - Possesso passaporto.
+ * @property {boolean} [patente] - Possesso patente.
+ * @property {boolean} [permessoSoggiorno] - Possesso permesso di soggiorno.
+ * @property {boolean} [tesseraSanitaria] - Possesso tessera sanitaria.
+ */
+
+/**
  * @typedef {PersonData & {
  *   statoLavorativo?: string;
  *   titoloStudio?: string;
  *   residenza?: string;
  *   domicilio?: string;
  *   inCaricoServizi?: string;
+ *   rapportoIntestatario?: string;
+ *   statoCivile?: string;
+ *   annoArrivo?: number | null;
+ *   documents?: BeneficiarioDocuments;
  * }} BeneficiarioData
  */
 
@@ -24,7 +37,28 @@ class Beneficiario extends Person {
     this.residenza = data.residenza || "";
     this.domicilio = data.domicilio || "";
     this.inCaricoServizi = data.inCaricoServizi || "";
+    this.rapportoIntestatario = data.rapportoIntestatario || "";
+    this.statoCivile = data.statoCivile || "";
+    this.annoArrivo = data.annoArrivo || null;
+
+    /** @type {BeneficiarioDocuments} */
+    this.documents = {
+      cartaIdentita: data.documents?.cartaIdentita || "Non posseduto",
+      passaporto: !!data.documents?.passaporto,
+      patente: !!data.documents?.patente,
+      permessoSoggiorno: !!data.documents?.permessoSoggiorno,
+      tesseraSanitaria: !!data.documents?.tesseraSanitaria
+    };
   }
+
+  // =========================================================================
+  // GETTER ALIAS PER RETROCOMPATIBILITÀ DOCUMENTI
+  // =========================================================================
+  get cartaIdentita() { return this.documents.cartaIdentita; }
+  get passaporto() { return this.documents.passaporto; }
+  get patente() { return this.documents.patente; }
+  get permessoSoggiorno() { return this.documents.permessoSoggiorno; }
+  get tesseraSanitaria() { return this.documents.tesseraSanitaria; }
 
   /**
    * Factory statico per creare un'istanza di Beneficiario da una riga del foglio ed indici.
@@ -35,17 +69,25 @@ class Beneficiario extends Person {
   static fromRow(row, idx) {
     const nomeVal = getSheetVal(row, idx, "nome", "");
     const cognomeVal = getSheetVal(row, idx, "cognome", "");
-    const cfVal = getSheetVal(row, idx, "codice fiscale", "");
-    const dataNascitaVal = getSheetVal(row, idx, "data di nascita", null);
-    const luogoNascitaVal = getSheetVal(row, idx, "luogo di nascita", "");
+    const cfVal = getSheetVal(row, idx, "cf", "");
+    const dataNascitaVal = getSheetVal(row, idx, "dataNascita", null);
+    const luogoNascitaVal = getSheetVal(row, idx, "luogoNascita", "");
     const emailVal = getSheetVal(row, idx, "email", "");
     const telefonoVal = getSheetVal(row, idx, "telefono", "");
-    const statoLavorativoVal = getSheetVal(row, idx, "stato lavorativo", "");
-    const titoloStudioVal = getSheetVal(row, idx, "titolo di studio", "");
+    const statoLavorativoVal = getSheetVal(row, idx, "statoLavorativo", "");
+    const titoloStudioVal = getSheetVal(row, idx, "titoloStudio", "");
     const cittadinanzaVal = getSheetVal(row, idx, "cittadinanza", "");
     const residenzaVal = getSheetVal(row, idx, "residenza", "");
     const domicilioVal = getSheetVal(row, idx, "domicilio", "");
-    const inCaricoServiziVal = getSheetVal(row, idx, "in carico ai servizi", "");
+    const inCaricoServiziVal = getSheetVal(row, idx, "inCaricoServizi", "");
+    const rapportoIntestatarioVal = getSheetVal(row, idx, "rapportoIntestatario", "");
+    const cartaIdentitaVal = getSheetVal(row, idx, "cartaIdentita", "");
+    const passaportoVal = getSheetVal(row, idx, "passaporto", false);
+    const patenteVal = getSheetVal(row, idx, "patente", false);
+    const permessoSoggiornoVal = getSheetVal(row, idx, "permessoSoggiorno", false);
+    const tesseraSanitariaVal = getSheetVal(row, idx, "tesseraSanitaria", false);
+    const statoCivileVal = getSheetVal(row, idx, "statoCivile", "");
+    const annoArrivoVal = getSheetVal(row, idx, "annoArrivo", null);
 
     const birthPlaceCity = new City(luogoNascitaVal);
     
@@ -72,7 +114,15 @@ class Beneficiario extends Person {
       titoloStudio: titoloStudioVal,
       residenza: residenzaVal,
       domicilio: domicilioVal,
-      inCaricoServizi: inCaricoServiziVal
+      inCaricoServizi: inCaricoServiziVal,
+      rapportoIntestatario: rapportoIntestatarioVal,
+      cartaIdentita: cartaIdentitaVal,
+      passaporto: passaportoVal,
+      patente: patenteVal,
+      permessoSoggiorno: permessoSoggiornoVal,
+      tesseraSanitaria: tesseraSanitariaVal,
+      statoCivile: statoCivileVal,
+      annoArrivo: annoArrivoVal ? parseInt(annoArrivoVal, 10) : null
     });
   }
 
@@ -170,6 +220,29 @@ class BeneficiarioRepository {
     if (idx.residenza >= 0) sheet.getRange(newRowIdx, idx.residenza + 1).setValue(data.residenza.trim());
     if (idx.domicilio >= 0) sheet.getRange(newRowIdx, idx.domicilio + 1).setValue(data.domicilio.trim());
     if (idx.inCaricoServizi >= 0) sheet.getRange(newRowIdx, idx.inCaricoServizi + 1).setValue(data.inCaricoServizi);
+    if (idx.rapportoIntestatario >= 0) sheet.getRange(newRowIdx, idx.rapportoIntestatario + 1).setValue(data.rapportoIntestatario || "");
+    if (idx.cartaIdentita >= 0) {
+      const val = data.documents?.cartaIdentita || data.cartaIdentita || "Non posseduto";
+      sheet.getRange(newRowIdx, idx.cartaIdentita + 1).setValue(val);
+    }
+    if (idx.passaporto >= 0) {
+      const val = data.documents?.passaporto !== undefined ? data.documents.passaporto : data.passaporto;
+      sheet.getRange(newRowIdx, idx.passaporto + 1).setValue(val ? true : false);
+    }
+    if (idx.patente >= 0) {
+      const val = data.documents?.patente !== undefined ? data.documents.patente : data.patente;
+      sheet.getRange(newRowIdx, idx.patente + 1).setValue(val ? true : false);
+    }
+    if (idx.permessoSoggiorno >= 0) {
+      const val = data.documents?.permessoSoggiorno !== undefined ? data.documents.permessoSoggiorno : data.permessoSoggiorno;
+      sheet.getRange(newRowIdx, idx.permessoSoggiorno + 1).setValue(val ? true : false);
+    }
+    if (idx.tesseraSanitaria >= 0) {
+      const val = data.documents?.tesseraSanitaria !== undefined ? data.documents.tesseraSanitaria : data.tesseraSanitaria;
+      sheet.getRange(newRowIdx, idx.tesseraSanitaria + 1).setValue(val ? true : false);
+    }
+    if (idx.statoCivile >= 0) sheet.getRange(newRowIdx, idx.statoCivile + 1).setValue(data.statoCivile || "");
+    if (idx.annoArrivo >= 0) sheet.getRange(newRowIdx, idx.annoArrivo + 1).setValue(data.annoArrivo || "");
 
     if (idx.dataInserimento >= 0) {
       sheet.getRange(newRowIdx, idx.dataInserimento + 1).setValue(new Date());
@@ -210,6 +283,14 @@ class BeneficiarioRepository {
       residenza: findHeaderIndex(headers, ["residenza"]),
       domicilio: findHeaderIndex(headers, ["domicilio"]),
       inCaricoServizi: findHeaderIndex(headers, ["in carico ai servizi", "in carico", "servizi"]),
+      rapportoIntestatario: findHeaderIndex(headers, ["rapporto con intestatario del nucleo familiare", "rapporto intestatario", "rapporto"]),
+      cartaIdentita: findHeaderIndex(headers, ["carta identità", "carta d'identità", "ci"]),
+      passaporto: findHeaderIndex(headers, ["passaporto"]),
+      patente: findHeaderIndex(headers, ["patente"]),
+      permessoSoggiorno: findHeaderIndex(headers, ["permesso di soggiorno", "permesso soggiorno"]),
+      tesseraSanitaria: findHeaderIndex(headers, ["tessera sanitaria"]),
+      statoCivile: findHeaderIndex(headers, ["stato civile"]),
+      annoArrivo: findHeaderIndex(headers, ["anno arrivo in italia", "anno arrivo", "arrivo italia"]),
       dataInserimento: findHeaderIndex(headers, ["data inserimento", "data di inserimento", "inserimento"])
     };
   }

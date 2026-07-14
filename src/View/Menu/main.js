@@ -24,7 +24,7 @@ function onOpen() {
  * Mostra la Web App dello sportello all'interno della barra laterale di Google Sheets.
  */
 function showWebAppSidebar() {
-    const html = HtmlService.createTemplateFromFile("WebApp/Frontend")
+    const html = HtmlService.createTemplateFromFile("View/WebApp/Frontend")
         .evaluate()
         .setTitle("Sportello - Bussola dell'Abitare");
     SpreadsheetApp.getUi().showSidebar(html);

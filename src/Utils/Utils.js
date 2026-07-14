@@ -1,3 +1,8 @@
+/**
+ * Converte una stringa in Title Case (iniziali maiuscole).
+ * @param {string} str - La stringa da convertire.
+ * @return {string}
+ */
 function titleCase(str) {
   return str
     .toLowerCase()
@@ -22,24 +27,26 @@ function TITLECASE(str) {
 
 /**
  * Trova l'indice di una colonna basandosi sui possibili nomi dell'intestazione (case-insensitive).
+ * @param {string[]} headers - Array di intestazioni del foglio.
+ * @param {string[]} keys - Array di nomi possibili per la colonna.
+ * @return {number} Indice della colonna (0-based) o -1 se non trovata.
  */
 function findHeaderIndex(headers, keys) {
-  // Convertiamo tutte le chiavi in minuscolo per il confronto
   const lowerKeys = keys.map(k => k.toLowerCase().trim());
 
   for (let i = 0; i < headers.length; i++) {
     const header = headers[i].toString().toLowerCase().trim();
-
-    // Controlla se l'header esatto è presente nell'elenco delle chiavi accettate
     if (lowerKeys.includes(header)) {
       return i;
     }
   }
-  return -1; // Non trovato
+  return -1;
 }
 
 /**
  * Converte in sicurezza un valore in stringa rimuovendo gli spazi.
+ * @param {*} val - Il valore da convertire.
+ * @return {string}
  */
 function safeString(val) {
   if (val === null || val === undefined) return "";
@@ -48,11 +55,11 @@ function safeString(val) {
 
 /**
  * Estrae in sicurezza un valore da una riga del foglio basandosi sulla mappa degli indici.
- * @param {Array} row - La riga del foglio (array di celle).
- * @param {Object} idx - L'oggetto con la mappatura delle colonne ({nome: 0, email: 1}).
+ * @param {any[]} row - La riga del foglio (array di celle).
+ * @param {Record<string, number>} idx - L'oggetto con la mappatura delle colonne.
  * @param {string} key - La chiave da cercare nell'indice.
- * @param {*} fallback - Il valore di ritorno se la colonna non esiste o è vuota.
- * @returns {*} Il valore della cella o il fallback.
+ * @param {*} [fallback=""] - Il valore di ritorno se la colonna non esiste o è vuota.
+ * @return {*} Il valore della cella o il fallback.
  */
 function getSheetVal(row, idx, key, fallback = "") {
   const index = idx[key];

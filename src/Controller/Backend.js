@@ -19,13 +19,6 @@ function doGet(e) {
 }
 
 /**
- * Recupera i beneficiari dal foglio e li trasforma in un array di oggetti JS.
- */
-function getBeneficiariObjects() {
-  return Beneficiario.getAll();
-}
-
-/**
  * Ottiene la lista dei beneficiari registrati per l'autocompletamento.
  * Ritorna un array di stringhe "Nome Cognome (Codice Fiscale)" ordinate alfabeticamente.
  */
