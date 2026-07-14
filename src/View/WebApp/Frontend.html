@@ -3,208 +3,101 @@
 
 <head>
   <base target="_top">
+  <!-- Bootstrap 5 CSS via CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --primary: #8e001c;
+      --primary: #1e3a8a;
       --primary-hover: #1d4ed8;
       --primary-light: #eff6ff;
+      --accent: #8e001c;
       --success: #10b981;
-      --success-hover: #059669;
-      --success-light: #ecfdf5;
-      --bg: #f5f7fa;
+      --bg: #f8fafc;
       --card-bg: #ffffff;
       --text: #0f172a;
       --text-muted: #64748b;
       --border: #e2e8f0;
-      --focus-ring: rgba(37, 99, 235, 0.15);
+      --focus-ring: rgba(30, 58, 138, 0.15);
       --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
       --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
       --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
     }
 
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.5;
-      padding: 24px 16px;
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
     }
 
-    .container {
-      width: 100%;
-      max-width: 800px;
-      background: var(--card-bg);
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-lg);
-      overflow: hidden;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    /* Header styling */
-    .header {
-      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-      padding: 32px 24px;
+    /* Layout structure */
+    .sidebar {
+      background: linear-gradient(180deg, #1e3a8a 0%, #0f172a 100%);
       color: white;
-      text-align: center;
-      position: relative;
+      min-height: 100vh;
+      box-shadow: var(--shadow-lg);
     }
 
-    .header h1 {
-      font-family: 'Outfit', sans-serif;
-      font-size: 24px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 14px;
-      opacity: 0.9;
-      font-weight: 400;
-    }
-
-    /* Tabs Navigation */
-    .tabs {
-      display: flex;
-      border-bottom: 1px solid var(--border);
-      background: #fafafa;
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: 16px;
-      border: none;
-      background: none;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-muted);
-      cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s ease;
-      border-bottom: 2px solid transparent;
-    }
-
-    .tab-btn:hover {
-      color: var(--text);
-      background: rgba(0, 0, 0, 0.02);
-    }
-
-    .tab-btn.active {
-      color: var(--primary);
-      border-bottom-color: var(--primary);
-      background: white;
-    }
-
-    /* Form Content */
-    .form-content {
-      padding: 32px 24px;
-    }
-
-    .tab-pane {
-      display: none;
-      animation: fadeIn 0.4s ease-out forwards;
-    }
-
-    .tab-pane.active {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(8px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Grid Layout for Forms */
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-
-    @media (max-width: 640px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-      position: relative;
-    }
-
-    .form-group.full-width {
-      grid-column: 1 / -1;
-    }
-
-    label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-
-    input[type="text"],
-    input[type="email"],
-    input[type="date"],
-    input[type="time"],
-    select,
-    textarea {
-      width: 100%;
-      padding: 12px 14px;
+    .sidebar .nav-link {
+      color: rgba(255, 255, 255, 0.75);
+      font-weight: 500;
       border-radius: 8px;
-      border: 1px solid var(--border);
-      background: white;
-      font-family: inherit;
-      font-size: 14px;
-      color: var(--text);
+      margin: 4px 0;
+      padding: 12px 16px;
       transition: all 0.2s ease;
-      outline: none;
     }
 
-    input:focus,
-    select:focus,
-    textarea:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 4px var(--focus-ring);
+    .sidebar .nav-link:hover {
+      color: white;
+      background: rgba(255, 255, 255, 0.1);
     }
 
-    textarea {
-      resize: vertical;
-      min-height: 100px;
+    .sidebar .nav-link.active {
+      color: white;
+      background: var(--accent);
+      box-shadow: var(--shadow-md);
     }
 
-    /* Autocomplete dropdown styles */
-    .autocomplete-wrapper {
-      position: relative;
+    .header-dashboard {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-dashboard h1 {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 24px;
+      color: var(--primary);
+    }
+
+    .content-area {
+      padding: 32px;
+    }
+
+    .card-custom {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow-md);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card-custom:hover {
+      box-shadow: var(--shadow-lg);
+    }
+
+    .card-header-custom {
+      background: #fafafa;
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+      font-weight: 600;
+      font-family: 'Outfit', sans-serif;
     }
 
     .autocomplete-list {
@@ -219,8 +112,9 @@
       border-radius: 8px;
       box-shadow: var(--shadow-lg);
       z-index: 10;
-      margin-top: 4px;
       list-style: none;
+      padding: 0;
+      margin: 4px 0 0 0;
       display: none;
     }
 
@@ -236,399 +130,801 @@
       color: var(--primary);
     }
 
-    /* Radio buttons / Switches */
-    .radio-group {
-      display: flex;
-      gap: 16px;
-      margin-top: 8px;
-    }
-
-    .radio-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text);
-      cursor: pointer;
-    }
-
-    /* Button and Loader */
-    .btn-container {
-      margin-top: 12px;
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    .btn {
-      padding: 12px 24px;
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 600;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s ease;
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: var(--primary-hover);
-    }
-
-    .btn-success {
-      background: var(--success);
-      color: white;
-    }
-
-    .btn-success:hover {
-      background: var(--success-hover);
-    }
-
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: white;
-      animation: spin 0.8s linear infinite;
-      display: none;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
     /* Toast Notification */
-    .toast {
+    .toast-container-custom {
       position: fixed;
       bottom: 24px;
       right: 24px;
-      padding: 16px 24px;
-      border-radius: 8px;
-      color: white;
-      font-size: 14px;
-      font-weight: 600;
-      box-shadow: var(--shadow-lg);
-      transform: translateY(100px);
-      opacity: 0;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      z-index: 1050;
     }
 
-    .toast.show {
-      transform: translateY(0);
-      opacity: 1;
-    }
-
-    .toast-success {
-      background: var(--success);
-    }
-
-    .toast-error {
-      background: #ef4444;
-    }
-
-    /* Icon assets */
-    .icon {
-      width: 18px;
-      height: 18px;
-      fill: currentColor;
+    .spinner-border-sm {
+      width: 1rem;
+      height: 1rem;
+      border-width: 0.15em;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="container">
-    <div class="header">
-      <h1>Sportello La Bussola dell'Abitare</h1>
-      <p>Pannello Operativooo • Registrazione Accessi & Beneficiari</p>
-    </div>
+  <div class="container-fluid">
+    <div class="row">
+      <!-- SIDEBAR -->
+      <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse p-3">
+        <div class="d-flex align-items-center mb-4 px-2">
+          <svg class="me-2" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          <span class="fs-5 fw-bold font-outfit" style="letter-spacing: -0.5px;">Bussola Abitativa</span>
+        </div>
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link active" href="#" id="menu-incontri" onclick="showTab('tab-incontri')">
+              Incontri & Visite
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" id="menu-nuclei" onclick="showTab('tab-nuclei')">
+              Nuclei & Persone
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" id="menu-documenti" onclick="showTab('tab-documenti')">
+              Documenti & Stampa
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" id="menu-appuntamenti" onclick="showTab('tab-appuntamenti')">
+              Appuntamenti
+            </a>
+          </li>
+        </ul>
+        <hr class="text-white-50">
+        <div class="px-2 small text-white-50">
+          Versione MVC 2.1
+        </div>
+      </nav>
 
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('incontro-tab')">
-        <svg class="icon" viewBox="0 0 24 24">
-          <path
-            d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" />
-        </svg>
-        Nuovo Incontro
-      </button>
-      <button class="tab-btn" onclick="switchTab('beneficiario-tab')">
-        <svg class="icon" viewBox="0 0 24 24">
-          <path
-            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-        </svg>
-        Nuovo Beneficiario
-      </button>
-    </div>
+      <!-- MAIN CONTENT -->
+      <main class="col-md-9 ms-sm-auto col-lg-10 p-0">
+        <!-- HEADER -->
+        <div class="header-dashboard d-flex justify-content-between align-items-center">
+          <div>
+            <h1>Sportello Sociale - La Bussola dell'Abitare</h1>
+            <p class="text-muted m-0 small">Municipio XI • Gestione Operativa Web App</p>
+          </div>
+          <div>
+            <button class="btn btn-outline-primary btn-sm" onclick="reloadData()">
+              Sincronizza Dati
+            </button>
+          </div>
+        </div>
 
-    <div class="form-content">
+        <div class="content-area">
 
-      <!-- TAB INCONTRO -->
-      <div id="incontro-tab" class="tab-pane active">
-        <form id="incontro-form" onsubmit="handleIncontroSubmit(event)">
-          <div class="form-grid">
+          <!-- ========================================================================= -->
+          <!-- TAB 1: INCONTRI & VISITE -->
+          <!-- ========================================================================= -->
+          <div id="tab-incontri" class="tab-pane-custom">
+            <div class="row g-4">
+              <!-- Aggiungi Incontro Form -->
+              <div class="col-xl-4">
+                <div class="card card-custom">
+                  <div class="card-header card-header-custom">Registra Nuovo Incontro</div>
+                  <div class="card-body">
+                    <form id="incontro-form" onsubmit="handleIncontroSubmit(event)">
+                      <input type="hidden" id="inc-edit-id">
+                      <div class="mb-3 position-relative">
+                        <label class="form-label font-outfit small">Beneficiario *</label>
+                        <input type="text" class="form-control" id="inc-beneficiario" placeholder="Digita Nome..." required autocomplete="off" oninput="filterBeneficiaries('inc-beneficiario', 'inc-benef-list')">
+                        <ul id="inc-benef-list" class="autocomplete-list"></ul>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label font-outfit small">Operatore *</label>
+                        <select class="form-select" id="inc-operatore" required>
+                          <option value="">Seleziona...</option>
+                        </select>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label font-outfit small">Tipologia Incontro *</label>
+                        <select class="form-select" id="inc-tipo" onchange="toggleSegnalazioneUI()" required>
+                          <option value="operatore">Primo Livello (Operatore)</option>
+                          <option value="assistente">Secondo Livello (Ass. Sociale)</option>
+                        </select>
+                      </div>
+                      <div class="row g-2">
+                        <div class="col-md-6 mb-3">
+                          <label class="form-label font-outfit small">Data Incontro *</label>
+                          <input type="date" class="form-control" id="inc-data" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                          <label class="form-label font-outfit small">Inizio *</label>
+                          <input type="time" class="form-control" id="inc-ora-inizio" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                          <label class="form-label font-outfit small">Fine *</label>
+                          <input type="time" class="form-control" id="inc-ora-fine" required>
+                        </div>
+                      </div>
+                      <div id="inc-segnalazione-group" class="mb-3">
+                        <label class="form-label font-outfit small d-block">Richiede Segnalazione?</label>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="segnalazione" value="Sì">
+                          <label class="form-check-label">Sì</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="segnalazione" value="No" checked>
+                          <label class="form-check-label">No</label>
+                        </div>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label font-outfit small">Attività Svolta *</label>
+                        <input type="text" class="form-control" id="inc-attivita" list="list-attivita" required>
+                        <datalist id="list-attivita">
+                          <option value="Segretariato sociale">
+                          <option value="Colloquio conoscitivo">
+                          <option value="Supporto alloggiativo">
+                          <option value="Accompagnamento servizi">
+                          <option value="Orientamento al lavoro">
+                        </datalist>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label font-outfit small">Descrizione Dettagliata</label>
+                        <textarea class="form-control" id="inc-descrizione" rows="3" placeholder="Annotazioni..."></textarea>
+                      </div>
+                      <button type="submit" class="btn btn-primary w-100" id="btn-inc-submit">
+                        <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-incontro"></span>
+                        Registra Incontro
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
 
-            <div class="form-group full-width autocomplete-wrapper">
-              <label for="inc-beneficiario">Beneficiario *</label>
-              <input type="text" id="inc-beneficiario" placeholder="Cerca o inserisci Nome Cognome..." required
-                autocomplete="off" oninput="filterBeneficiaries()">
-              <ul id="beneficiaries-list" class="autocomplete-list"></ul>
-            </div>
-
-            <div class="form-group">
-              <label for="inc-operatore">Operatore *</label>
-              <select id="inc-operatore" required>
-                <option value="">Seleziona Operatore...</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="inc-tipo">Tipologia Incontro *</label>
-              <select id="inc-tipo" onchange="toggleSegnalazione()" required>
-                <option value="operatore">Primo Livello (Operatore)</option>
-                <option value="assistente">Secondo Livello (Ass. Sociale)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="inc-data">Data Incontro *</label>
-              <input type="date" id="inc-data" required>
-            </div>
-
-            <div class="form-group">
-              <label for="inc-ora-inizio">Ora Inizio *</label>
-              <input type="time" id="inc-ora-inizio" required>
-            </div>
-
-            <div class="form-group">
-              <label for="inc-ora-fine">Ora Fine *</label>
-              <input type="time" id="inc-ora-fine" required>
-            </div>
-
-            <div id="segnalazione-group" class="form-group">
-              <label>Richiede Scheda di Segnalazione? *</label>
-              <div class="radio-group">
-                <label class="radio-label">
-                  <input type="radio" name="segnalazione" value="Sì"> Sì
-                </label>
-                <label class="radio-label">
-                  <input type="radio" name="segnalazione" value="No" checked> No
-                </label>
+              <!-- Tabella Incontri -->
+              <div class="col-xl-8">
+                <div class="card card-custom">
+                  <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+                    <span>Storico Incontri Registrati</span>
+                    <input type="text" class="form-control form-control-sm w-50" id="search-incontri" placeholder="Cerca incontri..." oninput="renderMeetingsTable()">
+                  </div>
+                  <div class="card-body p-0">
+                    <div class="table-responsive">
+                      <table class="table table-hover align-middle m-0">
+                        <thead class="table-light">
+                          <tr>
+                            <th>Data</th>
+                            <th>Ora</th>
+                            <th>Beneficiario</th>
+                            <th>Operatore</th>
+                            <th>Livello</th>
+                            <th>Attività</th>
+                            <th>Azione</th>
+                          </tr>
+                        </thead>
+                        <tbody id="tbl-incontri-body">
+                          <tr>
+                            <td colspan="7" class="text-center text-muted p-4">Caricamento in corso...</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-
-            <div class="form-group full-width">
-              <label for="inc-attivita">Attività Svolta *</label>
-              <input type="text" id="inc-attivita" list="attivita-options"
-                placeholder="Es. Segretariato sociale, Colloquio conoscitivo..." required>
-              <datalist id="attivita-options">
-                <option value="Segretariato sociale">
-                <option value="Colloquio conoscitivo">
-                <option value="Supporto alloggiativo">
-                <option value="Accompagnamento servizi">
-                <option value="Orientamento al lavoro">
-                <option value="Supporto burocratico/documenti">
-              </datalist>
-            </div>
-
-            <div class="form-group full-width">
-              <label for="inc-descrizione">Descrizione Dettagliata</label>
-              <textarea id="inc-descrizione" placeholder="Annotazioni dell'attività svolta..."></textarea>
-            </div>
-
           </div>
 
-          <div class="btn-container">
-            <button type="submit" id="btn-submit-incontro" class="btn btn-primary">
-              <span class="spinner" id="spinner-incontro"></span>
-              Registra Incontro
-            </button>
-          </div>
-        </form>
-      </div>
+          <!-- ========================================================================= -->
+          <!-- TAB 2: NUCLEI & PERSONE -->
+          <!-- ========================================================================= -->
+          <div id="tab-nuclei" class="tab-pane-custom d-none">
+            <div class="row g-4">
+              <!-- Aggiungi Nucleo -->
+              <div class="col-xl-4">
+                <div class="card card-custom mb-4">
+                  <div class="card-header card-header-custom" id="nucleo-form-title">Crea Nuovo Nucleo Familiare</div>
+                  <div class="card-body">
+                    <form id="nucleo-form" onsubmit="handleNucleoSubmit(event)">
+                      <input type="hidden" id="nuc-id">
+                      <div class="mb-3 position-relative">
+                        <label class="form-label font-outfit small">Intestatario (Codice Fiscale) *</label>
+                        <input type="text" class="form-control" id="nuc-intestatario" placeholder="Cerca beneficiario..." required autocomplete="off" oninput="filterBeneficiaries('nuc-intestatario', 'nuc-intest-list')">
+                        <ul id="nuc-intest-list" class="autocomplete-list"></ul>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label font-outfit small">ISEE del Nucleo</label>
+                        <input type="number" step="0.01" class="form-control" id="nuc-isee" placeholder="Es. 12000.50">
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label font-outfit small">Indirizzo Residenza *</label>
+                        <input type="text" class="form-control" id="nuc-residenza" placeholder="Stato, Comune, CAP, Via, Civico" required>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label font-outfit small">Indirizzo Domicilio</label>
+                        <input type="text" class="form-control" id="nuc-domicilio" placeholder="Lascia vuoto se coincide">
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label font-outfit small">Descrizione Caso *</label>
+                        <textarea class="form-control" id="nuc-descrizione" rows="2" required></textarea>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label font-outfit small">Obiettivi e Progettualità *</label>
+                        <textarea class="form-control" id="nuc-obiettivi" rows="2" required></textarea>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label font-outfit small">Tipologia di Richiesta *</label>
+                        <input type="text" class="form-control" id="nuc-richiesta" required>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label font-outfit small">Orientamento e Follow-up *</label>
+                        <input type="text" class="form-control" id="nuc-followup" required>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label font-outfit small">Tipologia Abitazione *</label>
+                        <input type="text" class="form-control" id="nuc-abitazione" required>
+                      </div>
+                      <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                          <label class="form-label font-outfit small">Assistente Sociale *</label>
+                          <input type="text" class="form-control" id="nuc-assistente" placeholder="Nome o 'No'" required>
+                        </div>
+                        <div class="col-md-6">
+                          <label class="form-label font-outfit small">Medico di Base *</label>
+                          <input type="text" class="form-control" id="nuc-medico" placeholder="Nome o 'No'" required>
+                        </div>
+                      </div>
+                      <button type="submit" class="btn btn-success w-100" id="btn-nuc-submit">
+                        <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-nucleo"></span>
+                        Salva Nucleo Familiare
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
 
-      <!-- TAB BENEFICIARIO -->
-      <div id="beneficiario-tab" class="tab-pane">
-        <form id="beneficiario-form" onsubmit="handleBeneficiarioSubmit(event)">
-          <div class="form-grid">
-
-            <div class="form-group">
-              <label for="ben-cf">Codice Fiscale *</label>
-              <input type="text" id="ben-cf" placeholder="16 caratteri" required maxlength="16"
-                style="text-transform: uppercase;" oninput="validateAndDecodeCF()">
+              <!-- Lista Nuclei -->
+              <div class="col-xl-8">
+                <div class="card card-custom">
+                  <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+                    <span>Mappatura Nuclei Familiari</span>
+                    <input type="text" class="form-control form-control-sm w-50" id="search-nuclei" placeholder="Filtra nuclei..." oninput="renderNucleiList()">
+                  </div>
+                  <div class="card-body" id="nuclei-cards-container">
+                    <p class="text-center text-muted">Caricamento in corso...</p>
+                  </div>
+                </div>
+              </div>
             </div>
-
-            <div class="form-group">
-              <label for="ben-nome">Nome *</label>
-              <input type="text" id="ben-nome" placeholder="Inserisci Nome" required>
-            </div>
-
-            <div class="form-group">
-              <label for="ben-cognome">Cognome *</label>
-              <input type="text" id="ben-cognome" placeholder="Inserisci Cognome" required>
-            </div>
-
-            <div class="form-group">
-              <label for="ben-data-nascita">Data di Nascita *</label>
-              <input type="date" id="ben-data-nascita" required>
-            </div>
-
-            <div class="form-group">
-              <label for="ben-luogo-nascita">Luogo o Stato di Nascita *</label>
-              <input type="text" id="ben-luogo-nascita" placeholder="Comune o Stato Estero" required>
-            </div>
-
-            <div class="form-group">
-              <label for="ben-sesso">Genere *</label>
-              <select id="ben-sesso" required>
-                <option value="">Seleziona...</option>
-                <option value="M">Maschile (M)</option>
-                <option value="F">Femminile (F)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="ben-telefono">Telefono</label>
-              <input type="text" id="ben-telefono" placeholder="Es. 3401234567">
-            </div>
-
-            <div class="form-group">
-              <label for="ben-email">Email</label>
-              <input type="email" id="ben-email" placeholder="Es. mario.rossi@gmail.com">
-            </div>
-
-            <div class="form-group">
-              <label for="ben-cittadinanza">Cittadinanza *</label>
-              <input type="text" id="ben-cittadinanza" placeholder="Es. Italiana, Rumena..." required>
-            </div>
-
-            <div class="form-group">
-              <label for="ben-residenza">Residenza (Comune/Indirizzo)</label>
-              <input type="text" id="ben-residenza" placeholder="Es. Roma, via delle Cave 12">
-            </div>
-
-            <div class="form-group">
-              <label for="ben-domicilio">Domicilio</label>
-              <input type="text" id="ben-domicilio" placeholder="Es. Stesso indirizzo, o via...">
-            </div>
-
-            <div class="form-group">
-              <label for="ben-stato-lavorativo">Stato Lavorativo</label>
-              <select id="ben-stato-lavorativo">
-                <option value="">Seleziona...</option>
-                <option value="Disoccupato">Disoccupato</option>
-                <option value="Occupato">Occupato</option>
-                <option value="Pensionato">Pensionato</option>
-                <option value="In cerca di prima occupazione">In cerca di prima occupazione</option>
-                <option value="Altro">Altro</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="ben-titolo-studio">Titolo di Studio</label>
-              <select id="ben-titolo-studio">
-                <option value="">Seleziona...</option>
-                <option value="Nessuno">Nessuno</option>
-                <option value="Licenza Media">Licenza Media</option>
-                <option value="Diploma Superiore">Diploma Superiore</option>
-                <option value="Laurea">Laurea</option>
-                <option value="Altro">Altro</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="ben-servizi">In carico ai Servizi Sociali? *</label>
-              <select id="ben-servizi" required>
-                <option value="No" selected>No</option>
-                <option value="Sì">Sì</option>
-              </select>
-            </div>
-
           </div>
 
-          <div class="btn-container">
-            <button type="submit" id="btn-submit-beneficiario" class="btn btn-success">
-              <span class="spinner" id="spinner-beneficiario"></span>
-              Aggiungi Beneficiario
-            </button>
-          </div>
-        </form>
-      </div>
+          <!-- ========================================================================= -->
+          <!-- TAB 3: DOCUMENTI & GENERAZIONE -->
+          <!-- ========================================================================= -->
+          <div id="tab-documenti" class="tab-pane-custom d-none">
+            <div class="row g-4">
+              <!-- Genera documenti moduli -->
+              <div class="col-xl-6">
+                <div class="card card-custom mb-4">
+                  <div class="card-header card-header-custom">Genera Documentazione in Google Drive</div>
+                  <div class="card-body">
+                    <!-- Foglio Firme Form -->
+                    <h5 class="font-outfit border-bottom pb-2">Genera Foglio Firme</h5>
+                    <form id="doc-firme-form" class="mb-4" onsubmit="handleGenerateFirme(event)">
+                      <div class="row g-2 mb-3">
+                        <div class="col-md-6 position-relative">
+                          <label class="form-label font-outfit small">Beneficiario (CF) *</label>
+                          <input type="text" class="form-control" id="firme-beneficiario" placeholder="Cerca..." required autocomplete="off" oninput="filterBeneficiaries('firme-beneficiario', 'firme-benef-list')">
+                          <ul id="firme-benef-list" class="autocomplete-list"></ul>
+                        </div>
+                        <div class="col-md-6">
+                          <label class="form-label font-outfit small">Operatore *</label>
+                          <select class="form-select" id="firme-operatore" required>
+                            <option value="">Seleziona...</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label font-outfit small">Mese / Anno di Riferimento *</label>
+                        <input type="month" class="form-control" id="firme-mese" required>
+                      </div>
+                      <button type="submit" class="btn btn-outline-primary btn-sm w-100" id="btn-gen-firme">
+                        <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-firme"></span>
+                        Genera Foglio Firme Individuale
+                      </button>
+                    </form>
 
+                    <!-- Diario Giornaliero Form -->
+                    <h5 class="font-outfit border-bottom pb-2 pt-2">Genera Diario Giornaliero</h5>
+                    <form id="doc-diario-form" class="mb-4" onsubmit="handleGenerateDiario(event)">
+                      <div class="mb-3">
+                        <label class="form-label font-outfit small">Data Giorno *</label>
+                        <input type="date" class="form-control" id="diario-data" required>
+                      </div>
+                      <button type="submit" class="btn btn-outline-primary btn-sm w-100" id="btn-gen-diario">
+                        <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-diario"></span>
+                        Genera Diario Giornaliero
+                      </button>
+                    </form>
+
+                    <!-- Scheda Segnalazione Form -->
+                    <h5 class="font-outfit border-bottom pb-2 pt-2">Genera Scheda Segnalazione</h5>
+                    <form id="doc-segnalazione-form" onsubmit="handleGenerateSegnalazione(event)">
+                      <div class="row g-2 mb-3">
+                        <div class="col-md-6 position-relative">
+                          <label class="form-label font-outfit small">Destinatario (CF) *</label>
+                          <input type="text" class="form-control" id="seg-beneficiario" placeholder="Cerca..." required autocomplete="off" oninput="filterBeneficiaries('seg-beneficiario', 'seg-benef-list')">
+                          <ul id="seg-benef-list" class="autocomplete-list"></ul>
+                        </div>
+                        <div class="col-md-6">
+                          <label class="form-label font-outfit small">Operatore Inviante *</label>
+                          <select class="form-select" id="seg-operatore" required>
+                            <option value="">Seleziona...</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label font-outfit small">Descrizione e Bisogno Rilevato *</label>
+                        <textarea class="form-control" id="seg-descrizione" rows="3" required></textarea>
+                      </div>
+                      <button type="submit" class="btn btn-outline-primary btn-sm w-100" id="btn-gen-seg">
+                        <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-seg"></span>
+                        Genera Scheda di Segnalazione
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Monitoraggio Ufficiale ed Esportazione -->
+              <div class="col-xl-6">
+                <div class="card card-custom mb-4">
+                  <div class="card-header card-header-custom">Monitoraggio Ufficiale QSFP</div>
+                  <div class="card-body">
+                    <p class="small text-muted">Aggiungi una riga al Monitoraggio Ufficiale Accessi Giornalieri calcolando automaticamente l'età del beneficiario, i dati anagrafici e i dati dell'operatore dal database.</p>
+                    <form id="monitoraggio-form" onsubmit="handleMonitoraggioSubmit(event)">
+                      <div class="mb-3 position-relative">
+                        <label class="form-label font-outfit small">Destinatario *</label>
+                        <input type="text" class="form-control" id="mon-beneficiario" placeholder="Cerca..." required autocomplete="off" oninput="filterBeneficiaries('mon-beneficiario', 'mon-benef-list')">
+                        <ul id="mon-benef-list" class="autocomplete-list"></ul>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label font-outfit small">Operatore *</label>
+                        <select class="form-select" id="mon-operatore" required>
+                          <option value="">Seleziona...</option>
+                        </select>
+                      </div>
+                      <button type="submit" class="btn btn-outline-success btn-sm w-100" id="btn-gen-mon">
+                        <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-mon"></span>
+                        Aggiungi Riga Monitoraggio Ufficiale
+                      </button>
+                    </form>
+                  </div>
+                </div>
+
+                <div class="card card-custom">
+                  <div class="card-header card-header-custom">Documenti Recenti ed Esportati</div>
+                  <div class="card-body" id="doc-links-container">
+                    <p class="text-muted small text-center m-0">Nessun documento generato in questa sessione. I link verranno mostrati qui sopra dopo la creazione.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========================================================================= -->
+          <!-- TAB 4: APPUNTAMENTI -->
+          <!-- ========================================================================= -->
+          <div id="tab-appuntamenti" class="tab-pane-custom d-none">
+            <div class="row g-4">
+              <!-- Aggiungi appuntamento form -->
+              <div class="col-xl-4">
+                <div class="card card-custom">
+                  <div class="card-header card-header-custom">Registra Nuovo Appuntamento</div>
+                  <div class="card-body">
+                    <form id="appuntamento-form" onsubmit="handleAppuntamentoSubmit(event)">
+                      <div class="mb-3 position-relative">
+                        <label class="form-label font-outfit small">Beneficiario *</label>
+                        <input type="text" class="form-control" id="app-beneficiario" placeholder="Nome..." required autocomplete="off" oninput="filterBeneficiaries('app-beneficiario', 'app-benef-list')">
+                        <ul id="app-benef-list" class="autocomplete-list"></ul>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label font-outfit small">Operatore *</label>
+                        <select class="form-select" id="app-operatore" required>
+                          <option value="">Seleziona...</option>
+                        </select>
+                      </div>
+                      <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                          <label class="form-label font-outfit small">Data *</label>
+                          <input type="date" class="form-control" id="app-data" required>
+                        </div>
+                        <div class="col-md-6">
+                          <label class="form-label font-outfit small">Orario *</label>
+                          <input type="time" class="form-control" id="app-ora" required>
+                        </div>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label font-outfit small">Note / Dettagli</label>
+                        <textarea class="form-control" id="app-note" rows="3"></textarea>
+                      </div>
+                      <button type="submit" class="btn btn-primary w-100" id="btn-app-submit">
+                        <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-app"></span>
+                        Aggiungi Appuntamento
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Elenco appuntamenti -->
+              <div class="col-xl-8">
+                <div class="card card-custom">
+                  <div class="card-header card-header-custom">Elenco Appuntamenti Registrati</div>
+                  <div class="card-body p-0">
+                    <div class="table-responsive">
+                      <table class="table table-hover align-middle m-0">
+                        <thead class="table-light">
+                          <tr>
+                            <th>Data</th>
+                            <th>Orario</th>
+                            <th>Beneficiario</th>
+                            <th>Operatore</th>
+                            <th>Note</th>
+                          </tr>
+                        </thead>
+                        <tbody id="tbl-appuntamenti-body">
+                          <tr>
+                            <td colspan="5" class="text-center text-muted p-4">Caricamento in corso...</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
     </div>
   </div>
 
-  <div id="toast" class="toast"></div>
+  <!-- ========================================================================= -->
+  <!-- MODAL: AGGIUNGI / MODIFICA MEMBRO NUCLEO (BENEFICIARIO) -->
+  <!-- ========================================================================= -->
+  <div class="modal fade" id="modal-beneficiario" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title font-outfit" id="modal-ben-title">Aggiungi Membro al Nucleo</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="modal-ben-form" onsubmit="handleModalBenSubmit(event)">
+            <input type="hidden" id="ben-id-nucleo">
+            <input type="hidden" id="ben-is-update" value="false">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label font-outfit small">Codice Fiscale *</label>
+                <input type="text" class="form-control" id="ben-cf" required maxlength="16" style="text-transform: uppercase;" oninput="validateAndDecodeCF()">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label font-outfit small">Nome *</label>
+                <input type="text" class="form-control" id="ben-nome" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label font-outfit small">Cognome *</label>
+                <input type="text" class="form-control" id="ben-cognome" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label font-outfit small">Data di Nascita *</label>
+                <input type="date" class="form-control" id="ben-data-nascita" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label font-outfit small">Luogo Nascita *</label>
+                <input type="text" class="form-control" id="ben-luogo-nascita" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label font-outfit small">Sesso *</label>
+                <select class="form-select" id="ben-sesso" required>
+                  <option value="">Seleziona...</option>
+                  <option value="M">M</option>
+                  <option value="F">F</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label font-outfit small">Telefono *</label>
+                <input type="text" class="form-control" id="ben-telefono" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label font-outfit small">Email</label>
+                <input type="email" class="form-control" id="ben-email">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label font-outfit small">Cittadinanza *</label>
+                <input type="text" class="form-control" id="ben-cittadinanza" placeholder="Italiana" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label font-outfit small">Residenza</label>
+                <input type="text" class="form-control" id="ben-residenza">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label font-outfit small">Domicilio</label>
+                <input type="text" class="form-control" id="ben-domicilio">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label font-outfit small">Stato Civile</label>
+                <select class="form-select" id="ben-stato-civile">
+                  <option value="singolo">Singolo</option>
+                  <option value="coniugato">Coniugato</option>
+                  <option value="separato">Separato</option>
+                  <option value="divorziato">Divorziato</option>
+                  <option value="vedovo">Vedovo</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label font-outfit small">Rapporto Parentela *</label>
+                <select class="form-select" id="ben-rapporto" required>
+                  <option value="intestatario">Intestatario</option>
+                  <option value="coniuge">Coniuge</option>
+                  <option value="figlio">Figlio</option>
+                  <option value="parente">Parente</option>
+                  <option value="altro">Altro</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label font-outfit small">Anno Arrivo Italia</label>
+                <input type="number" class="form-control" id="ben-anno-arrivo" placeholder="2024">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label font-outfit small">Stato Lavorativo</label>
+                <select class="form-select" id="ben-lavoro">
+                  <option value="occupato">Occupato</option>
+                  <option value="disoccupato">Disoccupato</option>
+                  <option value="pensionato">Pensionato</option>
+                  <option value="altro">Altro</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label font-outfit small">Titolo di Studio</label>
+                <select class="form-select" id="ben-studio">
+                  <option value="licenza media">Licenza Media</option>
+                  <option value="diploma">Diploma</option>
+                  <option value="laurea">Laurea</option>
+                  <option value="nessuno">Nessuno</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label font-outfit small">In Carico Servizi?</label>
+                <select class="form-select" id="ben-servizi">
+                  <option value="No">No</option>
+                  <option value="Sì">Sì</option>
+                </select>
+              </div>
+              
+              <!-- Documenti allegati -->
+              <div class="col-12">
+                <h6 class="font-outfit border-bottom pb-1 mt-3">Documenti Personali in Possesso</h6>
+                <div class="d-flex flex-wrap gap-3">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="ben-doc-passaporto">
+                    <label class="form-check-label">Passaporto</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="ben-doc-patente">
+                    <label class="form-check-label">Patente</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="ben-doc-permesso">
+                    <label class="form-check-label">Permesso Soggiorno</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="ben-doc-tessera">
+                    <label class="form-check-label">Tessera Sanitaria</label>
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <label class="form-label font-outfit small">Carta d'Identità</label>
+                  <select class="form-select form-select-sm" id="ben-doc-carta">
+                    <option value="Non posseduto">Non posseduto</option>
+                    <option value="cartacea">Cartacea</option>
+                    <option value="elettronica">Elettronica</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer px-0 pb-0 mt-4">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+              <button type="submit" class="btn btn-primary" id="btn-modal-ben-submit">Salva Membro</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container-custom" id="toast-container"></div>
+
+  <!-- Bootstrap and Client Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // Liste per autocompletamento caricate dal server
-    let beneficiaries = [];
-    let operators = [];
+    // Dati globali scaricati dal server
+    let dbBeneficiaries = []; // oggetti Beneficiario
+    let dbNuclei = [];        // oggetti NucleoFamiliare
+    let dbMeetings = [];      // oggetti Incontro
+    let dbOperators = [];     // stringhe operatori completi
+    let activeTabId = 'tab-incontri';
 
-    // Caricamento dati iniziali
-    window.onload = function () {
+    // Inizializzazione pagina
+    window.onload = function() {
       // Imposta data odierna
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('inc-data').value = today;
+      document.getElementById('inc-data').value = new Date().toISOString().split('T')[0];
+      document.getElementById('app-data').value = new Date().toISOString().split('T')[0];
+      document.getElementById('diario-data').value = new Date().toISOString().split('T')[0];
+      document.getElementById('firme-mese').value = new Date().toISOString().substring(0, 7);
 
-      // Recupera beneficiari
-      google.script.run
-        .withSuccessHandler(function (list) {
-          beneficiaries = list;
-        })
-        .getBeneficiariesList();
-
-      // Recupera operatori
-      google.script.run
-        .withSuccessHandler(function (list) {
-          operators = list;
-          const opSelect = document.getElementById('inc-operatore');
-          list.forEach(function (op) {
-            const option = document.createElement('option');
-            option.value = op;
-            option.textContent = op;
-            opSelect.appendChild(option);
-          });
-        })
-        .getOperatorsList();
+      reloadData();
     };
 
-    // Gestore Tab
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+    // Ricarica tutti i dati in asincrono
+    function reloadData() {
+      showToast("Caricamento dati in corso...", "info");
 
-      const eventTarget = event.currentTarget;
-      if (eventTarget) {
-        eventTarget.classList.add('active');
-      }
-      document.getElementById(tabId).classList.add('active');
+      // Carica Operatori
+      google.script.run
+        .withSuccessHandler(function(list) {
+          dbOperators = list;
+          populateOperatorsDropdowns();
+        })
+        .getOperatorsList();
+
+      // Carica Incontri
+      google.script.run
+        .withSuccessHandler(function(list) {
+          dbMeetings = list;
+          renderMeetingsTable();
+        })
+        .getMeetingsList();
+
+      // Carica Nuclei
+      google.script.run
+        .withSuccessHandler(function(list) {
+          dbNuclei = list;
+          renderNucleiList();
+        })
+        .getNucleiObjects();
+
+      // Carica Beneficiari
+      google.script.run
+        .withSuccessHandler(function(list) {
+          dbBeneficiaries = list;
+          showToast("Sincronizzazione dati completata!", "success");
+        })
+        .getBeneficiariObjects();
+
+      // Carica Appuntamenti
+      loadAppointments();
     }
 
-    // Mostra/Nascondi opzione segnalazione
-    function toggleSegnalazione() {
+    function loadAppointments() {
+      google.script.run
+        .withSuccessHandler(function(list) {
+          const tbody = document.getElementById('tbl-appuntamenti-body');
+          tbody.innerHTML = '';
+          if (list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted p-3">Nessun appuntamento registrato</td></tr>';
+            return;
+          }
+          list.forEach(function(app) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${app.data}</td>
+              <td>${app.ora}</td>
+              <td>${app.beneficiario}</td>
+              <td>${app.operatore}</td>
+              <td>${app.note}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        })
+        .getAppointmentsList();
+    }
+
+    // Popola dropdown operatori
+    function populateOperatorsDropdowns() {
+      const dropdowns = ['inc-operatore', 'firme-operatore', 'seg-operatore', 'mon-operatore', 'app-operatore'];
+      dropdowns.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = '<option value="">Seleziona Operatore...</option>';
+        dbOperators.forEach(op => {
+          const opt = document.createElement('option');
+          opt.value = op;
+          opt.textContent = op;
+          el.appendChild(opt);
+        });
+      });
+    }
+
+    // Gestione Tab della Sidebar
+    function showTab(tabId) {
+      activeTabId = tabId;
+      document.querySelectorAll('.sidebar .nav-link').forEach(link => link.classList.remove('active'));
+      document.querySelectorAll('.tab-pane-custom').forEach(pane => pane.classList.add('none-class', 'd-none'));
+
+      // Trova link menu
+      const matchMenu = {
+        'tab-incontri': 'menu-incontri',
+        'tab-nuclei': 'menu-nuclei',
+        'tab-documenti': 'menu-documenti',
+        'tab-appuntamenti': 'menu-appuntamenti'
+      };
+
+      document.getElementById(matchMenu[tabId]).classList.add('active');
+      const pane = document.getElementById(tabId);
+      pane.classList.remove('d-none', 'none-class');
+    }
+
+    // Autocompletamento Generico Beneficiari
+    function filterBeneficiaries(inputId, listId) {
+      const input = document.getElementById(inputId);
+      const val = input.value.toLowerCase().trim();
+      const list = document.getElementById(listId);
+      list.innerHTML = '';
+
+      if (!val) {
+        list.style.display = 'none';
+        return;
+      }
+
+      const filtered = dbBeneficiaries.filter(b => {
+        const full = (b.name + ' ' + b.surname + ' ' + (b.taxCode?.originale || '')).toLowerCase();
+        return full.includes(val);
+      });
+
+      if (filtered.length === 0) {
+        list.style.display = 'none';
+        return;
+      }
+
+      filtered.forEach(b => {
+        const li = document.createElement('li');
+        const cfStr = b.taxCode?.originale ? ` (${b.taxCode.originale})` : '';
+        li.textContent = `${b.name} ${b.surname}${cfStr}`;
+        li.onclick = function() {
+          input.value = `${b.name} ${b.surname}${cfStr}`;
+          list.style.display = 'none';
+          
+          // Se siamo nel form del nucleo, autocompila residenza e domicilio se presenti
+          if (inputId === 'nuc-intestatario') {
+            document.getElementById('nuc-residenza').value = b.residenza || '';
+            document.getElementById('nuc-domicilio').value = b.domicilio || '';
+          }
+        };
+        list.appendChild(li);
+      });
+
+      list.style.display = 'block';
+    }
+
+    // Chiudi liste di autocompletamento al click fuori
+    document.addEventListener('click', function(e) {
+      const ids = ['inc-benef-list', 'nuc-intest-list', 'firme-benef-list', 'seg-benef-list', 'mon-benef-list', 'app-benef-list'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+    });
+
+    // Toggle Segnalazione UI
+    function toggleSegnalazioneUI() {
       const type = document.getElementById('inc-tipo').value;
-      const group = document.getElementById('segnalazione-group');
+      const group = document.getElementById('inc-segnalazione-group');
       if (type === 'assistente') {
         group.style.display = 'none';
       } else {
@@ -636,95 +932,92 @@
       }
     }
 
-    // Autocompletamento beneficiari
-    function filterBeneficiaries() {
-      const input = document.getElementById('inc-beneficiario');
-      const val = input.value.toLowerCase().trim();
-      const listContainer = document.getElementById('beneficiaries-list');
+    // =========================================================================
+    // INCONTRI LOGIC
+    // =========================================================================
+    function renderMeetingsTable() {
+      const tbody = document.getElementById('tbl-incontri-body');
+      const search = document.getElementById('search-incontri').value.toLowerCase().trim();
+      tbody.innerHTML = '';
 
-      listContainer.innerHTML = '';
-
-      if (!val) {
-        listContainer.style.display = 'none';
-        return;
-      }
-
-      const filtered = beneficiaries.filter(b => b.toLowerCase().includes(val));
-
-      if (filtered.length === 0) {
-        listContainer.style.display = 'none';
-        return;
-      }
-
-      filtered.forEach(b => {
-        const li = document.createElement('li');
-        li.textContent = b;
-        li.onclick = function () {
-          input.value = b;
-          listContainer.style.display = 'none';
-        };
-        listContainer.appendChild(li);
+      const filtered = dbMeetings.filter(m => {
+        const rowStr = `${m.beneficiario} ${m.operatore} ${m.attivita} ${m.descrizione}`.toLowerCase();
+        return rowStr.includes(search);
       });
 
-      listContainer.style.display = 'block';
-    }
-
-    // Chiudi lista autocompletamento se clicca fuori
-    document.addEventListener('click', function (e) {
-      if (e.target.id !== 'inc-beneficiario') {
-        document.getElementById('beneficiaries-list').style.display = 'none';
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted p-4">Nessun incontro trovato</td></tr>';
+        return;
       }
-    });
 
-    // Decodifica Codice Fiscale
-    function validateAndDecodeCF() {
-      const cfInput = document.getElementById('ben-cf');
-      const cf = cfInput.value.toUpperCase().trim();
+      filtered.forEach(m => {
+        const tr = document.createElement('tr');
+        const levelBadge = m.tipoIncontro === 'assistente' ? '<span class="badge bg-warning text-dark">Secondo Livello</span>' : '<span class="badge bg-primary">Primo Livello</span>';
+        
+        // Pulisce e formatta data se ISO
+        let dispData = m.data;
+        if (m.data && m.data.indexOf('T') > 0) {
+          dispData = m.data.split('T')[0];
+        }
 
-      if (cf.length === 16) {
-        cfInput.disabled = true; // disabilita temporaneamente per evitare input doppi
-        google.script.run
-          .withSuccessHandler(function (res) {
-            cfInput.disabled = false;
-            if (res.success) {
-              if (res.dataNascita) {
-                document.getElementById('ben-data-nascita').value = res.dataNascita;
-              }
-              if (res.luogoNascita) {
-                document.getElementById('ben-luogo-nascita').value = res.luogoNascita;
-              }
-              if (res.sesso) {
-                document.getElementById('ben-sesso').value = res.sesso;
-              }
-              showToast("Codice Fiscale decodificato correttamente", "success");
-            }
-          })
-          .withFailureHandler(function () {
-            cfInput.disabled = false;
-          })
-          .decodeCF(cf);
+        tr.innerHTML = `
+          <td>${dispData}</td>
+          <td>${m.oraInizio} - ${m.oraFine}</td>
+          <td><strong>${m.beneficiario}</strong></td>
+          <td>${m.operatore}</td>
+          <td>${levelBadge}</td>
+          <td>${m.attivita}</td>
+          <td>
+            <button class="btn btn-outline-secondary btn-xs py-0 px-2" onclick="editMeetingUI('${encodeURIComponent(JSON.stringify(m))}')">Modifica</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function editMeetingUI(encodedMeeting) {
+      const m = JSON.parse(decodeURIComponent(encodedMeeting));
+      
+      document.getElementById('inc-edit-id').value = JSON.stringify({
+        beneficiario: m.beneficiario,
+        operatore: m.operatore,
+        data: m.data,
+        oraInizio: m.oraInizio
+      });
+
+      document.getElementById('inc-beneficiario').value = m.beneficiario;
+      document.getElementById('inc-operatore').value = m.operatore;
+      document.getElementById('inc-tipo').value = m.tipoIncontro;
+      
+      let formattedDate = m.data;
+      if (m.data && m.data.indexOf('T') > 0) {
+        formattedDate = m.data.split('T')[0];
       }
+      document.getElementById('inc-data').value = formattedDate;
+      document.getElementById('inc-ora-inizio').value = m.oraInizio;
+      document.getElementById('inc-ora-fine').value = m.oraFine;
+      document.getElementById('inc-attivita').value = m.attivita;
+      document.getElementById('inc-descrizione').value = m.descrizione;
+      
+      if (m.segnalazione === 'Sì') {
+        document.querySelector('input[name="segnalazione"][value="Sì"]').checked = true;
+      } else {
+        document.querySelector('input[name="segnalazione"][value="No"]').checked = true;
+      }
+
+      toggleSegnalazioneUI();
+      document.getElementById('btn-inc-submit').textContent = 'Salva Modifiche Incontro';
+      showToast("Dati incontro caricati nel form. Modifica i campi e premi Salva.", "info");
     }
 
-    // Toast Notification Helper
-    function showToast(message, type) {
-      const toast = document.getElementById('toast');
-      toast.textContent = message;
-      toast.className = `toast show toast-${type}`;
-      setTimeout(() => {
-        toast.classList.remove('show');
-      }, 4000);
-    }
-
-    // Invio form Incontro
     function handleIncontroSubmit(e) {
       e.preventDefault();
-
-      const submitBtn = document.getElementById('btn-submit-incontro');
-      const spinner = document.getElementById('spinner-incontro');
+      const submitBtn = document.getElementById('btn-inc-submit');
+      const spin = document.getElementById('spin-incontro');
+      const editIdVal = document.getElementById('inc-edit-id').value;
 
       submitBtn.disabled = true;
-      spinner.style.display = 'inline-block';
+      spin.classList.remove('d-none');
 
       const data = {
         beneficiario: document.getElementById('inc-beneficiario').value,
@@ -735,40 +1028,267 @@
         oraFine: document.getElementById('inc-ora-fine').value,
         attivita: document.getElementById('inc-attivita').value,
         descrizione: document.getElementById('inc-descrizione').value,
-        segnalazione: document.querySelector('input[name="segnalazione"]:checked')?.value || "No"
+        segnalazione: document.querySelector('input[name="segnalazione"]:checked')?.value || 'No'
+      };
+
+      const withSuccess = function(res) {
+        submitBtn.disabled = false;
+        spin.classList.add('d-none');
+        if (res.success) {
+          showToast(res.message, "success");
+          document.getElementById('incontro-form').reset();
+          document.getElementById('inc-edit-id').value = '';
+          document.getElementById('btn-inc-submit').textContent = 'Registra Incontro';
+          document.getElementById('inc-data').value = new Date().toISOString().split('T')[0];
+          reloadData();
+        } else {
+          showToast("Errore: " + res.message, "error");
+        }
+      };
+
+      const withFailure = function(err) {
+        submitBtn.disabled = false;
+        spin.classList.add('d-none');
+        showToast("Errore di rete: " + err.message, "error");
+      };
+
+      if (editIdVal) {
+        const originalKey = JSON.parse(editIdVal);
+        google.script.run
+          .withSuccessHandler(withSuccess)
+          .withFailureHandler(withFailure)
+          .submitMeetingUpdate(originalKey, data);
+      } else {
+        google.script.run
+          .withSuccessHandler(withSuccess)
+          .withFailureHandler(withFailure)
+          .submitMeeting(data);
+      }
+    }
+
+    // =========================================================================
+    // NUCLEI & PERSONE LOGIC
+    // =========================================================================
+    function renderNucleiList() {
+      const container = document.getElementById('nuclei-cards-container');
+      const search = document.getElementById('search-nuclei').value.toLowerCase().trim();
+      container.innerHTML = '';
+
+      if (dbNuclei.length === 0) {
+        container.innerHTML = '<p class="text-center text-muted p-3">Nessun nucleo registrato.</p>';
+        return;
+      }
+
+      const filtered = dbNuclei.filter(n => {
+        const matchStr = `${n.id} ${n.intestatario} ${n.residenza} ${n.descrizioneCaso}`.toLowerCase();
+        return matchStr.includes(search);
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<p class="text-center text-muted p-3">Nessun nucleo corrisponde ai criteri.</p>';
+        return;
+      }
+
+      filtered.forEach(n => {
+        // Trova i membri del nucleo
+        const members = dbBeneficiaries.filter(b => b.idNucleo === n.id || (b.cf === n.intestatario && !b.idNucleo));
+        
+        // Trova incontri associati ai membri di questo nucleo
+        const memberCFs = members.map(m => m.cf.toLowerCase());
+        const meetingsCount = dbMeetings.filter(meet => {
+          const meetBen = meet.beneficiario.toLowerCase();
+          return members.some(m => {
+            const fullMatchName = `${m.name} ${m.surname}`.toLowerCase();
+            return meetBen.includes(fullMatchName) || (m.cf && meetBen.includes(m.cf.toLowerCase()));
+          });
+        }).length;
+
+        const card = document.createElement('div');
+        card.className = 'card card-custom mb-3';
+        
+        let membersHTML = '';
+        members.forEach(m => {
+          const isIntestatario = m.cf.toUpperCase() === n.intestatario.toUpperCase();
+          const badge = isIntestatario ? '<span class="badge bg-dark">Intestatario</span>' : `<span class="badge bg-secondary">${m.rapportoIntestatario || 'Membro'}</span>`;
+          
+          membersHTML += `
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+              <div>
+                <strong>${m.name} ${m.surname}</strong> <span class="text-muted text-xs ms-2">${m.cf}</span>
+                <div class="mt-1">${badge}</div>
+              </div>
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-secondary py-0 px-2 btn-xs" onclick="openEditMemberModal('${m.cf}')">Modifica</button>
+                <button class="btn btn-outline-danger py-0 px-2 btn-xs" onclick="handleRemoveMember('${m.cf}')">Rimuovi</button>
+              </div>
+            </div>
+          `;
+        });
+
+        card.innerHTML = `
+          <div class="card-header card-header-custom d-flex justify-content-between align-items-center bg-light">
+            <div>
+              <strong>Nucleo Familiare #${n.id}</strong>
+              <div class="text-xs text-muted m-0">Intestatario CF: ${n.intestatario}</div>
+            </div>
+            <div>
+              <button class="btn btn-outline-primary btn-xs py-0 px-2 me-1" onclick="openAddMemberModal('${n.id}')">+ Aggiungi Persona</button>
+              <button class="btn btn-outline-secondary btn-xs py-0 px-2" onclick="editNucleoUI('${encodeURIComponent(JSON.stringify(n))}')">Modifica Nucleo</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="row small mb-3">
+              <div class="col-md-4"><strong>ISEE:</strong> €${n.isee || 'Non specificato'}</div>
+              <div class="col-md-8"><strong>Residenza:</strong> ${n.residenza}</div>
+              <div class="col-12 mt-2"><strong>Assistente Sociale:</strong> ${n.assistenteSociale} | <strong>Medico di Base:</strong> ${n.medicoDiBase}</div>
+              <div class="col-12 mt-2"><strong>Progettualità:</strong> ${n.obiettiviProgettualita}</div>
+              <div class="col-12 mt-1"><strong>Incontri svolti:</strong> <span class="badge bg-info text-dark">${meetingsCount} incontri</span></div>
+            </div>
+            
+            <h6 class="font-outfit border-bottom pb-1 small text-uppercase text-muted">Membri del Nucleo</h6>
+            ${membersHTML || '<p class="text-muted small m-0 py-2">Nessun membro associato</p>'}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function editNucleoUI(encodedNucleo) {
+      const n = JSON.parse(decodeURIComponent(encodedNucleo));
+      
+      document.getElementById('nuc-id').value = n.id;
+      document.getElementById('nuc-intestatario').value = n.intestatario;
+      document.getElementById('nuc-isee').value = n.isee || '';
+      document.getElementById('nuc-residenza').value = n.residenza;
+      document.getElementById('nuc-domicilio').value = n.domicilio || '';
+      document.getElementById('nuc-descrizione').value = n.descrizioneCaso;
+      document.getElementById('nuc-obiettivi').value = n.obiettiviProgettualita;
+      document.getElementById('nuc-richiesta').value = n.tipologiaRichiesta;
+      document.getElementById('nuc-followup').value = n.orientamentoFollowUp;
+      document.getElementById('nuc-abitazione').value = n.tipologiaAbitazione;
+      document.getElementById('nuc-assistente').value = n.assistenteSociale;
+      document.getElementById('nuc-medico').value = n.medicoDiBase;
+
+      document.getElementById('nucleo-form-title').textContent = 'Modifica Nucleo #' + n.id;
+      document.getElementById('btn-nuc-submit').textContent = 'Salva Modifiche Nucleo';
+      
+      // Scorri verso il form
+      document.getElementById('nucleo-form').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function handleNucleoSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('btn-nuc-submit');
+      const spin = document.getElementById('spin-nucleo');
+      submitBtn.disabled = true;
+      spin.classList.remove('d-none');
+
+      const data = {
+        id: document.getElementById('nuc-id').value,
+        intestatario: document.getElementById('nuc-intestatario').value,
+        isee: document.getElementById('nuc-isee').value,
+        residenza: document.getElementById('nuc-residenza').value,
+        domicilio: document.getElementById('nuc-domicilio').value,
+        descrizioneCaso: document.getElementById('nuc-descrizione').value,
+        obiettiviProgettualita: document.getElementById('nuc-obiettivi').value,
+        tipologiaRichiesta: document.getElementById('nuc-richiesta').value,
+        orientamentoFollowUp: document.getElementById('nuc-followup').value,
+        tipologiaAbitazione: document.getElementById('nuc-abitazione').value,
+        assistenteSociale: document.getElementById('nuc-assistente').value,
+        medicoDiBase: document.getElementById('nuc-medico').value
       };
 
       google.script.run
-        .withSuccessHandler(function (response) {
+        .withSuccessHandler(function(res) {
           submitBtn.disabled = false;
-          spinner.style.display = 'none';
-
-          if (response.success) {
-            showToast(response.message, "success");
-            document.getElementById('incontro-form').reset();
-            // Reimposta data odierna
-            document.getElementById('inc-data').value = new Date().toISOString().split('T')[0];
+          spin.classList.add('d-none');
+          if (res.success) {
+            showToast(res.message, "success");
+            document.getElementById('nucleo-form').reset();
+            document.getElementById('nuc-id').value = '';
+            document.getElementById('nucleo-form-title').textContent = 'Crea Nuovo Nucleo Familiare';
+            document.getElementById('btn-nuc-submit').textContent = 'Salva Nucleo Familiare';
+            reloadData();
           } else {
-            showToast("Errore: " + response.message, "error");
+            showToast("Errore: " + res.message, "error");
           }
         })
-        .withFailureHandler(function (err) {
+        .withFailureHandler(function(err) {
           submitBtn.disabled = false;
-          spinner.style.display = 'none';
+          spin.classList.add('d-none');
           showToast("Errore di rete: " + err.message, "error");
         })
-        .submitMeeting(data);
+        .submitNucleo(data);
     }
 
-    // Invio form Beneficiario
-    function handleBeneficiarioSubmit(e) {
+    // Gestione Membro (Modal)
+    function openAddMemberModal(nucleoId) {
+      document.getElementById('modal-ben-form').reset();
+      document.getElementById('ben-id-nucleo').value = nucleoId;
+      document.getElementById('ben-is-update').value = 'false';
+      document.getElementById('ben-cf').disabled = false;
+      document.getElementById('modal-ben-title').textContent = `Aggiungi Membro al Nucleo #${nucleoId}`;
+      
+      // Auto-compila residenza con quella del nucleo
+      const nucleoObj = dbNuclei.find(n => n.id === nucleoId);
+      if (nucleoObj) {
+        document.getElementById('ben-residenza').value = nucleoObj.residenza || '';
+        document.getElementById('ben-domicilio').value = nucleoObj.domicilio || '';
+      }
+
+      new bootstrap.Modal(document.getElementById('modal-beneficiario')).show();
+    }
+
+    function openEditMemberModal(cf) {
+      const ben = dbBeneficiaries.find(b => b.cf.toUpperCase() === cf.toUpperCase());
+      if (!ben) {
+        showToast("Beneficiario non trovato localmente.", "error");
+        return;
+      }
+
+      document.getElementById('modal-ben-form').reset();
+      document.getElementById('ben-is-update').value = 'true';
+      document.getElementById('ben-id-nucleo').value = ben.idNucleo || '';
+      
+      document.getElementById('ben-cf').value = ben.cf;
+      document.getElementById('ben-cf').disabled = true; // Non modificare CF
+      document.getElementById('ben-nome').value = ben.nome;
+      document.getElementById('ben-cognome').value = ben.cognome;
+      
+      let formattedDate = ben.dataNascita;
+      if (ben.dataNascita && ben.dataNascita.indexOf('T') > 0) {
+        formattedDate = ben.dataNascita.split('T')[0];
+      }
+      document.getElementById('ben-data-nascita').value = formattedDate;
+      document.getElementById('ben-luogo-nascita').value = ben.luogoNascita;
+      document.getElementById('ben-sesso').value = ben.taxCode ? CodiceFiscale.getSesso(ben.cf) : 'M';
+      document.getElementById('ben-telefono').value = ben.telefono || '';
+      document.getElementById('ben-email').value = ben.email || '';
+      document.getElementById('ben-cittadinanza').value = ben.cittadinanza || 'Italiana';
+      document.getElementById('ben-residenza').value = ben.residenza || '';
+      document.getElementById('ben-domicilio').value = ben.domicilio || '';
+      document.getElementById('ben-stato-civile').value = ben.statoCivile || 'singolo';
+      document.getElementById('ben-rapporto').value = ben.rapportoIntestatario || 'figlio';
+      document.getElementById('ben-anno-arrivo').value = ben.annoArrivo || '';
+      document.getElementById('ben-lavoro').value = ben.statoLavorativo || 'disoccupato';
+      document.getElementById('ben-studio').value = ben.titoloStudio || 'diploma';
+      document.getElementById('ben-servizi').value = ben.inCaricoServizi || 'No';
+
+      // Checkbox documenti
+      document.getElementById('ben-doc-passaporto').checked = !!ben.passaporto;
+      document.getElementById('ben-doc-patente').checked = !!ben.patente;
+      document.getElementById('ben-doc-permesso').checked = !!ben.permessoSoggiorno;
+      document.getElementById('ben-doc-tessera').checked = !!ben.tesseraSanitaria;
+      document.getElementById('ben-doc-carta').value = ben.cartaIdentita || 'Non posseduto';
+
+      document.getElementById('modal-ben-title').textContent = `Modifica Membro: ${ben.nome} ${ben.cognome}`;
+      new bootstrap.Modal(document.getElementById('modal-beneficiario')).show();
+    }
+
+    function handleModalBenSubmit(e) {
       e.preventDefault();
-
-      const submitBtn = document.getElementById('btn-submit-beneficiario');
-      const spinner = document.getElementById('spinner-beneficiario');
-
+      const submitBtn = document.getElementById('btn-modal-ben-submit');
       submitBtn.disabled = true;
-      spinner.style.display = 'inline-block';
 
       const data = {
         cf: document.getElementById('ben-cf').value,
@@ -782,41 +1302,314 @@
         cittadinanza: document.getElementById('ben-cittadinanza').value,
         residenza: document.getElementById('ben-residenza').value,
         domicilio: document.getElementById('ben-domicilio').value,
-        statoLavorativo: document.getElementById('ben-stato-lavorativo').value,
-        titoloStudio: document.getElementById('ben-titolo-studio').value,
-        inCaricoServizi: document.getElementById('ben-servizi').value
+        statoCivile: document.getElementById('ben-stato-civile').value,
+        rapportoIntestatario: document.getElementById('ben-rapporto').value,
+        annoArrivo: document.getElementById('ben-anno-arrivo').value ? parseInt(document.getElementById('ben-anno-arrivo').value, 10) : null,
+        statoLavorativo: document.getElementById('ben-lavoro').value,
+        titoloStudio: document.getElementById('ben-studio').value,
+        inCaricoServizi: document.getElementById('ben-servizi').value,
+        idNucleo: document.getElementById('ben-id-nucleo').value,
+        isUpdate: document.getElementById('ben-is-update').value === 'true',
+        documents: {
+          passaporto: document.getElementById('ben-doc-passaporto').checked,
+          patente: document.getElementById('ben-doc-patente').checked,
+          permessoSoggiorno: document.getElementById('ben-doc-permesso').checked,
+          tesseraSanitaria: document.getElementById('ben-doc-tessera').checked,
+          cartaIdentita: document.getElementById('ben-doc-carta').value
+        }
       };
 
       google.script.run
-        .withSuccessHandler(function (response) {
+        .withSuccessHandler(function(res) {
           submitBtn.disabled = false;
-          spinner.style.display = 'none';
-
-          if (response.success) {
-            showToast(response.message, "success");
-
-            // Aggiungi alla lista beneficiari locale
-            let fullName = (data.nome.trim() + " " + data.cognome.trim());
-            const cfUpper = data.cf ? data.cf.toUpperCase().trim() : "";
-            if (cfUpper) {
-              fullName += " (" + cfUpper + ")";
-            }
-            if (beneficiaries.indexOf(fullName) === -1) {
-              beneficiaries.push(fullName);
-              beneficiaries.sort();
-            }
-
-            document.getElementById('beneficiario-form').reset();
+          if (res.success) {
+            showToast(res.message, "success");
+            bootstrap.Modal.getInstance(document.getElementById('modal-beneficiario')).hide();
+            reloadData();
           } else {
-            showToast("Errore: " + response.message, "error");
+            showToast("Errore: " + res.message, "error");
           }
         })
-        .withFailureHandler(function (err) {
+        .withFailureHandler(function(err) {
           submitBtn.disabled = false;
-          spinner.style.display = 'none';
           showToast("Errore di rete: " + err.message, "error");
         })
         .submitBeneficiary(data);
+    }
+
+    function handleRemoveMember(cf) {
+      if (!confirm("Sei sicuro di voler eliminare definitivamente questa persona e rimuoverla da ogni nucleo?")) return;
+
+      showToast("Rimozione in corso...", "info");
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.success) {
+            showToast(res.message, "success");
+            reloadData();
+          } else {
+            showToast("Errore: " + res.message, "error");
+          }
+        })
+        .withFailureHandler(function(err) {
+          showToast("Errore di rete: " + err.message, "error");
+        })
+        .removeBeneficiary(cf);
+    }
+
+    function validateAndDecodeCF() {
+      const cfInput = document.getElementById('ben-cf');
+      const cf = cfInput.value.toUpperCase().trim();
+      if (cf.length === 16) {
+        cfInput.disabled = true;
+        google.script.run
+          .withSuccessHandler(function(res) {
+            cfInput.disabled = false;
+            if (res.success) {
+              if (res.dataNascita) document.getElementById('ben-data-nascita').value = res.dataNascita;
+              if (res.luogoNascita) document.getElementById('ben-luogo-nascita').value = res.luogoNascita;
+              if (res.sesso) document.getElementById('ben-sesso').value = res.sesso;
+              showToast("Codice Fiscale decodificato!", "success");
+            }
+          })
+          .withFailureHandler(function() {
+            cfInput.disabled = false;
+          })
+          .decodeCF(cf);
+      }
+    }
+
+    // =========================================================================
+    // APPUNTAMENTI LOGIC
+    // =========================================================================
+    function handleAppuntamentoSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('btn-app-submit');
+      const spin = document.getElementById('spin-app');
+      submitBtn.disabled = true;
+      spin.classList.remove('d-none');
+
+      const data = {
+        beneficiario: document.getElementById('app-beneficiario').value,
+        operatore: document.getElementById('app-operatore').value,
+        data: document.getElementById('app-data').value,
+        ora: document.getElementById('app-ora').value,
+        note: document.getElementById('app-note').value
+      };
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          submitBtn.disabled = false;
+          spin.classList.add('d-none');
+          if (res.success) {
+            showToast(res.message, "success");
+            document.getElementById('appuntamento-form').reset();
+            document.getElementById('app-data').value = new Date().toISOString().split('T')[0];
+            loadAppointments();
+          } else {
+            showToast("Errore: " + res.message, "error");
+          }
+        })
+        .withFailureHandler(function(err) {
+          submitBtn.disabled = false;
+          spin.classList.add('d-none');
+          showToast("Errore di rete: " + err.message, "error");
+        })
+        .submitAppointment(data);
+    }
+
+    // =========================================================================
+    // DOCUMENTI & GENERAZIONE LOGIC
+    // =========================================================================
+    function pushDocLink(name, url) {
+      const container = document.getElementById('doc-links-container');
+      const placeholder = container.querySelector('.text-muted');
+      if (placeholder) {
+        container.innerHTML = '';
+      }
+
+      const div = document.createElement('div');
+      div.className = 'd-flex justify-content-between align-items-center py-2 border-bottom';
+      div.innerHTML = `
+        <span class="small"><strong>${name}</strong></span>
+        <a href="${url}" target="_blank" class="btn btn-outline-primary btn-xs py-0 px-2">Apri File</a>
+      `;
+      container.insertBefore(div, container.firstChild);
+    }
+
+    function handleGenerateFirme(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('btn-gen-firme');
+      const spin = document.getElementById('spin-firme');
+      submitBtn.disabled = true;
+      spin.classList.remove('d-none');
+
+      const client = document.getElementById('firme-beneficiario').value;
+      const op = document.getElementById('firme-operatore').value;
+      const mese = document.getElementById('firme-mese').value;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          submitBtn.disabled = false;
+          spin.classList.add('d-none');
+          if (res.success) {
+            showToast("Foglio Firme generato con successo!", "success");
+            pushDocLink(res.name, res.url);
+          } else {
+            showToast("Errore: " + res.name, "error");
+          }
+        })
+        .withFailureHandler(function(err) {
+          submitBtn.disabled = false;
+          spin.classList.add('d-none');
+          showToast("Errore: " + err.message, "error");
+        })
+        .generateFoglioFirmeDoc(op, client, mese);
+    }
+
+    function handleGenerateDiario(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('btn-gen-diario');
+      const spin = document.getElementById('spin-diario');
+      submitBtn.disabled = true;
+      spin.classList.remove('d-none');
+
+      const dataStr = document.getElementById('diario-data').value;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          submitBtn.disabled = false;
+          spin.classList.add('d-none');
+          if (res.success) {
+            showToast("Diario giornaliero generato con successo!", "success");
+            pushDocLink(res.name, res.url);
+          } else {
+            showToast("Errore: " + res.name, "error");
+          }
+        })
+        .withFailureHandler(function(err) {
+          submitBtn.disabled = false;
+          spin.classList.add('d-none');
+          showToast("Errore: " + err.message, "error");
+        })
+        .generateDiarioGiornalieroDoc(dataStr);
+    }
+
+    function handleGenerateSegnalazione(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('btn-gen-seg');
+      const spin = document.getElementById('spin-seg');
+      submitBtn.disabled = true;
+      spin.classList.remove('d-none');
+
+      const benStr = document.getElementById('seg-beneficiario').value;
+      const op = document.getElementById('seg-operatore').value;
+      const desc = document.getElementById('seg-descrizione').value;
+
+      // Trova nucleo e dati beneficiario
+      const cfMatch = benStr.match(/\(([A-Z0-9]{16})\)/i);
+      const cf = cfMatch ? cfMatch[1].toUpperCase() : '';
+      const ben = dbBeneficiaries.find(b => b.cf.toUpperCase() === cf);
+      
+      if (!ben) {
+        showToast("Beneficiario non trovato nel database. Impossibile compilare scheda.", "error");
+        submitBtn.disabled = false;
+        spin.classList.add('d-none');
+        return;
+      }
+
+      const data = {
+        inviante: op,
+        operatore_contatto: "info@labussoladellabitare.com",
+        idNucleo: ben.idNucleo || "Non specificato",
+        nomeIntestatario: `${ben.nome} ${ben.cognome}`,
+        descrizione: desc,
+        luogo: "Roma",
+        data: new Date().toLocaleDateString('it-IT'),
+        beneficiario: {
+          nome: ben.nome,
+          cognome: ben.cognome,
+          cf: ben.cf,
+          dataNascita: ben.dataNascita,
+          luogoNascita: ben.luogoNascita,
+          telefono: ben.telefono
+        }
+      };
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          submitBtn.disabled = false;
+          spin.classList.add('d-none');
+          if (res.success) {
+            showToast("Scheda di segnalazione generata con successo!", "success");
+            pushDocLink(`Scheda Segnalazione - ${ben.nome} ${ben.cognome}`, res.url);
+            document.getElementById('doc-segnalazione-form').reset();
+          } else {
+            showToast("Errore: " + res.url, "error");
+          }
+        })
+        .withFailureHandler(function(err) {
+          submitBtn.disabled = false;
+          spin.classList.add('d-none');
+          showToast("Errore: " + err.message, "error");
+        })
+        .generateSchedaSegnalazioneDoc(data);
+    }
+
+    function handleMonitoraggioSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('btn-gen-mon');
+      const spin = document.getElementById('spin-mon');
+      submitBtn.disabled = true;
+      spin.classList.remove('d-none');
+
+      const data = {
+        beneficiario: document.getElementById('mon-beneficiario').value,
+        operatore: document.getElementById('mon-operatore').value
+      };
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          submitBtn.disabled = false;
+          spin.classList.add('d-none');
+          if (res.success) {
+            showToast(res.message, "success");
+            document.getElementById('monitoraggio-form').reset();
+          } else {
+            showToast("Errore: " + res.message, "error");
+          }
+        })
+        .withFailureHandler(function(err) {
+          submitBtn.disabled = false;
+          spin.classList.add('d-none');
+          showToast("Errore: " + err.message, "error");
+        })
+        .addRigaMonitoraggio(data);
+    }
+
+    // Toast Utility
+    function showToast(message, type = "info") {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      let bgClass = "bg-primary";
+      if (type === "success") bgClass = "bg-success";
+      if (type === "error") bgClass = "bg-danger";
+      if (type === "warning") bgClass = "bg-warning text-dark";
+
+      toast.className = `toast show align-items-center text-white ${bgClass} border-0 mb-2`;
+      toast.role = "alert";
+      toast.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body">${message}</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      `;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 500);
+      }, 4000);
     }
   </script>
 </body>

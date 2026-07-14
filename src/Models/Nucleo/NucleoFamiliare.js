@@ -91,17 +91,36 @@ class NucleoFamiliare {
       throw new Error("Il campo Intestatario (Codice Fiscale) è obbligatorio.");
     }
 
-    const nextId = NucleoFamiliare.generateNextId();
+    let isUpdate = false;
+    let targetRowIdx = -1;
+    let targetId = data.id ? data.id.toString().trim() : "";
 
-    const lastRow = sheet.getLastRow();
-    const newRowIdx = lastRow + 1;
+    if (targetId) {
+      const dataValues = sheet.getDataRange().getValues();
+      if (dataValues.length > 1) {
+        const tempHeaders = dataValues[0].map(h => h.toString().trim().toLowerCase());
+        const tempIdx = NucleoFamiliare._getColIndexes(tempHeaders);
+        if (tempIdx.id >= 0) {
+          for (let i = 1; i < dataValues.length; i++) {
+            if (dataValues[i][tempIdx.id].toString().trim() === targetId) {
+              isUpdate = true;
+              targetRowIdx = i + 1;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    const nextId = isUpdate ? targetId : NucleoFamiliare.generateNextId();
+    const newRowIdx = isUpdate ? targetRowIdx : sheet.getLastRow() + 1;
     const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => h.toString().trim().toLowerCase());
     const idx = NucleoFamiliare._getColIndexes(headers);
 
     // Salvataggio dei dati nelle rispettive colonne trovate
     if (idx.id >= 0) sheet.getRange(newRowIdx, idx.id + 1).setValue(nextId);
     if (idx.intestatario >= 0) sheet.getRange(newRowIdx, idx.intestatario + 1).setValue(data.intestatario.trim().toUpperCase());
-    if (idx.isee >= 0) sheet.getRange(newRowIdx, idx.isee + 1).setValue(data.isee !== null && data.isee !== undefined ? parseFloat(data.isee) : "");
+    if (idx.isee >= 0) sheet.getRange(newRowIdx, idx.isee + 1).setValue(data.isee !== null && data.isee !== undefined && data.isee !== "" ? parseFloat(data.isee) : "");
     if (idx.residenza >= 0) sheet.getRange(newRowIdx, idx.residenza + 1).setValue(data.residenza ? data.residenza.trim() : "");
     if (idx.domicilio >= 0) sheet.getRange(newRowIdx, idx.domicilio + 1).setValue(data.domicilio ? data.domicilio.trim() : "");
     if (idx.descrizioneCaso >= 0) sheet.getRange(newRowIdx, idx.descrizioneCaso + 1).setValue(data.descrizioneCaso ? data.descrizioneCaso.trim() : "");
@@ -112,13 +131,13 @@ class NucleoFamiliare {
     if (idx.assistenteSociale >= 0) sheet.getRange(newRowIdx, idx.assistenteSociale + 1).setValue(data.assistenteSociale ? data.assistenteSociale.trim() : "No");
     if (idx.medicoDiBase >= 0) sheet.getRange(newRowIdx, idx.medicoDiBase + 1).setValue(data.medicoDiBase ? data.medicoDiBase.trim() : "No");
 
-    if (idx.dataInserimento >= 0) {
+    if (idx.dataInserimento >= 0 && !isUpdate) {
       sheet.getRange(newRowIdx, idx.dataInserimento + 1).setValue(new Date());
     }
 
     return {
       success: true,
-      message: "Nucleo Familiare registrato con successo con ID " + nextId + ".",
+      message: isUpdate ? "Nucleo Familiare aggiornato con successo (ID " + nextId + ")." : "Nucleo Familiare registrato con successo con ID " + nextId + ".",
       id: nextId
     };
   }

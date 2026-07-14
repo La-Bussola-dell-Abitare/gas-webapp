@@ -153,6 +153,70 @@ class IncontroRepository {
   }
 
   /**
+   * Aggiorna un incontro esistente nel foglio cercando per chiave originaria.
+   * @param {Object} originalKey - Chiave identificativa originale dell'incontro
+   * @param {string} originalKey.beneficiario
+   * @param {string} originalKey.operatore
+   * @param {string} originalKey.data
+   * @param {string} originalKey.oraInizio
+   * @param {IncontroData} data - Nuovi dati dell'incontro
+   * @return {{ success: boolean; message: string }}
+   */
+  static update(originalKey, data) {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const isOperatore = (data.tipoIncontro === "operatore");
+    const sheetName = isOperatore ? WA_SHEET_INCONTRI_OPERATORE : WA_SHEET_INCONTRI_ASSISTENTE;
+
+    const sheet = ss.getSheetByName(sheetName);
+    if (!sheet) throw new Error("Foglio '" + sheetName + "' non trovato.");
+
+    const dataValues = sheet.getDataRange().getValues();
+    if (dataValues.length <= 1) throw new Error("Nessun incontro registrato.");
+
+    const headers = dataValues[0].map(h => h.toString().trim().toLowerCase());
+    const idx = IncontroRepository._getColIndexes(headers, data.tipoIncontro);
+
+    const cleanOrigBen = originalKey.beneficiario.replace(/\s*\([A-Z0-9]{16}\)$/i, "").trim().toLowerCase();
+
+    for (let i = 1; i < dataValues.length; i++) {
+      const row = dataValues[i];
+      const rowBen = getSheetVal(row, idx, "beneficiario", "").replace(/\s*\([A-Z0-9]{16}\)$/i, "").trim().toLowerCase();
+      const rowOp = getSheetVal(row, idx, "operatore", "").trim().toLowerCase();
+      const rowData = getSheetVal(row, idx, "data", "");
+      const rowOra = getSheetVal(row, idx, "oraInizio", "");
+
+      // Confronto
+      if (rowBen === cleanOrigBen &&
+          rowOp === originalKey.operatore.trim().toLowerCase() &&
+          rowData.toString().includes(originalKey.data.toString()) &&
+          rowOra.toString().trim() === originalKey.oraInizio.toString().trim()) {
+          
+        const targetRowIdx = i + 1;
+        let newBenNome = data.beneficiario.trim();
+        const cfMatch = newBenNome.match(/^(.*?)\s*\([A-Z0-9]{16}\)$/i);
+        if (cfMatch) {
+          newBenNome = cfMatch[1].trim();
+        }
+
+        if (idx.beneficiario >= 0) sheet.getRange(targetRowIdx, idx.beneficiario + 1).setValue(newBenNome);
+        if (idx.operatore >= 0) sheet.getRange(targetRowIdx, idx.operatore + 1).setValue(data.operatore.trim());
+        if (idx.data >= 0) sheet.getRange(targetRowIdx, idx.data + 1).setValue(data.data);
+        if (idx.oraInizio >= 0) sheet.getRange(targetRowIdx, idx.oraInizio + 1).setValue(data.oraInizio);
+        if (idx.oraFine >= 0) sheet.getRange(targetRowIdx, idx.oraFine + 1).setValue(data.oraFine);
+        if (idx.attivita >= 0) sheet.getRange(targetRowIdx, idx.attivita + 1).setValue(data.attivita.trim());
+        if (idx.descrizione >= 0) sheet.getRange(targetRowIdx, idx.descrizione + 1).setValue(data.descrizione.trim());
+        
+        if (isOperatore && idx.segnalazione >= 0) {
+          sheet.getRange(targetRowIdx, idx.segnalazione + 1).setValue(data.segnalazione || "No");
+        }
+
+        return { success: true, message: "Incontro aggiornato con successo." };
+      }
+    }
+    throw new Error("Incontro originale non trovato.");
+  }
+
+  /**
    * Mappa gli indici delle colonne.
    * @private
    * @param {string[]} headers

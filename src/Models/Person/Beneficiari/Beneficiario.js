@@ -9,6 +9,7 @@
 
 /**
  * @typedef {PersonData & {
+ *   idNucleo?: string;
  *   statoLavorativo?: string;
  *   titoloStudio?: string;
  *   residenza?: string;
@@ -32,6 +33,7 @@ class Beneficiario extends Person {
    */
   constructor(data) {
     super(data);
+    this.idNucleo = data.idNucleo || "";
     this.statoLavorativo = data.statoLavorativo || "";
     this.titoloStudio = data.titoloStudio || "";
     this.residenza = data.residenza || "";
@@ -88,6 +90,7 @@ class Beneficiario extends Person {
     const tesseraSanitariaVal = getSheetVal(row, idx, "tesseraSanitaria", false);
     const statoCivileVal = getSheetVal(row, idx, "statoCivile", "");
     const annoArrivoVal = getSheetVal(row, idx, "annoArrivo", null);
+    const idNucleoVal = getSheetVal(row, idx, "idNucleo", "");
 
     const birthPlaceCity = new City(luogoNascitaVal);
     
@@ -122,7 +125,8 @@ class Beneficiario extends Person {
       permessoSoggiorno: permessoSoggiornoVal,
       tesseraSanitaria: tesseraSanitariaVal,
       statoCivile: statoCivileVal,
-      annoArrivo: annoArrivoVal ? parseInt(annoArrivoVal, 10) : null
+      annoArrivo: annoArrivoVal ? parseInt(annoArrivoVal, 10) : null,
+      idNucleo: idNucleoVal
     });
   }
 
@@ -141,6 +145,15 @@ class Beneficiario extends Person {
    */
   static add(data) {
     return BeneficiarioRepository.add(data);
+  }
+
+  /**
+   * Rimuove un beneficiario cercandolo per codice fiscale.
+   * @param {string} cf - Codice Fiscale del beneficiario da rimuovere
+   * @return {{ success: boolean; message: string }}
+   */
+  static remove(cf) {
+    return BeneficiarioRepository.removeByCF(cf);
   }
 }
 
@@ -177,6 +190,43 @@ class BeneficiarioRepository {
   }
 
   /**
+   * Rimuove un beneficiario dal foglio cercando per codice fiscale.
+   * @param {string} cf - Il codice fiscale del beneficiario da rimuovere.
+   * @return {{ success: boolean; message: string }}
+   */
+  static removeByCF(cf) {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(WA_SHEET_BENEFICIARI);
+    if (!sheet) throw new Error("Foglio '" + WA_SHEET_BENEFICIARI + "' non trovato.");
+
+    const targetCF = cf ? cf.toUpperCase().trim() : "";
+    if (!targetCF) throw new Error("Codice Fiscale non valido per la rimozione.");
+
+    const dataValues = sheet.getDataRange().getValues();
+    if (dataValues.length > 1) {
+      const headers = dataValues[0].map(h => h.toString().trim().toLowerCase());
+      const idx = BeneficiarioRepository._getColIndexes(headers);
+      if (idx.cf >= 0) {
+        for (let i = 1; i < dataValues.length; i++) {
+          if (dataValues[i][idx.cf].toString().toUpperCase().trim() === targetCF) {
+            sheet.deleteRow(i + 1);
+            
+            try {
+              if (typeof syncBeneficiaries === 'function') {
+                SpreadsheetApp.flush();
+                syncBeneficiaries();
+              }
+            } catch(e) {}
+            
+            return { success: true, message: "Beneficiario rimosso con successo." };
+          }
+        }
+      }
+    }
+    throw new Error("Beneficiario con Codice Fiscale " + cf + " non trovato.");
+  }
+
+  /**
    * Registra un nuovo beneficiario nel foglio.
    * @param {Record<string, any>} data - Dati del beneficiario da registrare
    * @return {{ success: boolean; message: string }}
@@ -189,21 +239,42 @@ class BeneficiarioRepository {
     const targetCF = data.cf ? data.cf.toUpperCase().trim() : "";
     const targetFullName = (data.nome.trim() + " " + data.cognome.trim()).toLowerCase();
 
-    // Validazione unicità
-    const beneficiari = BeneficiarioRepository.getAll();
-    for (let i = 0; i < beneficiari.length; i++) {
-      const b = beneficiari[i];
-      if (targetCF && b.cf === targetCF) {
-        throw new Error("Un beneficiario con questo Codice Fiscale è già registrato.");
-      }
-      const bFullName = (b.nome + " " + b.cognome).toLowerCase();
-      if (bFullName === targetFullName) {
-        throw new Error("Un beneficiario con questo Nome e Cognome è già registrato.");
+    let isUpdate = false;
+    let targetRowIdx = -1;
+
+    if (data.isUpdate && targetCF) {
+      const dataValues = sheet.getDataRange().getValues();
+      if (dataValues.length > 1) {
+        const tempHeaders = dataValues[0].map(h => h.toString().trim().toLowerCase());
+        const tempIdx = BeneficiarioRepository._getColIndexes(tempHeaders);
+        if (tempIdx.cf >= 0) {
+          for (let i = 1; i < dataValues.length; i++) {
+            if (dataValues[i][tempIdx.cf].toString().toUpperCase().trim() === targetCF) {
+              isUpdate = true;
+              targetRowIdx = i + 1;
+              break;
+            }
+          }
+        }
       }
     }
 
-    const lastRow = sheet.getLastRow();
-    const newRowIdx = lastRow + 1;
+    // Validazione unicità (solo se NON è un aggiornamento)
+    if (!isUpdate) {
+      const beneficiari = BeneficiarioRepository.getAll();
+      for (let i = 0; i < beneficiari.length; i++) {
+        const b = beneficiari[i];
+        if (targetCF && b.cf === targetCF) {
+          throw new Error("Un beneficiario con questo Codice Fiscale è già registrato.");
+        }
+        const bFullName = (b.nome + " " + b.cognome).toLowerCase();
+        if (bFullName === targetFullName) {
+          throw new Error("Un beneficiario con questo Nome e Cognome è già registrato.");
+        }
+      }
+    }
+
+    const newRowIdx = isUpdate ? targetRowIdx : sheet.getLastRow() + 1;
     const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => h.toString().trim().toLowerCase());
     const idx = BeneficiarioRepository._getColIndexes(headers);
 
@@ -221,6 +292,7 @@ class BeneficiarioRepository {
     if (idx.domicilio >= 0) sheet.getRange(newRowIdx, idx.domicilio + 1).setValue(data.domicilio.trim());
     if (idx.inCaricoServizi >= 0) sheet.getRange(newRowIdx, idx.inCaricoServizi + 1).setValue(data.inCaricoServizi);
     if (idx.rapportoIntestatario >= 0) sheet.getRange(newRowIdx, idx.rapportoIntestatario + 1).setValue(data.rapportoIntestatario || "");
+    if (idx.idNucleo >= 0) sheet.getRange(newRowIdx, idx.idNucleo + 1).setValue(data.idNucleo || "");
     if (idx.cartaIdentita >= 0) {
       const val = data.documents?.cartaIdentita || data.cartaIdentita || "Non posseduto";
       sheet.getRange(newRowIdx, idx.cartaIdentita + 1).setValue(val);
@@ -283,7 +355,7 @@ class BeneficiarioRepository {
       residenza: findHeaderIndex(headers, ["residenza"]),
       domicilio: findHeaderIndex(headers, ["domicilio"]),
       inCaricoServizi: findHeaderIndex(headers, ["in carico ai servizi", "in carico", "servizi"]),
-      rapportoIntestatario: findHeaderIndex(headers, ["rapporto con intestatario del nucleo familiare", "rapporto intestatario", "rapporto"]),
+      rapportoIntestatario: findHeaderIndex(headers, ["rapporto con intestatario del nucleo familiare", "rapporto intestatario", "rapporto", "rapporto con intestatario nucleo familiare"]),
       cartaIdentita: findHeaderIndex(headers, ["carta identità", "carta d'identità", "ci"]),
       passaporto: findHeaderIndex(headers, ["passaporto"]),
       patente: findHeaderIndex(headers, ["patente"]),
@@ -291,7 +363,8 @@ class BeneficiarioRepository {
       tesseraSanitaria: findHeaderIndex(headers, ["tessera sanitaria"]),
       statoCivile: findHeaderIndex(headers, ["stato civile"]),
       annoArrivo: findHeaderIndex(headers, ["anno arrivo in italia", "anno arrivo", "arrivo italia"]),
-      dataInserimento: findHeaderIndex(headers, ["data inserimento", "data di inserimento", "inserimento"])
+      dataInserimento: findHeaderIndex(headers, ["data inserimento", "data di inserimento", "inserimento"]),
+      idNucleo: findHeaderIndex(headers, ["nucleo familiare", "id nucleo", "nucleo"])
     };
   }
 }
