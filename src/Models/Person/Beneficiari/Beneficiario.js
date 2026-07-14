@@ -1,26 +1,13 @@
-// @ts-ignore
-const getSheetVal = globalThis.getSheetVal;
-// @ts-ignore
-const safeString = globalThis.safeString;
-// @ts-ignore
-const findHeaderIndex = globalThis.findHeaderIndex;
-// @ts-ignore
-const WA_SHEET_BENEFICIARI = globalThis.WA_SHEET_BENEFICIARI;
-// @ts-ignore
-const syncBeneficiaries = globalThis.syncBeneficiaries;
-
 /**
- * Classe per la gestione e la modellazione dei Beneficiari dello sportello. (Tipizzato in TypeScript)
+ * Classe per la gestione e la modellazione dei Beneficiari dello sportello.
  */
 class Beneficiario {
-  [key: string]: any;
-
   /**
    * Crea un'istanza di Beneficiario da una riga del foglio di calcolo.
-   * @param row - La riga di dati
-   * @param idx - Mappa degli indici delle colonne
+   * @param {any[]} row - La riga di dati
+   * @param {Record<string, number>} idx - Mappa degli indici delle colonne
    */
-  constructor(row: any[], idx: Record<string, number>) {
+  constructor(row, idx) {
     this.nome = getSheetVal(row, idx, "nome", "");
     this.cognome = getSheetVal(row, idx, "cognome", "");
     this.cf = getSheetVal(row, idx, "codice fiscale", "").toUpperCase();
@@ -38,9 +25,9 @@ class Beneficiario {
 
   /**
    * Recupera tutti i beneficiari dal foglio "Beneficiari".
-   * @return Array di istanze di Beneficiario
+   * @return {Beneficiario[]} Array di istanze di Beneficiario
    */
-  static getAll(): Beneficiario[] {
+  static getAll() {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = ss.getSheetByName(WA_SHEET_BENEFICIARI);
     if (!sheet) return [];
@@ -51,7 +38,7 @@ class Beneficiario {
     const headers = data[0].map(h => h.toString().trim().toLowerCase());
     const idx = Beneficiario._getColIndexes(headers);
 
-    const list: Beneficiario[] = [];
+    const list = [];
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const nome = idx.nome >= 0 && idx.nome < row.length ? safeString(row[idx.nome]) : "";
@@ -66,10 +53,10 @@ class Beneficiario {
 
   /**
    * Registra un nuovo beneficiario nel foglio.
-   * @param data - Dati del beneficiario
-   * @return Risultato dell'operazione
+   * @param {Record<string, any>} data - Dati del beneficiario
+   * @return {{ success: boolean; message: string }} Risultato dell'operazione
    */
-  static add(data: Record<string, any>): { success: boolean; message: string } {
+  static add(data) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = ss.getSheetByName(WA_SHEET_BENEFICIARI);
     if (!sheet) throw new Error("Foglio '" + WA_SHEET_BENEFICIARI + "' non trovato.");
@@ -120,7 +107,7 @@ class Beneficiario {
         SpreadsheetApp.flush();
         syncBeneficiaries();
       }
-    } catch (e: any) {
+    } catch (e) {
       Logger.log("Sincronizzazione fallita in background: " + e.message);
     }
 
@@ -130,8 +117,10 @@ class Beneficiario {
   /**
    * Mappa gli indici delle colonne in base alle intestazioni.
    * @private
+   * @param {string[]} headers
+   * @return {Record<string, number>}
    */
-  private static _getColIndexes(headers: string[]): Record<string, number> {
+  static _getColIndexes(headers) {
     let idxNome = findHeaderIndex(headers, ["nome"]);
     let idxCognome = findHeaderIndex(headers, ["cognome"]);
     let idxCF = findHeaderIndex(headers, ["codice fiscale", "cf"]);

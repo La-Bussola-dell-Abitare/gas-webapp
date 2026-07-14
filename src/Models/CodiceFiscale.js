@@ -1,18 +1,12 @@
-// @ts-ignore
-const titleCase = globalThis.titleCase;
-
 /**
  * Classe per la gestione e la decodifica del Codice Fiscale.
  */
 class CodiceFiscale {
-    originale: string;
-    normalizzato: string;
-
     /**
      * Crea un'istanza di CodiceFiscale.
-     * @param cf - Il codice fiscale da analizzare.
+     * @param {string} cf - Il codice fiscale da analizzare.
      */
-    constructor(cf: string) {
+    constructor(cf) {
         if (!cf) throw new Error("Il codice fiscale non può essere vuoto");
         this.originale = cf.trim().toUpperCase();
         this.normalizzato = this._decodificaOmocodia(this.originale);
@@ -20,8 +14,10 @@ class CodiceFiscale {
 
     /**
      * Mappa ufficiale delle lettere di omocodia.
+     * @private
+     * @type {Record<string, string>}
      */
-    private static get _mappaOmocodia(): Record<string, string> {
+    static get _mappaOmocodia() {
         return {
             'L': '0', 'M': '1', 'N': '2', 'P': '3', 'Q': '4',
             'R': '5', 'S': '6', 'T': '7', 'U': '8', 'V': '9'
@@ -30,8 +26,10 @@ class CodiceFiscale {
 
     /**
      * Mappa dei caratteri in posizione dispari (1-indexed) per il calcolo del carattere di controllo.
+     * @private
+     * @type {Record<string, number>}
      */
-    private static get _mappaDispari(): Record<string, number> {
+    static get _mappaDispari() {
         return {
             'A': 1, 'B': 0, 'C': 5, 'D': 7, 'E': 9, 'F': 13, 'G': 15, 'H': 17, 'I': 19, 'J': 21,
             'K': 2, 'L': 4, 'M': 18, 'N': 20, 'O': 11, 'P': 3, 'Q': 6, 'R': 8, 'S': 12, 'T': 14,
@@ -42,8 +40,10 @@ class CodiceFiscale {
 
     /**
      * Mappa dei caratteri in posizione pari (1-indexed) per il calcolo del carattere di controllo.
+     * @private
+     * @type {Record<string, number>}
      */
-    private static get _mappaPari(): Record<string, number> {
+    static get _mappaPari() {
         return {
             'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5, 'G': 6, 'H': 7, 'I': 8, 'J': 9,
             'K': 10, 'L': 11, 'M': 12, 'N': 13, 'O': 14, 'P': 15, 'Q': 16, 'R': 17, 'S': 18, 'T': 19,
@@ -54,10 +54,10 @@ class CodiceFiscale {
 
     /**
      * Decodifica il codice Belfiore (catastale) restituendo il nome del comune o dello stato estero.
-     * @param codice - Il codice Belfiore di 4 caratteri (es. F205 o Z112).
-     * @return Il nome corrispondente, o il codice originale se non trovato.
+     * @param {string} codice - Il codice Belfiore di 4 caratteri (es. F205 o Z112).
+     * @return {string} Il nome corrispondente, o il codice originale se non trovato.
      */
-    static decodeBelfiore(codice: string): string {
+    static decodeBelfiore(codice) {
         if (!codice || codice.length !== 4) return codice;
 
         const cache = CacheService.getScriptCache();
@@ -94,7 +94,8 @@ class CodiceFiscale {
                 // Comune italiano
                 const url = "https://raw.githubusercontent.com/matteocontrini/comuni-json/master/comuni.json";
                 const response = UrlFetchApp.fetch(url);
-                const comuni = JSON.parse(response.getContentText()) as Array<{ codiceCatastale: string; nome: string }>;
+                /** @type {Array<{ codiceCatastale: string; nome: string }>} */
+                const comuni = JSON.parse(response.getContentText());
 
                 const comune = comuni.find(c => c.codiceCatastale === codice);
                 if (comune && comune.nome) {
@@ -105,7 +106,7 @@ class CodiceFiscale {
                     return name;
                 }
             }
-        } catch (e: any) {
+        } catch (e) {
             Logger.log("Errore nella decodifica Belfiore del codice " + codice + ": " + e.message);
         }
 
@@ -114,10 +115,10 @@ class CodiceFiscale {
 
     /**
      * Ritorna il comune o lo stato estero di nascita a partire dal codice fiscale.
-     * @param cf - Il codice fiscale.
-     * @return Il nome del comune o dello stato di nascita.
+     * @param {string} cf - Il codice fiscale.
+     * @return {string} Il nome del comune o dello stato di nascita.
      */
-    static getLuogoNascita(cf: string): string {
+    static getLuogoNascita(cf) {
         if (!cf) throw new Error("Il codice fiscale non può essere vuoto");
         const cfObj = new CodiceFiscale(cf);
         return cfObj.getLuogoNascita();
@@ -125,8 +126,11 @@ class CodiceFiscale {
 
     /**
      * Calcola il carattere di controllo per i primi 15 caratteri del codice fiscale.
+     * @private
+     * @param {string} cf - Il codice fiscale.
+     * @return {string}
      */
-    private _calcolaCarattereControllo(cf: string): string {
+    _calcolaCarattereControllo(cf) {
         if (!cf || cf.length < 15) return "";
         let somma = 0;
         const mappaDispari = CodiceFiscale._mappaDispari;
@@ -149,8 +153,11 @@ class CodiceFiscale {
 
     /**
      * Ripristina i numeri originali sostituendo le lettere di omocodia.
+     * @private
+     * @param {string} cf - Il codice fiscale.
+     * @return {string}
      */
-    private _decodificaOmocodia(cf: string): string {
+    _decodificaOmocodia(cf) {
         const posizioniNumeriche = [6, 7, 9, 10, 12, 13, 14];
         let cfArray = cf.split("");
         const mappa = CodiceFiscale._mappaOmocodia;
@@ -168,8 +175,9 @@ class CodiceFiscale {
 
     /**
      * Verifica se la struttura base del codice (16 caratteri) è valida.
+     * @return {boolean}
      */
-    isValid(): boolean {
+    isValid() {
         const regex = /^[A-Z]{6}[0-9LMNPQRSTUV]{2}[A-EHLMPRST]{1}[0-9LMNPQRSTUV]{2}[A-Z]{1}[0-9LMNPQRSTUV]{3}[A-Z]{1}$/;
         if (!regex.test(this.originale)) return false;
 
@@ -179,9 +187,9 @@ class CodiceFiscale {
 
     /**
      * Estrae la data di nascita.
-     * @return Oggetto Date corrispondente alla data di nascita.
+     * @return {Date} Oggetto Date corrispondente alla data di nascita.
      */
-    getDataNascita(): Date {
+    getDataNascita() {
         if (!this.isValid()) throw new Error("Codice Fiscale non valido o incompleto");
 
         // 1. Anno
@@ -204,8 +212,9 @@ class CodiceFiscale {
 
     /**
      * Determina il sesso ('M' o 'F').
+     * @return {"M" | "F"}
      */
-    getSesso(): "M" | "F" {
+    getSesso() {
         if (!this.isValid()) throw new Error("Codice Fiscale non valido o incompleto");
         let giorno = parseInt(this.normalizzato.substring(9, 11), 10);
         return giorno > 40 ? "F" : "M";
@@ -213,16 +222,18 @@ class CodiceFiscale {
 
     /**
      * Estrae il codice catastale del comune di nascita.
+     * @return {string}
      */
-    getCodiceComune(): string {
+    getCodiceComune() {
         if (!this.isValid()) throw new Error("Codice Fiscale non valido o incompleto");
         return this.normalizzato.substring(11, 15);
     }
 
     /**
      * Ritorna il nome del comune o dello stato estero di nascita.
+     * @return {string} Il nome del comune o dello stato di nascita.
      */
-    getLuogoNascita(): string {
+    getLuogoNascita() {
         if (!this.isValid()) throw new Error("Codice Fiscale non valido o incompleto");
         return CodiceFiscale.decodeBelfiore(this.getCodiceComune());
     }
@@ -234,11 +245,11 @@ class CodiceFiscale {
 
 /**
  * Formula personalizzata per estrarre la DATA DI NASCITA usando la classe.
- * @param cf Il codice fiscale.
- * @return La data di nascita.
+ * @param {string} cf Il codice fiscale.
+ * @return {Date | string} La data di nascita.
  * @customfunction
  */
-function CF_DATA_NASCITA(cf: string): Date | string {
+function CF_DATA_NASCITA(cf) {
     try {
         const cfObj = new CodiceFiscale(cf);
         return cfObj.getDataNascita();
@@ -249,11 +260,11 @@ function CF_DATA_NASCITA(cf: string): Date | string {
 
 /**
  * Formula personalizzata per estrarre il SESSO usando la classe.
- * @param cf Il codice fiscale.
- * @return 'M' o 'F'.
+ * @param {string} cf Il codice fiscale.
+ * @return {string} 'M' o 'F'.
  * @customfunction
  */
-function CF_SESSO(cf: string): string {
+function CF_SESSO(cf) {
     try {
         const cfObj = new CodiceFiscale(cf);
         return cfObj.getSesso();
@@ -264,11 +275,11 @@ function CF_SESSO(cf: string): string {
 
 /**
  * Formula personalizzata per validare la struttura del codice fiscale.
- * @param cf Il codice fiscale.
- * @return VERO o FALSO.
+ * @param {string} cf Il codice fiscale.
+ * @return {boolean} VERO o FALSO.
  * @customfunction
  */
-function CF_VALIDA(cf: string): boolean {
+function CF_VALIDA(cf) {
     try {
         const cfObj = new CodiceFiscale(cf);
         return cfObj.isValid();
@@ -279,11 +290,11 @@ function CF_VALIDA(cf: string): boolean {
 
 /**
  * Formula personalizzata per estrarre il COMUNE O STATO DI NASCITA usando la classe.
- * @param cf Il codice fiscale.
- * @return Il nome del comune o dello stato estero di nascita.
+ * @param {string} cf Il codice fiscale.
+ * @return {string} Il nome del comune o dello stato estero di nascita.
  * @customfunction
  */
-function CF_COMUNE(cf: string): string {
+function CF_COMUNE(cf) {
     try {
         const cfObj = new CodiceFiscale(cf);
         return cfObj.getLuogoNascita();
