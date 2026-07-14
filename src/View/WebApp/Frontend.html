@@ -775,12 +775,18 @@
     function reloadData() {
       showToast("Caricamento dati in corso...", "info");
 
+      const failHandler = function(err) {
+        console.error("Errore caricamento dati:", err);
+        showToast("Autorizzazione richiesta: avvia un test nell'editor Apps Script per concedere i permessi.", "warning");
+      };
+
       // Carica Operatori
       google.script.run
         .withSuccessHandler(function(list) {
           dbOperators = list;
           populateOperatorsDropdowns();
         })
+        .withFailureHandler(failHandler)
         .getOperatorsList();
 
       // Carica Incontri
@@ -789,6 +795,7 @@
           dbMeetings = list;
           renderMeetingsTable();
         })
+        .withFailureHandler(failHandler)
         .getMeetingsList();
 
       // Carica Nuclei
@@ -797,6 +804,7 @@
           dbNuclei = list;
           renderNucleiList();
         })
+        .withFailureHandler(failHandler)
         .getNucleiObjects();
 
       // Carica Beneficiari
@@ -805,6 +813,7 @@
           dbBeneficiaries = list;
           showToast("Sincronizzazione dati completata!", "success");
         })
+        .withFailureHandler(failHandler)
         .getBeneficiariObjects();
 
       // Carica Appuntamenti
@@ -831,6 +840,9 @@
             `;
             tbody.appendChild(tr);
           });
+        })
+        .withFailureHandler(function(err) {
+          console.error("Errore appuntamenti:", err);
         })
         .getAppointmentsList();
     }

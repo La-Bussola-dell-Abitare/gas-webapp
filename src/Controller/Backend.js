@@ -25,12 +25,36 @@ class BackendController {
   }
 
   /**
-   * Recupera i beneficiari dal foglio e li trasforma in un array di oggetti JS.
-   * @return {Beneficiario[]}
+   * Recupera i beneficiari dal foglio e li trasforma in un array di oggetti JS piani (POJO).
+   * @return {Record<string, any>[]}
    */
   static getBeneficiariObjects() {
     try {
-      return Beneficiario.getAll();
+      return Beneficiario.getAll().map(b => ({
+        name: b.name,
+        surname: b.surname,
+        cf: b.cf,
+        dataNascita: b.dataNascita,
+        luogoNascita: b.luogoNascita,
+        email: b.email,
+        phone: b.phone,
+        telefono: b.telefono,
+        cittadinanza: b.cittadinanza,
+        residenza: b.residenza,
+        domicilio: b.domicilio,
+        statoLavorativo: b.statoLavorativo,
+        titoloStudio: b.titoloStudio,
+        inCaricoServizi: b.inCaricoServizi,
+        rapportoIntestatario: b.rapportoIntestatario,
+        statoCivile: b.statoCivile,
+        annoArrivo: b.annoArrivo,
+        idNucleo: b.idNucleo,
+        passaporto: b.documents?.passaporto || false,
+        patente: b.documents?.patente || false,
+        permessoSoggiorno: b.documents?.permessoSoggiorno || false,
+        tesseraSanitaria: b.documents?.tesseraSanitaria || false,
+        cartaIdentita: b.documents?.cartaIdentita || "Non posseduto"
+      }));
     } catch (err) {
       Logger.log("Errore getBeneficiariObjects: " + err.message);
       return [];
@@ -130,12 +154,24 @@ class BackendController {
   }
 
   /**
-   * Recupera l'elenco completo di tutti gli incontri da entrambi i fogli.
-   * @return {Incontro[]}
+   * Recupera l'elenco completo di tutti gli incontri da entrambi i fogli (come POJO).
+   * @return {Record<string, any>[]}
    */
   static getMeetingsList() {
     try {
-      return IncontroRepository.getAll();
+      return IncontroRepository.getAll().map(m => ({
+        beneficiario: m.beneficiario,
+        operatore: m.operatore,
+        data: m.data,
+        oraInizio: m.oraInizio,
+        oraFine: m.oraFine,
+        attivita: m.attivita,
+        descrizione: m.descrizione,
+        segnalazione: m.segnalazione,
+        statoElaborazione: m.statoElaborazione,
+        erroriValidazione: m.erroriValidazione,
+        tipoIncontro: m.tipoIncontro
+      }));
     } catch (err) {
       Logger.log("Errore getMeetingsList: " + err.message);
       return [];
@@ -143,12 +179,25 @@ class BackendController {
   }
 
   /**
-   * Recupera l'elenco completo di tutti i nuclei familiari.
-   * @return {NucleoFamiliare[]}
+   * Recupera l'elenco completo di tutti i nuclei familiari (come POJO).
+   * @return {Record<string, any>[]}
    */
   static getNucleiObjects() {
     try {
-      return NucleoFamiliare.getAll();
+      return NucleoFamiliare.getAll().map(n => ({
+        id: n.id,
+        intestatario: n.intestatario,
+        isee: n.isee,
+        residenza: n.residenza,
+        domicilio: n.domicilio,
+        descrizioneCaso: n.descrizioneCaso,
+        obiettiviProgettualita: n.obiettiviProgettualita,
+        tipologiaRichiesta: n.tipologiaRichiesta,
+        orientamentoFollowUp: n.orientamentoFollowUp,
+        tipologiaAbitazione: n.tipologiaAbitazione,
+        assistenteSociale: n.assistenteSociale,
+        medicoDiBase: n.medicoDiBase
+      }));
     } catch (err) {
       Logger.log("Errore getNucleiObjects: " + err.message);
       return [];
