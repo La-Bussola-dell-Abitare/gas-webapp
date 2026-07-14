@@ -1,0 +1,7 @@
+# Ignora la cartella dei file compilati localmente
+dist/**
+# Ignora i file di configurazione
+# tsconfig.json
+package.json
+package-lock.json
+node_modules/**
