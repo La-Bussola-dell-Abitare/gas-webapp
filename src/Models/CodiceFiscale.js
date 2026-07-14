@@ -9,7 +9,7 @@ class CodiceFiscale {
     constructor(cf) {
         if (!cf) throw new Error("Il codice fiscale non può essere vuoto");
         this.originale = cf.trim().toUpperCase();
-        this.normalizzato = this._decodificaOmocodia(this.originale);
+        this.normalizzato = CodiceFiscale._decodificaOmocodia(this.originale);
     }
 
     /**
@@ -114,23 +114,12 @@ class CodiceFiscale {
     }
 
     /**
-     * Ritorna il comune o lo stato estero di nascita a partire dal codice fiscale.
-     * @param {string} cf - Il codice fiscale.
-     * @return {string} Il nome del comune o dello stato di nascita.
-     */
-    static getLuogoNascita(cf) {
-        if (!cf) throw new Error("Il codice fiscale non può essere vuoto");
-        const cfObj = new CodiceFiscale(cf);
-        return cfObj.getLuogoNascita();
-    }
-
-    /**
      * Calcola il carattere di controllo per i primi 15 caratteri del codice fiscale.
      * @private
      * @param {string} cf - Il codice fiscale.
      * @return {string}
      */
-    _calcolaCarattereControllo(cf) {
+    static _calcolaCarattereControllo(cf) {
         if (!cf || cf.length < 15) return "";
         let somma = 0;
         const mappaDispari = CodiceFiscale._mappaDispari;
@@ -157,7 +146,7 @@ class CodiceFiscale {
      * @param {string} cf - Il codice fiscale.
      * @return {string}
      */
-    _decodificaOmocodia(cf) {
+    static _decodificaOmocodia(cf) {
         const posizioniNumeriche = [6, 7, 9, 10, 12, 13, 14];
         let cfArray = cf.split("");
         const mappa = CodiceFiscale._mappaOmocodia;
@@ -175,35 +164,41 @@ class CodiceFiscale {
 
     /**
      * Verifica se la struttura base del codice (16 caratteri) è valida.
+     * @param {string} cf - Il codice fiscale.
      * @return {boolean}
      */
-    isValid() {
+    static isValid(cf) {
+        if (cf == null) return false;
+        cf = cf.toString().toUpperCase().trim();
         const regex = /^[A-Z]{6}[0-9LMNPQRSTUV]{2}[A-EHLMPRST]{1}[0-9LMNPQRSTUV]{2}[A-Z]{1}[0-9LMNPQRSTUV]{3}[A-Z]{1}$/;
-        if (!regex.test(this.originale)) return false;
+        if (!regex.test(cf)) return false;
 
-        const calcolato = this._calcolaCarattereControllo(this.originale);
-        return calcolato === this.originale.charAt(15);
+        const calcolato = CodiceFiscale._calcolaCarattereControllo(cf);
+        return calcolato === cf.charAt(15);
     }
 
     /**
-     * Estrae la data di nascita.
+     * Estrae la data di nascita da un codice fiscale.
+     * @param {string} cf - Il codice fiscale.
      * @return {Date} Oggetto Date corrispondente alla data di nascita.
      */
-    getDataNascita() {
-        if (!this.isValid()) throw new Error("Codice Fiscale non valido o incompleto");
+    static getBirthdate(cf) {
+        if (!CodiceFiscale.isValid(cf)) throw new Error("Codice Fiscale non valido o incompleto");
+        
+        const cfNormalizzato = CodiceFiscale._decodificaOmocodia(cf.toUpperCase().trim());
 
         // 1. Anno
-        let anno = parseInt(this.normalizzato.substring(6, 8), 10);
+        let anno = parseInt(cfNormalizzato.substring(6, 8), 10);
         const annoCorrenteDueCifre = new Date().getFullYear() % 100;
         anno += (anno > annoCorrenteDueCifre) ? 1900 : 2000;
 
         // 2. Mese
         const mesi = "ABCDEHLMPRST";
-        let mese = mesi.indexOf(this.normalizzato.charAt(8));
+        let mese = mesi.indexOf(cfNormalizzato.charAt(8));
         if (mese === -1) throw new Error("Mese non valido");
 
         // 3. Giorno
-        let giorno = parseInt(this.normalizzato.substring(9, 11), 10);
+        let giorno = parseInt(cfNormalizzato.substring(9, 11), 10);
         if (giorno > 40) giorno -= 40;
         if (giorno < 1 || giorno > 31) throw new Error("Giorno non valido");
 
@@ -211,13 +206,72 @@ class CodiceFiscale {
     }
 
     /**
+     * Determina il sesso ('M' o 'F') da un codice fiscale.
+     * @param {string} cf - Il codice fiscale.
+     * @return {"M" | "F"}
+     */
+    static getSesso(cf) {
+        if (!CodiceFiscale.isValid(cf)) throw new Error("Codice Fiscale non valido o incompleto");
+        const cfNormalizzato = CodiceFiscale._decodificaOmocodia(cf.toUpperCase().trim());
+        let giorno = parseInt(cfNormalizzato.substring(9, 11), 10);
+        return giorno > 40 ? "F" : "M";
+    }
+
+    /**
+     * Estrae il codice catastale del comune di nascita da un codice fiscale.
+     * @param {string} cf - Il codice fiscale.
+     * @return {string}
+     */
+    static getCodiceComune(cf) {
+        if (!CodiceFiscale.isValid(cf)) throw new Error("Codice Fiscale non valido o incompleto");
+        const cfNormalizzato = CodiceFiscale._decodificaOmocodia(cf.toUpperCase().trim());
+        return cfNormalizzato.substring(11, 15);
+    }
+
+    /**
+     * Ritorna il nome del comune o dello stato estero di nascita da un codice fiscale.
+     * @param {string} cf - Il codice fiscale.
+     * @return {string} Il nome del comune o dello stato di nascita.
+     */
+    static getBirthplace(cf) {
+        return CodiceFiscale.decodeBelfiore(CodiceFiscale.getCodiceComune(cf));
+    }
+
+    /**
+     * Ritorna lo stato di nascita ("Italia" o il nome dello stato estero) da un codice fiscale.
+     * @param {string} cf - Il codice fiscale.
+     * @return {string} Lo stato di nascita.
+     */
+    static getBirthplaceCountry(cf) {
+        const codice = CodiceFiscale.getCodiceComune(cf);
+        if (codice.toUpperCase().startsWith("Z")) {
+            return CodiceFiscale.decodeBelfiore(codice);
+        }
+        return "Italia";
+    }
+
+    /**
+     * Verifica se la struttura base del codice (16 caratteri) è valida.
+     * @return {boolean}
+     */
+    isValid() {
+        return CodiceFiscale.isValid(this.originale);
+    }
+
+    /**
+     * Estrae la data di nascita.
+     * @return {Date} Oggetto Date corrispondente alla data di nascita.
+     */
+    getBirthdate() {
+        return CodiceFiscale.getBirthdate(this.originale);
+    }
+
+    /**
      * Determina il sesso ('M' o 'F').
      * @return {"M" | "F"}
      */
     getSesso() {
-        if (!this.isValid()) throw new Error("Codice Fiscale non valido o incompleto");
-        let giorno = parseInt(this.normalizzato.substring(9, 11), 10);
-        return giorno > 40 ? "F" : "M";
+        return CodiceFiscale.getSesso(this.originale);
     }
 
     /**
@@ -225,17 +279,23 @@ class CodiceFiscale {
      * @return {string}
      */
     getCodiceComune() {
-        if (!this.isValid()) throw new Error("Codice Fiscale non valido o incompleto");
-        return this.normalizzato.substring(11, 15);
+        return CodiceFiscale.getCodiceComune(this.originale);
     }
 
     /**
      * Ritorna il nome del comune o dello stato estero di nascita.
      * @return {string} Il nome del comune o dello stato di nascita.
      */
-    getLuogoNascita() {
-        if (!this.isValid()) throw new Error("Codice Fiscale non valido o incompleto");
-        return CodiceFiscale.decodeBelfiore(this.getCodiceComune());
+    getBirthplace() {
+        return CodiceFiscale.getBirthplace(this.originale);
+    }
+
+    /**
+     * Ritorna lo stato di nascita ("Italia" o il nome dello stato estero).
+     * @return {string} Lo stato di nascita.
+     */
+    getBirthplaceCountry() {
+        return CodiceFiscale.getBirthplaceCountry(this.originale);
     }
 }
 
@@ -251,8 +311,7 @@ class CodiceFiscale {
  */
 function CF_DATA_NASCITA(cf) {
     try {
-        const cfObj = new CodiceFiscale(cf);
-        return cfObj.getDataNascita();
+        return CodiceFiscale.getBirthdate(cf);
     } catch (e) {
         return "Errore";
     }
@@ -266,8 +325,7 @@ function CF_DATA_NASCITA(cf) {
  */
 function CF_SESSO(cf) {
     try {
-        const cfObj = new CodiceFiscale(cf);
-        return cfObj.getSesso();
+        return CodiceFiscale.getSesso(cf);
     } catch (e) {
         return "Errore";
     }
@@ -281,8 +339,7 @@ function CF_SESSO(cf) {
  */
 function CF_VALIDA(cf) {
     try {
-        const cfObj = new CodiceFiscale(cf);
-        return cfObj.isValid();
+        return CodiceFiscale.isValid(cf);
     } catch (e) {
         return false;
     }
@@ -296,8 +353,7 @@ function CF_VALIDA(cf) {
  */
 function CF_COMUNE(cf) {
     try {
-        const cfObj = new CodiceFiscale(cf);
-        return cfObj.getLuogoNascita();
+        return CodiceFiscale.getBirthplace(cf);
     } catch (e) {
         return "Errore";
     }

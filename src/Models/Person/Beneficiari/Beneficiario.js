@@ -1,31 +1,106 @@
 /**
- * Classe per la gestione e la modellazione dei Beneficiari dello sportello.
+ * @typedef {PersonData & {
+ *   statoLavorativo?: string;
+ *   titoloStudio?: string;
+ *   residenza?: string;
+ *   domicilio?: string;
+ *   inCaricoServizi?: string;
+ * }} BeneficiarioData
  */
-class Beneficiario {
+
+/**
+ * Classe Beneficiario che rappresenta un beneficiario dello sportello.
+ * @extends Person
+ */
+class Beneficiario extends Person {
   /**
-   * Crea un'istanza di Beneficiario da una riga del foglio di calcolo.
-   * @param {any[]} row - La riga di dati
-   * @param {Record<string, number>} idx - Mappa degli indici delle colonne
+   * Crea un'istanza di Beneficiario.
+   * @param {BeneficiarioData} data - I dati del beneficiario.
    */
-  constructor(row, idx) {
-    this.nome = getSheetVal(row, idx, "nome", "");
-    this.cognome = getSheetVal(row, idx, "cognome", "");
-    this.cf = getSheetVal(row, idx, "codice fiscale", "").toUpperCase();
-    this.dataNascita = getSheetVal(row, idx, "data di nascita", null);
-    this.luogoNascita = getSheetVal(row, idx, "luogo di nascita", "");
-    this.email = getSheetVal(row, idx, "email", "");
-    this.telefono = getSheetVal(row, idx, "telefono", "");
-    this.statoLavorativo = getSheetVal(row, idx, "stato lavorativo", "");
-    this.titoloStudio = getSheetVal(row, idx, "titolo di studio", "");
-    this.cittadinanza = getSheetVal(row, idx, "cittadinanza", "");
-    this.residenza = getSheetVal(row, idx, "residenza", "");
-    this.domicilio = getSheetVal(row, idx, "domicilio", "");
-    this.inCaricoServizi = getSheetVal(row, idx, "in carico ai servizi", "");
+  constructor(data) {
+    super(data);
+    this.statoLavorativo = data.statoLavorativo || "";
+    this.titoloStudio = data.titoloStudio || "";
+    this.residenza = data.residenza || "";
+    this.domicilio = data.domicilio || "";
+    this.inCaricoServizi = data.inCaricoServizi || "";
   }
 
   /**
-   * Recupera tutti i beneficiari dal foglio "Beneficiari".
+   * Factory statico per creare un'istanza di Beneficiario da una riga del foglio ed indici.
+   * @param {any[]} row - La riga di dati
+   * @param {Record<string, number>} idx - Mappa degli indici delle colonne
+   * @return {Beneficiario}
+   */
+  static fromRow(row, idx) {
+    const nomeVal = getSheetVal(row, idx, "nome", "");
+    const cognomeVal = getSheetVal(row, idx, "cognome", "");
+    const cfVal = getSheetVal(row, idx, "codice fiscale", "");
+    const dataNascitaVal = getSheetVal(row, idx, "data di nascita", null);
+    const luogoNascitaVal = getSheetVal(row, idx, "luogo di nascita", "");
+    const emailVal = getSheetVal(row, idx, "email", "");
+    const telefonoVal = getSheetVal(row, idx, "telefono", "");
+    const statoLavorativoVal = getSheetVal(row, idx, "stato lavorativo", "");
+    const titoloStudioVal = getSheetVal(row, idx, "titolo di studio", "");
+    const cittadinanzaVal = getSheetVal(row, idx, "cittadinanza", "");
+    const residenzaVal = getSheetVal(row, idx, "residenza", "");
+    const domicilioVal = getSheetVal(row, idx, "domicilio", "");
+    const inCaricoServiziVal = getSheetVal(row, idx, "in carico ai servizi", "");
+
+    const birthPlaceCity = new City(luogoNascitaVal);
+    
+    // Mappa della cittadinanza a partire dal foglio
+    let citizenshipEnum = Citizenship.Apolide;
+    const cleanCittadinanza = cittadinanzaVal.trim().toLowerCase();
+    for (const key in Citizenship) {
+      if (key.toLowerCase() === cleanCittadinanza || Citizenship[key].toLowerCase() === cleanCittadinanza) {
+        citizenshipEnum = Citizenship[key];
+        break;
+      }
+    }
+
+    return new Beneficiario({
+      name: nomeVal,
+      surname: cognomeVal,
+      taxCode: new CodiceFiscale(cfVal),
+      birthDate: dataNascitaVal,
+      birthPlace: birthPlaceCity,
+      email: emailVal,
+      phone: telefonoVal,
+      citizenship: citizenshipEnum,
+      statoLavorativo: statoLavorativoVal,
+      titoloStudio: titoloStudioVal,
+      residenza: residenzaVal,
+      domicilio: domicilioVal,
+      inCaricoServizi: inCaricoServiziVal
+    });
+  }
+
+  /**
+   * Recupera tutti i beneficiari dal foglio.
    * @return {Beneficiario[]} Array di istanze di Beneficiario
+   */
+  static getAll() {
+    return BeneficiarioRepository.getAll();
+  }
+
+  /**
+   * Registra un nuovo beneficiario nel foglio.
+   * @param {Record<string, any>} data - Dati del beneficiario
+   * @return {{ success: boolean; message: string }} Risultato dell'operazione
+   */
+  static add(data) {
+    return BeneficiarioRepository.add(data);
+  }
+}
+
+/**
+ * Repository per gestire le operazioni di persistenza e lettura dei Beneficiari.
+ */
+class BeneficiarioRepository {
+  /**
+   * Ottiene tutti i beneficiari.
+   * @return {Beneficiario[]}
    */
   static getAll() {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -36,7 +111,7 @@ class Beneficiario {
     if (data.length <= 1) return [];
 
     const headers = data[0].map(h => h.toString().trim().toLowerCase());
-    const idx = Beneficiario._getColIndexes(headers);
+    const idx = BeneficiarioRepository._getColIndexes(headers);
 
     const list = [];
     for (let i = 1; i < data.length; i++) {
@@ -45,7 +120,7 @@ class Beneficiario {
       const cognome = idx.cognome >= 0 && idx.cognome < row.length ? safeString(row[idx.cognome]) : "";
 
       if (nome || cognome) {
-        list.push(new Beneficiario(row, idx));
+        list.push(Beneficiario.fromRow(row, idx));
       }
     }
     return list;
@@ -53,8 +128,8 @@ class Beneficiario {
 
   /**
    * Registra un nuovo beneficiario nel foglio.
-   * @param {Record<string, any>} data - Dati del beneficiario
-   * @return {{ success: boolean; message: string }} Risultato dell'operazione
+   * @param {Record<string, any>} data - Dati del beneficiario da registrare
+   * @return {{ success: boolean; message: string }}
    */
   static add(data) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -65,7 +140,7 @@ class Beneficiario {
     const targetFullName = (data.nome.trim() + " " + data.cognome.trim()).toLowerCase();
 
     // Validazione unicità
-    const beneficiari = Beneficiario.getAll();
+    const beneficiari = BeneficiarioRepository.getAll();
     for (let i = 0; i < beneficiari.length; i++) {
       const b = beneficiari[i];
       if (targetCF && b.cf === targetCF) {
@@ -80,7 +155,7 @@ class Beneficiario {
     const lastRow = sheet.getLastRow();
     const newRowIdx = lastRow + 1;
     const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => h.toString().trim().toLowerCase());
-    const idx = Beneficiario._getColIndexes(headers);
+    const idx = BeneficiarioRepository._getColIndexes(headers);
 
     if (idx.nome >= 0) sheet.getRange(newRowIdx, idx.nome + 1).setValue(data.nome.trim());
     if (idx.cognome >= 0) sheet.getRange(newRowIdx, idx.cognome + 1).setValue(data.cognome.trim());
@@ -121,36 +196,21 @@ class Beneficiario {
    * @return {Record<string, number>}
    */
   static _getColIndexes(headers) {
-    let idxNome = findHeaderIndex(headers, ["nome"]);
-    let idxCognome = findHeaderIndex(headers, ["cognome"]);
-    let idxCF = findHeaderIndex(headers, ["codice fiscale", "cf"]);
-    let idxDataNascita = findHeaderIndex(headers, ["data di nascita", "data nascita"]);
-    let idxLuogoNascita = findHeaderIndex(headers, ["luogo di nascita", "luogo nascita"]);
-    let idxEmail = findHeaderIndex(headers, ["email", "e-mail"]);
-    let idxTelefono = findHeaderIndex(headers, ["telefono", "cellulare", "tel"]);
-    let idxStatoLavorativo = findHeaderIndex(headers, ["stato lavorativo", "lavoro"]);
-    let idxTitoloStudio = findHeaderIndex(headers, ["titolo di studio", "titolo studio"]);
-    let idxCittadinanza = findHeaderIndex(headers, ["cittadinanza"]);
-    let idxResidenza = findHeaderIndex(headers, ["residenza"]);
-    let idxDomicilio = findHeaderIndex(headers, ["domicilio"]);
-    let idxInCaricoServizi = findHeaderIndex(headers, ["in carico ai servizi", "in carico", "servizi"]);
-    let idxDataInserimento = findHeaderIndex(headers, ["data inserimento", "data di inserimento", "inserimento"]);
-
     return {
-      nome: idxNome,
-      cognome: idxCognome,
-      cf: idxCF,
-      dataNascita: idxDataNascita,
-      luogoNascita: idxLuogoNascita,
-      email: idxEmail,
-      telefono: idxTelefono,
-      statoLavorativo: idxStatoLavorativo,
-      titoloStudio: idxTitoloStudio,
-      cittadinanza: idxCittadinanza,
-      residenza: idxResidenza,
-      domicilio: idxDomicilio,
-      inCaricoServizi: idxInCaricoServizi,
-      dataInserimento: idxDataInserimento
+      nome: findHeaderIndex(headers, ["nome"]),
+      cognome: findHeaderIndex(headers, ["cognome"]),
+      cf: findHeaderIndex(headers, ["codice fiscale", "cf"]),
+      dataNascita: findHeaderIndex(headers, ["data di nascita", "data nascita"]),
+      luogoNascita: findHeaderIndex(headers, ["luogo di nascita", "luogo nascita"]),
+      email: findHeaderIndex(headers, ["email", "e-mail"]),
+      telefono: findHeaderIndex(headers, ["telefono", "cellulare", "tel"]),
+      statoLavorativo: findHeaderIndex(headers, ["stato lavorativo", "lavoro"]),
+      titoloStudio: findHeaderIndex(headers, ["titolo di studio", "titolo studio"]),
+      cittadinanza: findHeaderIndex(headers, ["cittadinanza"]),
+      residenza: findHeaderIndex(headers, ["residenza"]),
+      domicilio: findHeaderIndex(headers, ["domicilio"]),
+      inCaricoServizi: findHeaderIndex(headers, ["in carico ai servizi", "in carico", "servizi"]),
+      dataInserimento: findHeaderIndex(headers, ["data inserimento", "data di inserimento", "inserimento"])
     };
   }
 }
