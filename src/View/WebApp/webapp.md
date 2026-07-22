@@ -27,5 +27,10 @@ Gli oggetti devono essere sempre sincronizzati con i fogli google.
 - Generare monitoraggio ufficiale da zero
 - Aggiungere riga a monitoraggio ufficiale
 - Visualizzare e filtrare documenti
+- Visualizzare e filtrare beneficiari che sono stati a sportello in un determinato periodo (utile per quando Serena vuole i documenti dei mesi passati)
+- Controllare dati e documenti mancanti
+    - Per beneficiario
+    - Per mese
+    - Per tipo di documento
 ## Appuntamenti
 - Aggiungere appuntamento
