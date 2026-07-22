@@ -28,8 +28,8 @@ class DiarioGiornalieroRepository {
     const fileName = "Diario Giornaliero " + dateStr;
     let newFile;
     
-    if (CONFIG.ID_TEMLATEDIARIOGIORNALIERO) {
-      const template = DriveApp.getFileById(CONFIG.ID_TEMLATEDIARIOGIORNALIERO);
+    if (CONFIG.ID_TEMPLATEDIARIOGIORNALIERO) {
+      const template = DriveApp.getFileById(CONFIG.ID_TEMPLATEDIARIOGIORNALIERO);
       newFile = template.makeCopy(fileName, folder);
     } else {
       const doc = DocumentApp.create(fileName);
