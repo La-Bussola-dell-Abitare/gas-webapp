@@ -1,10 +1,12 @@
 /**
- * @typedef {PersonData & {
- *   operatore?: string;
- *   qualifica?: string;
- *   ruolo?: string;
- * }} OperatoreData
+ * @typedef {Object} OperatoreOnlyData
+ * @property {string} operatore - Il nome dell'operatore.
+ * @property {string} qualifica - La qualifica dell'operatore.
+ * @property {string} ruolo - Il ruolo dell'operatore.
  */
+
+/**
+ * @typedef {PersonData & OperatoreOnlyData} OperatoreData
 
 /**
  * Classe Operatore che rappresenta un operatore dello sportello.

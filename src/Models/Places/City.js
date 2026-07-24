@@ -3,12 +3,18 @@
  * @property {string} name - Nome del comune / Città.
  * @property {string[]} cap - Codice di Avviamento Postale.
  * @property {string} province - Sigla della provincia (es. "RM").
- * @property {string} country - Nazione.
+ * @property {Citizenship[keyof Citizenship]} country - Nazione.
  * @property {string} [codiceCatastale] - Codice catastale (se in Italia).
  */
 
 /**
  * Classe per la gestione e la decodifica delle informazioni geografiche di una città/comune.
+ * 
+ * @property {string} name - Nome del comune / Città.
+ * @property {string[]} cap - Codice di Avviamento Postale.
+ * @property {string} province - Sigla della provincia (es. "RM").
+ * @property {Citizenship[keyof Citizenship]} country - Nazione.
+ * @property {string} [codiceCatastale] - Codice catastale (se in Italia).
  */
 class City {
   /**
@@ -17,7 +23,7 @@ class City {
    */
   constructor(name) {
     if (!name) throw new Error("City: il nome della città non può essere vuoto.");
-    
+
     this.name = name.trim();
     /** @type {string[]} */
     this.cap = [];
@@ -25,7 +31,7 @@ class City {
     this.province = "";
     /** @type {string} */
     this.codiceCatastale = "";
-    /** @type {string} */
+    /** @type {Citizenship[keyof Citizenship]} */
     this.country = "";
 
     this._resolve();
@@ -40,7 +46,7 @@ class City {
     if (!cache) return;
 
     const cacheKey = "CITY_" + this.name.toUpperCase().replace(/[^A-Z0-9]/g, "_");
-    
+
     try {
       const cached = cache.get(cacheKey);
       if (cached) {
@@ -61,16 +67,16 @@ class City {
       const responseComuni = UrlFetchApp.fetch(urlComuni);
       /** @type {Array<{ nome: string, codiceCatastale: string, sigla: string, cap: string[] }>} */
       const comuni = JSON.parse(responseComuni.getContentText());
-      
+
       const targetName = this.name.toLowerCase().trim();
       const comune = comuni.find(c => c.nome.toLowerCase().trim() === targetName);
-      
+
       if (comune) {
         this.country = "Italia";
         this.province = comune.sigla;
         this.cap = comune.cap || [];
         this.codiceCatastale = comune.codiceCatastale;
-        
+
         this._saveToCache(cache, cacheKey);
         return;
       }
@@ -87,10 +93,10 @@ class City {
         }
       });
       const results = JSON.parse(response.getContentText());
-      
+
       if (results && results.length > 0) {
         const addr = results[0].address;
-        
+
         // Verifica se è l'Italia gestita in altro modo da Nominatim
         if (addr.country_code === "it") {
           this.country = "Italia";
@@ -105,7 +111,7 @@ class City {
             this.cap = [addr.postcode];
           }
         }
-        
+
         this._saveToCache(cache, cacheKey);
         return;
       }
@@ -134,3 +140,7 @@ class City {
     }
   }
 }
+
+/** @type {Citizenship} */
+let rome = new City("Roma");
+console.log(rome);

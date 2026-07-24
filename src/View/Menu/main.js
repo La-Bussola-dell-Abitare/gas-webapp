@@ -2,7 +2,7 @@ function onOpen() {
     ui.createMenu("Bussola dell'Abitare")
         .addItem("Apri Sportello (Web App)", "showWebAppSidebar")
         .addSubMenu(ui.createMenu("Beneficiari")
-            .addItem("Aggiungi nucleo familiare", "Beneficiario.add")
+            .addItem("Aggiungi nucleo familiare", "Beneficiario.add()")
             .addItem("Modifica nucleo familiare", "showWebAppSidebar")
         )
         .addSubMenu(ui.createMenu('Incontri')

@@ -8,18 +8,21 @@
  */
 
 /**
- * @typedef {PersonData & {
- *   idNucleo?: string;
- *   statoLavorativo?: string;
- *   titoloStudio?: string;
- *   residenza?: string;
- *   domicilio?: string;
- *   inCaricoServizi?: string;
- *   rapportoIntestatario?: string;
- *   statoCivile?: string;
- *   annoArrivo?: number | null;
- *   documents?: BeneficiarioDocuments;
- * }} BeneficiarioData
+ * @typedef {Object} BeneficiarioOnlyData
+ * @property {string} idNucleo - L'identificativo del nucleo familiare.
+ * @property {string} statoLavorativo - Lo stato lavorativo del beneficiario.
+ * @property {string} titoloStudio - Il titolo di studio del beneficiario.
+ * @property {string} residenza - La residenza del beneficiario.
+ * @property {string} domicilio - Il domicilio del beneficiario.
+ * @property {string} inCaricoServizi - L'ente di presa in carico del beneficiario.
+ * @property {string} rapportoIntestatario - Il rapporto con l'intestatario della bolletta.
+ * @property {string} statoCivile - Lo stato civile del beneficiario.
+ * @property {number | null} annoArrivo - L'anno di arrivo del beneficiario.
+ * @property {BeneficiarioDocuments} documents - I documenti del beneficiario.
+ */
+
+/**
+ * @typedef {PersonData & BeneficiarioOnlyData} BeneficiarioData
  */
 
 /**
@@ -93,7 +96,7 @@ class Beneficiario extends Person {
     const idNucleoVal = getSheetVal(row, idx, "idNucleo", "");
 
     const birthPlaceCity = new City(luogoNascitaVal);
-    
+
     // Mappa della cittadinanza a partire dal foglio
     let citizenshipEnum = Citizenship.Apolide;
     const cleanCittadinanza = cittadinanzaVal.trim().toLowerCase();
@@ -210,14 +213,14 @@ class BeneficiarioRepository {
         for (let i = 1; i < dataValues.length; i++) {
           if (dataValues[i][idx.cf].toString().toUpperCase().trim() === targetCF) {
             sheet.deleteRow(i + 1);
-            
+
             try {
               if (typeof syncBeneficiaries === 'function') {
                 SpreadsheetApp.flush();
                 syncBeneficiaries();
               }
-            } catch(e) {}
-            
+            } catch (e) { }
+
             return { success: true, message: "Beneficiario rimosso con successo." };
           }
         }
