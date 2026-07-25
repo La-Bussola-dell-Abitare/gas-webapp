@@ -28,19 +28,3 @@ const EQF = /** @type {const}*/Object.freeze({
     Magistrale: 7, // terziaria di secondo livello (magistrale)
     Dottorato: 8 // dottorato o equivalente
 });
-
-/** @typedef {keyof typeof WorkStatus} WorkStatus */
-
-
-const WorkStatuses = Object.freeze(/** @type {const} */([
-    "Occupato",
-    "Disoccupato",
-    "Studente",
-    "Pensionato",
-    "Casalingo",
-    "Altro"
-]));
-
-/**
- * @typedef {typeof WorkStatuses[number]} WorkStatus
- */
