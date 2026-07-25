@@ -299,6 +299,31 @@ class CodiceFiscale {
     }
 
     /**
+     * Helper statico per eseguire formule personalizzate Google Sheets su valori singoli o matrici (intervalli di celle).
+     * Gestisce ricorsivamente vettori e matrici 2D, celle vuote ed errori.
+     * @param {any} input - Singolo valore o matrice di celle.
+     * @param {(cf: string) => any} fn - Funzione di calcolo per il singolo codice fiscale.
+     * @param {any} [fallbackOnError="Errore"] - Valore da restituire in caso di errore.
+     * @param {any} [emptyValue=""] - Valore da restituire in caso di cella vuota.
+     * @return {any}
+     */
+    static applyCustomFunction(input, fn, fallbackOnError = "Errore", emptyValue = "") {
+        if (Array.isArray(input)) {
+            return input.map(row =>
+                Array.isArray(row)
+                    ? row.map(val => CodiceFiscale.applyCustomFunction(val, fn, fallbackOnError, emptyValue))
+                    : CodiceFiscale.applyCustomFunction(row, fn, fallbackOnError, emptyValue)
+            );
+        }
+        if (input == null || input === "") return emptyValue;
+        try {
+            return fn(input.toString());
+        } catch (e) {
+            return fallbackOnError;
+        }
+    }
+
+    /**
      * Alias per retrocompatibilità con vecchie chiamate.
      * @deprecated Usare getBirthdate()
      * @return {Date}
@@ -329,15 +354,7 @@ class CodiceFiscale {
  * @customfunction
  */
 function CF_DATA_NASCITA(cf) {
-    if (Array.isArray(cf)) {
-        return cf.map(row => Array.isArray(row) ? row.map(val => CF_DATA_NASCITA(val)) : CF_DATA_NASCITA(row));
-    }
-    if (!cf) return "";
-    try {
-        return CodiceFiscale.getBirthdate(cf.toString());
-    } catch (e) {
-        return "Errore";
-    }
+    return CodiceFiscale.applyCustomFunction(cf, input => CodiceFiscale.getBirthdate(input));
 }
 
 /**
@@ -348,15 +365,7 @@ function CF_DATA_NASCITA(cf) {
  * @customfunction
  */
 function CF_SESSO(cf) {
-    if (Array.isArray(cf)) {
-        return cf.map(row => Array.isArray(row) ? row.map(val => CF_SESSO(val)) : CF_SESSO(row));
-    }
-    if (!cf) return "";
-    try {
-        return CodiceFiscale.getSesso(cf.toString());
-    } catch (e) {
-        return "Errore";
-    }
+    return CodiceFiscale.applyCustomFunction(cf, input => CodiceFiscale.getSesso(input));
 }
 
 /**
@@ -367,15 +376,7 @@ function CF_SESSO(cf) {
  * @customfunction
  */
 function CF_VALIDA(cf) {
-    if (Array.isArray(cf)) {
-        return cf.map(row => Array.isArray(row) ? row.map(val => CF_VALIDA(val)) : CF_VALIDA(row));
-    }
-    if (!cf) return false;
-    try {
-        return CodiceFiscale.isValid(cf.toString());
-    } catch (e) {
-        return false;
-    }
+    return CodiceFiscale.applyCustomFunction(cf, input => CodiceFiscale.isValid(input), false, false);
 }
 
 /**
@@ -386,13 +387,5 @@ function CF_VALIDA(cf) {
  * @customfunction
  */
 function CF_COMUNE(cf) {
-    if (Array.isArray(cf)) {
-        return cf.map(row => Array.isArray(row) ? row.map(val => CF_COMUNE(val)) : CF_COMUNE(row));
-    }
-    if (!cf) return "";
-    try {
-        return CodiceFiscale.getBirthplace(cf.toString());
-    } catch (e) {
-        return "Errore";
-    }
+    return CodiceFiscale.applyCustomFunction(cf, input => CodiceFiscale.getBirthplace(input));
 }
