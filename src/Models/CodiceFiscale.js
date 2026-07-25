@@ -323,13 +323,18 @@ class CodiceFiscale {
 
 /**
  * Formula personalizzata per estrarre la DATA DI NASCITA usando la classe.
- * @param {string} cf Il codice fiscale.
- * @return {Date | string} La data di nascita.
+ * Accetta un singolo codice fiscale o una lista/intervallo di codici fiscali.
+ * @param {any} cf Il codice fiscale o la lista di codici fiscali.
+ * @return {any} La data di nascita o matrice delle date.
  * @customfunction
  */
 function CF_DATA_NASCITA(cf) {
+    if (Array.isArray(cf)) {
+        return cf.map(row => Array.isArray(row) ? row.map(val => CF_DATA_NASCITA(val)) : CF_DATA_NASCITA(row));
+    }
+    if (!cf) return "";
     try {
-        return CodiceFiscale.getBirthdate(cf);
+        return CodiceFiscale.getBirthdate(cf.toString());
     } catch (e) {
         return "Errore";
     }
@@ -337,13 +342,18 @@ function CF_DATA_NASCITA(cf) {
 
 /**
  * Formula personalizzata per estrarre il SESSO usando la classe.
- * @param {string} cf Il codice fiscale.
- * @return {string} 'M' o 'F'.
+ * Accetta un singolo codice fiscale o una lista/intervallo di codici fiscali.
+ * @param {any} cf Il codice fiscale o la lista di codici fiscali.
+ * @return {any} 'M' o 'F'.
  * @customfunction
  */
 function CF_SESSO(cf) {
+    if (Array.isArray(cf)) {
+        return cf.map(row => Array.isArray(row) ? row.map(val => CF_SESSO(val)) : CF_SESSO(row));
+    }
+    if (!cf) return "";
     try {
-        return CodiceFiscale.getSesso(cf);
+        return CodiceFiscale.getSesso(cf.toString());
     } catch (e) {
         return "Errore";
     }
@@ -351,13 +361,18 @@ function CF_SESSO(cf) {
 
 /**
  * Formula personalizzata per validare la struttura del codice fiscale.
- * @param {string} cf Il codice fiscale.
- * @return {boolean} VERO o FALSO.
+ * Accetta un singolo codice fiscale o una lista/intervallo di codici fiscali.
+ * @param {any} cf Il codice fiscale o la lista di codici fiscali.
+ * @return {any} VERO o FALSO.
  * @customfunction
  */
 function CF_VALIDA(cf) {
+    if (Array.isArray(cf)) {
+        return cf.map(row => Array.isArray(row) ? row.map(val => CF_VALIDA(val)) : CF_VALIDA(row));
+    }
+    if (!cf) return false;
     try {
-        return CodiceFiscale.isValid(cf);
+        return CodiceFiscale.isValid(cf.toString());
     } catch (e) {
         return false;
     }
@@ -365,13 +380,18 @@ function CF_VALIDA(cf) {
 
 /**
  * Formula personalizzata per estrarre il COMUNE O STATO DI NASCITA usando la classe.
- * @param {string} cf Il codice fiscale.
- * @return {string} Il nome del comune o dello stato estero di nascita.
+ * Accetta un singolo codice fiscale o una lista/intervallo di codici fiscali.
+ * @param {any} cf Il codice fiscale o la lista di codici fiscali.
+ * @return {any} Il nome del comune o dello stato estero di nascita.
  * @customfunction
  */
 function CF_COMUNE(cf) {
+    if (Array.isArray(cf)) {
+        return cf.map(row => Array.isArray(row) ? row.map(val => CF_COMUNE(val)) : CF_COMUNE(row));
+    }
+    if (!cf) return "";
     try {
-        return CodiceFiscale.getBirthplace(cf);
+        return CodiceFiscale.getBirthplace(cf.toString());
     } catch (e) {
         return "Errore";
     }
