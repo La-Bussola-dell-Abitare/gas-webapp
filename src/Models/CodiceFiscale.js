@@ -184,7 +184,7 @@ class CodiceFiscale {
      */
     static getBirthdate(cf) {
         if (!CodiceFiscale.isValid(cf)) throw new Error("Codice Fiscale non valido o incompleto");
-        
+
         const cfNormalizzato = CodiceFiscale._decodificaOmocodia(cf.toUpperCase().trim());
 
         // 1. Anno
@@ -363,4 +363,15 @@ function CF_VALIDA(cf) {
  */
 function CF_COMUNE(cf) {
     return mapFormula(cf, input => CodiceFiscale.getBirthplace(input));
+}
+
+/**
+ * Formula personalizzata per estrarre il COMUNE O STATO DI NASCITA usando la classe.
+ * Accetta un singolo codice fiscale o una lista/intervallo di codici fiscali.
+ * @param {any} cf Il codice fiscale o la lista di codici fiscali.
+ * @return {any} Il nome del comune o dello stato estero di nascita.
+ * @customfunction
+ */
+function CF_STATO(cf) {
+    return mapFormula(cf, input => CodiceFiscale.getBirthplaceCountry(input));
 }
