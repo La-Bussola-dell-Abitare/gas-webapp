@@ -12,8 +12,8 @@ function titleCase(str) {
 }
 
 /**
- * Helper generico per applicare una funzione personalizzata Google Sheets su valori singoli, vettori o matrici di celle (range).
- * Gestisce ricorsivamente vettori e matrici 2D, celle vuote ed errori.
+ * Helper generico per applicare (mappare) una funzione su valori singoli o matrici/intervalli di celle di Google Sheets.
+ * Gestisce ricorsivamente vettori e matrici 2D, celle vuote ed errori di calcolo.
  * 
  * @param {any} input - Singolo valore o matrice di celle da Google Sheets.
  * @param {(val: string) => any} fn - Funzione di calcolo da eseguire sul singolo valore.
@@ -21,12 +21,12 @@ function titleCase(str) {
  * @param {any} [emptyValue=""] - Valore da restituire in caso di cella vuota.
  * @return {any}
  */
-function applyCustomFunction(input, fn, fallbackOnError = "Errore", emptyValue = "") {
+function mapFormula(input, fn, fallbackOnError = "Errore", emptyValue = "") {
   if (Array.isArray(input)) {
     return input.map(row =>
       Array.isArray(row)
-        ? row.map(val => applyCustomFunction(val, fn, fallbackOnError, emptyValue))
-        : applyCustomFunction(row, fn, fallbackOnError, emptyValue)
+        ? row.map(val => mapFormula(val, fn, fallbackOnError, emptyValue))
+        : mapFormula(row, fn, fallbackOnError, emptyValue)
     );
   }
   if (input == null || input === "") return emptyValue;
@@ -45,7 +45,7 @@ function applyCustomFunction(input, fn, fallbackOnError = "Errore", emptyValue =
  * @customfunction
  */
 function TITLECASE(str) {
-  return applyCustomFunction(str, val => titleCase(val));
+  return mapFormula(str, val => titleCase(val));
 }
 
 /**

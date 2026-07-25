@@ -329,7 +329,7 @@ class CodiceFiscale {
  * @customfunction
  */
 function CF_DATA_NASCITA(cf) {
-    return applyCustomFunction(cf, input => CodiceFiscale.getBirthdate(input));
+    return mapFormula(cf, input => CodiceFiscale.getBirthdate(input));
 }
 
 /**
@@ -340,7 +340,7 @@ function CF_DATA_NASCITA(cf) {
  * @customfunction
  */
 function CF_SESSO(cf) {
-    return applyCustomFunction(cf, input => CodiceFiscale.getSesso(input));
+    return mapFormula(cf, input => CodiceFiscale.getSesso(input));
 }
 
 /**
@@ -351,7 +351,7 @@ function CF_SESSO(cf) {
  * @customfunction
  */
 function CF_VALIDA(cf) {
-    return applyCustomFunction(cf, input => CodiceFiscale.isValid(input), false, false);
+    return mapFormula(cf, input => CodiceFiscale.isValid(input), false, false);
 }
 
 /**
@@ -362,5 +362,5 @@ function CF_VALIDA(cf) {
  * @customfunction
  */
 function CF_COMUNE(cf) {
-    return applyCustomFunction(cf, input => CodiceFiscale.getBirthplace(input));
+    return mapFormula(cf, input => CodiceFiscale.getBirthplace(input));
 }
