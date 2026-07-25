@@ -6,9 +6,12 @@ class OperatoreRepository {
      * Ottiene tutti gli operatori.
      * @return {Operatore[]}
      */
+    static sheet() {
+        return SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Operatori");
+    }
+
     static getAll() {
-        const ss = SpreadsheetApp.getActiveSpreadsheet();
-        const sheet = ss.getSheetByName("Operatori");
+        const sheet = OperatoreRepository.sheet();
         if (!sheet) return [];
 
         const data = sheet.getDataRange().getValues();

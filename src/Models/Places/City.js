@@ -3,7 +3,7 @@
  * @property {string} name - Nome del comune / Città.
  * @property {string[]} cap - Codice di Avviamento Postale.
  * @property {string} province - Sigla della provincia (es. "RM").
- * @property {Citizenship[keyof Citizenship]} country - Nazione.
+ * @property {Country} country - Nazione.
  * @property {string} [codiceCatastale] - Codice catastale (se in Italia).
  */
 
@@ -13,7 +13,7 @@
  * @property {string} name - Nome del comune / Città.
  * @property {string[]} cap - Codice di Avviamento Postale.
  * @property {string} province - Sigla della provincia (es. "RM").
- * @property {Citizenship[keyof Citizenship]} country - Nazione.
+ * @property {Country} country - Nazione.
  * @property {string} [codiceCatastale] - Codice catastale (se in Italia).
  */
 class City {
@@ -31,7 +31,7 @@ class City {
     this.province = "";
     /** @type {string} */
     this.codiceCatastale = "";
-    /** @type {Citizenship[keyof Citizenship]} */
+    /** @type {Country} */
     this.country = "";
 
     this._resolve();
@@ -141,6 +141,6 @@ class City {
   }
 }
 
-/** @type {Citizenship} */
+/** @type {City} */
 let rome = new City("Roma");
 console.log(rome);

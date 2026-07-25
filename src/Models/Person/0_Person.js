@@ -2,12 +2,12 @@
  * @typedef {Object} PersonData
  * @property {string} name - Il nome della persona.
  * @property {string} surname - Il cognome della persona.
- * @property {Date | null} birthDate - La data di nascita.
- * @property {string} birthPlace - Il luogo di nascita.
+ * @property {Date | null} [birthDate] - La data di nascita.
+ * @property {City} birthPlace - Il luogo di nascita.
  * @property {CodiceFiscale} taxCode - L'istanza del codice fiscale della persona.
  * @property {string | null} [email=null] - L'indirizzo email (opzionale).
  * @property {string | null} [phone=null] - Il numero di telefono (opzionale).
- * @property {string | null} [citizenship=null] - La cittadinanza (opzionale).
+ * @property {Citizenship} [citizenship=null] - La cittadinanza (opzionale).
  * @property {string | null} [signatureFileId=null] - L'ID del file della firma (opzionale).
  */
 

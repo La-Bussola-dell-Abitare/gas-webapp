@@ -20,6 +20,34 @@ function doGet(e) {
     .addMetaTag("viewport", "width=device-width, initial-scale=1");
 }
 
+function checkFoglioFirme(operator, client, date, folder) {
+  return FoglioFirmeRepository.get(operator, client, date, folder);
+}
+function createFoglioFirme(operator, client, date) {
+  return FoglioFirmeRepository.create(operator, client, date);
+}
+function appendRowToFoglioFirme() {
+  return FoglioFirmeRepository.appendRow();
+}
+
+
+/**
+ * Recupera i dati dal foglio "Operatori" e li trasforma in un array di oggetti JS.
+ * @return {Operatore[]}
+ */
+function getOperatoriObjects() {
+  return OperatoreRepository.getAll();
+}
+
+/**
+ * Restituisce un oggetto operatore cercando per nome
+ * @param {string} nome - Il nome dell'operatore (es. "Lorenzo")
+ * @returns {Operatore|null} - L'oggetto operatore o null se non trovato
+ */
+function getOperatoreByName(nome) {
+  return OperatoreRepository.getByName(nome);
+}
+
 /**
  * Recupera i beneficiari dal foglio e li trasforma in un array di oggetti JS piani (POJO).
  * @return {Record<string, any>[]}
@@ -40,7 +68,7 @@ function getBeneficiariObjects() {
       domicilio: b.domicilio,
       statoLavorativo: b.statoLavorativo,
       titoloStudio: b.titoloStudio,
-      inCaricoServizi: b.inCaricoServizi,
+      assistenteSociale: b.assistenteSociale,
       rapportoIntestatario: b.rapportoIntestatario,
       statoCivile: b.statoCivile,
       annoArrivo: b.annoArrivo,
@@ -237,7 +265,7 @@ function generateFoglioFirmeDoc(operator, client, dateStr) {
  */
 function generateSchedaSegnalazioneDoc(data) {
   try {
-    const doc = SchedaSegnalazione.create(/** @type {any} */ (data));
+    const doc = SchedaSegnalazione.create(/** @type {any} */(data));
     return { success: true, url: doc.getUrl() };
   } catch (error) {
     return { success: false, url: error instanceof Error ? error.message : String(error) };
@@ -329,7 +357,7 @@ function addRigaMonitoraggio(data) {
         "Nome Destinatario", "Codice Fiscale", "Sesso", "Cittadinanza", "Stato Lavorativo", "Titolo di Studio", "Età", "Data Inserimento"
       ]);
     }
-    
+
     // Calcola dati operatore
     let opNome = data.operatore || "";
     let opQualifica = "";
@@ -342,7 +370,7 @@ function addRigaMonitoraggio(data) {
         opQualifica = op.qualifica || "";
         opRuolo = op.ruolo || "";
       }
-    } catch(err){}
+    } catch (err) { }
 
     // Calcola dati destinatario
     let benNome = data.beneficiario || "";
@@ -368,7 +396,7 @@ function addRigaMonitoraggio(data) {
         benCittadinanza = ben.cittadinanza || "";
         benLavoro = ben.statoLavorativo || "";
         benStudio = ben.titoloStudio || "";
-        
+
         if (ben.cf) {
           const nascita = CodiceFiscale.getBirthdate(ben.cf);
           const oggi = new Date();
@@ -379,20 +407,20 @@ function addRigaMonitoraggio(data) {
           eta = String(calced);
         }
       }
-    } catch(err){}
+    } catch (err) { }
 
     sheet.appendRow([
-      "Municipio XI", 
+      "Municipio XI",
       "2026",
       "La Bussola dell'Abitare",
       "Annualità 1",
       "CIG-12345",
       "Accoglienza",
-      opNome, opTipo, opQualifica, opRuolo, 
-      benNome, benCF, benSesso, benCittadinanza, benLavoro, benStudio, eta, 
-      new Date() 
+      opNome, opTipo, opQualifica, opRuolo,
+      benNome, benCF, benSesso, benCittadinanza, benLavoro, benStudio, eta,
+      new Date()
     ]);
-    
+
     return { success: true, message: "Riga aggiunta al Monitoraggio Ufficiale con successo!" };
   } catch (error) {
     return { success: false, message: error instanceof Error ? error.message : String(error) };

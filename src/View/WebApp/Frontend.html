@@ -7,7 +7,9 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
 
   <style>
     :root {
@@ -153,7 +155,8 @@
       <!-- SIDEBAR -->
       <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse p-3">
         <div class="d-flex align-items-center mb-4 px-2">
-          <svg class="me-2" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <svg class="me-2" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.5">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
             <polyline points="9 22 9 12 15 12 15 22"></polyline>
           </svg>
@@ -218,7 +221,9 @@
                       <input type="hidden" id="inc-edit-id">
                       <div class="mb-3 position-relative">
                         <label class="form-label font-outfit small">Beneficiario *</label>
-                        <input type="text" class="form-control" id="inc-beneficiario" placeholder="Digita Nome..." required autocomplete="off" oninput="filterBeneficiaries('inc-beneficiario', 'inc-benef-list')">
+                        <input type="text" class="form-control" id="inc-beneficiario" placeholder="Digita Nome..."
+                          required autocomplete="off"
+                          oninput="filterBeneficiaries('inc-beneficiario', 'inc-benef-list')">
                         <ul id="inc-benef-list" class="autocomplete-list"></ul>
                       </div>
                       <div class="mb-3">
@@ -272,7 +277,8 @@
                       </div>
                       <div class="mb-3">
                         <label class="form-label font-outfit small">Descrizione Dettagliata</label>
-                        <textarea class="form-control" id="inc-descrizione" rows="3" placeholder="Annotazioni..."></textarea>
+                        <textarea class="form-control" id="inc-descrizione" rows="3"
+                          placeholder="Annotazioni..."></textarea>
                       </div>
                       <button type="submit" class="btn btn-primary w-100" id="btn-inc-submit">
                         <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-incontro"></span>
@@ -288,7 +294,8 @@
                 <div class="card card-custom">
                   <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
                     <span>Storico Incontri Registrati</span>
-                    <input type="text" class="form-control form-control-sm w-50" id="search-incontri" placeholder="Cerca incontri..." oninput="renderMeetingsTable()">
+                    <input type="text" class="form-control form-control-sm w-50" id="search-incontri"
+                      placeholder="Cerca incontri..." oninput="renderMeetingsTable()">
                   </div>
                   <div class="card-body p-0">
                     <div class="table-responsive">
@@ -331,7 +338,9 @@
                       <input type="hidden" id="nuc-id">
                       <div class="mb-3 position-relative">
                         <label class="form-label font-outfit small">Intestatario (Codice Fiscale) *</label>
-                        <input type="text" class="form-control" id="nuc-intestatario" placeholder="Cerca beneficiario..." required autocomplete="off" oninput="filterBeneficiaries('nuc-intestatario', 'nuc-intest-list')">
+                        <input type="text" class="form-control" id="nuc-intestatario"
+                          placeholder="Cerca beneficiario..." required autocomplete="off"
+                          oninput="filterBeneficiaries('nuc-intestatario', 'nuc-intest-list')">
                         <ul id="nuc-intest-list" class="autocomplete-list"></ul>
                       </div>
                       <div class="mb-3">
@@ -340,11 +349,13 @@
                       </div>
                       <div class="mb-3">
                         <label class="form-label font-outfit small">Indirizzo Residenza *</label>
-                        <input type="text" class="form-control" id="nuc-residenza" placeholder="Stato, Comune, CAP, Via, Civico" required>
+                        <input type="text" class="form-control" id="nuc-residenza"
+                          placeholder="Stato, Comune, CAP, Via, Civico" required>
                       </div>
                       <div class="mb-3">
                         <label class="form-label font-outfit small">Indirizzo Domicilio</label>
-                        <input type="text" class="form-control" id="nuc-domicilio" placeholder="Lascia vuoto se coincide">
+                        <input type="text" class="form-control" id="nuc-domicilio"
+                          placeholder="Lascia vuoto se coincide">
                       </div>
                       <div class="mb-3">
                         <label class="form-label font-outfit small">Descrizione Caso *</label>
@@ -369,7 +380,8 @@
                       <div class="row g-2 mb-3">
                         <div class="col-md-6">
                           <label class="form-label font-outfit small">Assistente Sociale *</label>
-                          <input type="text" class="form-control" id="nuc-assistente" placeholder="Nome o 'No'" required>
+                          <input type="text" class="form-control" id="nuc-assistente" placeholder="Nome o 'No'"
+                            required>
                         </div>
                         <div class="col-md-6">
                           <label class="form-label font-outfit small">Medico di Base *</label>
@@ -390,7 +402,8 @@
                 <div class="card card-custom">
                   <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
                     <span>Mappatura Nuclei Familiari</span>
-                    <input type="text" class="form-control form-control-sm w-50" id="search-nuclei" placeholder="Filtra nuclei..." oninput="renderNucleiList()">
+                    <input type="text" class="form-control form-control-sm w-50" id="search-nuclei"
+                      placeholder="Filtra nuclei..." oninput="renderNucleiList()">
                   </div>
                   <div class="card-body" id="nuclei-cards-container">
                     <p class="text-center text-muted">Caricamento in corso...</p>
@@ -416,7 +429,9 @@
                       <div class="row g-2 mb-3">
                         <div class="col-md-6 position-relative">
                           <label class="form-label font-outfit small">Beneficiario (CF) *</label>
-                          <input type="text" class="form-control" id="firme-beneficiario" placeholder="Cerca..." required autocomplete="off" oninput="filterBeneficiaries('firme-beneficiario', 'firme-benef-list')">
+                          <input type="text" class="form-control" id="firme-beneficiario" placeholder="Cerca..."
+                            required autocomplete="off"
+                            oninput="filterBeneficiaries('firme-beneficiario', 'firme-benef-list')">
                           <ul id="firme-benef-list" class="autocomplete-list"></ul>
                         </div>
                         <div class="col-md-6">
@@ -455,7 +470,8 @@
                       <div class="row g-2 mb-3">
                         <div class="col-md-6 position-relative">
                           <label class="form-label font-outfit small">Destinatario (CF) *</label>
-                          <input type="text" class="form-control" id="seg-beneficiario" placeholder="Cerca..." required autocomplete="off" oninput="filterBeneficiaries('seg-beneficiario', 'seg-benef-list')">
+                          <input type="text" class="form-control" id="seg-beneficiario" placeholder="Cerca..." required
+                            autocomplete="off" oninput="filterBeneficiaries('seg-beneficiario', 'seg-benef-list')">
                           <ul id="seg-benef-list" class="autocomplete-list"></ul>
                         </div>
                         <div class="col-md-6">
@@ -483,11 +499,14 @@
                 <div class="card card-custom mb-4">
                   <div class="card-header card-header-custom">Monitoraggio Ufficiale QSFP</div>
                   <div class="card-body">
-                    <p class="small text-muted">Aggiungi una riga al Monitoraggio Ufficiale Accessi Giornalieri calcolando automaticamente l'età del beneficiario, i dati anagrafici e i dati dell'operatore dal database.</p>
+                    <p class="small text-muted">Aggiungi una riga al Monitoraggio Ufficiale Accessi Giornalieri
+                      calcolando automaticamente l'età del beneficiario, i dati anagrafici e i dati dell'operatore dal
+                      database.</p>
                     <form id="monitoraggio-form" onsubmit="handleMonitoraggioSubmit(event)">
                       <div class="mb-3 position-relative">
                         <label class="form-label font-outfit small">Destinatario *</label>
-                        <input type="text" class="form-control" id="mon-beneficiario" placeholder="Cerca..." required autocomplete="off" oninput="filterBeneficiaries('mon-beneficiario', 'mon-benef-list')">
+                        <input type="text" class="form-control" id="mon-beneficiario" placeholder="Cerca..." required
+                          autocomplete="off" oninput="filterBeneficiaries('mon-beneficiario', 'mon-benef-list')">
                         <ul id="mon-benef-list" class="autocomplete-list"></ul>
                       </div>
                       <div class="mb-3">
@@ -507,7 +526,8 @@
                 <div class="card card-custom">
                   <div class="card-header card-header-custom">Documenti Recenti ed Esportati</div>
                   <div class="card-body" id="doc-links-container">
-                    <p class="text-muted small text-center m-0">Nessun documento generato in questa sessione. I link verranno mostrati qui sopra dopo la creazione.</p>
+                    <p class="text-muted small text-center m-0">Nessun documento generato in questa sessione. I link
+                      verranno mostrati qui sopra dopo la creazione.</p>
                   </div>
                 </div>
               </div>
@@ -527,7 +547,8 @@
                     <form id="appuntamento-form" onsubmit="handleAppuntamentoSubmit(event)">
                       <div class="mb-3 position-relative">
                         <label class="form-label font-outfit small">Beneficiario *</label>
-                        <input type="text" class="form-control" id="app-beneficiario" placeholder="Nome..." required autocomplete="off" oninput="filterBeneficiaries('app-beneficiario', 'app-benef-list')">
+                        <input type="text" class="form-control" id="app-beneficiario" placeholder="Nome..." required
+                          autocomplete="off" oninput="filterBeneficiaries('app-beneficiario', 'app-benef-list')">
                         <ul id="app-benef-list" class="autocomplete-list"></ul>
                       </div>
                       <div class="mb-3">
@@ -610,7 +631,8 @@
             <div class="row g-3">
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Codice Fiscale *</label>
-                <input type="text" class="form-control" id="ben-cf" required maxlength="16" style="text-transform: uppercase;" oninput="validateAndDecodeCF()">
+                <input type="text" class="form-control" id="ben-cf" required maxlength="16"
+                  style="text-transform: uppercase;" oninput="validateAndDecodeCF()">
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Nome *</label>
@@ -705,7 +727,7 @@
                   <option value="Sì">Sì</option>
                 </select>
               </div>
-              
+
               <!-- Documenti allegati -->
               <div class="col-12">
                 <h6 class="font-outfit border-bottom pb-1 mt-3">Documenti Personali in Possesso</h6>
@@ -761,7 +783,7 @@
     let activeTabId = 'tab-incontri';
 
     // Inizializzazione pagina
-    window.onload = function() {
+    window.onload = function () {
       // Imposta data odierna
       document.getElementById('inc-data').value = new Date().toISOString().split('T')[0];
       document.getElementById('app-data').value = new Date().toISOString().split('T')[0];
@@ -775,14 +797,14 @@
     function reloadData() {
       showToast("Caricamento dati in corso...", "info");
 
-      const failHandler = function(err) {
+      const failHandler = function (err) {
         console.error("Errore caricamento dati:", err);
         showToast("Autorizzazione richiesta: avvia un test nell'editor Apps Script per concedere i permessi.", "warning");
       };
 
       // Carica Operatori
       google.script.run
-        .withSuccessHandler(function(list) {
+        .withSuccessHandler(function (list) {
           dbOperators = list;
           populateOperatorsDropdowns();
         })
@@ -791,7 +813,7 @@
 
       // Carica Incontri
       google.script.run
-        .withSuccessHandler(function(list) {
+        .withSuccessHandler(function (list) {
           dbMeetings = list;
           renderMeetingsTable();
         })
@@ -800,7 +822,7 @@
 
       // Carica Nuclei
       google.script.run
-        .withSuccessHandler(function(list) {
+        .withSuccessHandler(function (list) {
           dbNuclei = list;
           renderNucleiList();
         })
@@ -809,7 +831,7 @@
 
       // Carica Beneficiari
       google.script.run
-        .withSuccessHandler(function(list) {
+        .withSuccessHandler(function (list) {
           dbBeneficiaries = list;
           showToast("Sincronizzazione dati completata!", "success");
         })
@@ -822,14 +844,14 @@
 
     function loadAppointments() {
       google.script.run
-        .withSuccessHandler(function(list) {
+        .withSuccessHandler(function (list) {
           const tbody = document.getElementById('tbl-appuntamenti-body');
           tbody.innerHTML = '';
           if (list.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted p-3">Nessun appuntamento registrato</td></tr>';
             return;
           }
-          list.forEach(function(app) {
+          list.forEach(function (app) {
             const tr = document.createElement('tr');
             tr.innerHTML = `
               <td>${app.data}</td>
@@ -841,7 +863,7 @@
             tbody.appendChild(tr);
           });
         })
-        .withFailureHandler(function(err) {
+        .withFailureHandler(function (err) {
           console.error("Errore appuntamenti:", err);
         })
         .getAppointmentsList();
@@ -908,10 +930,10 @@
         const li = document.createElement('li');
         const cfStr = b.taxCode?.originale ? ` (${b.taxCode.originale})` : '';
         li.textContent = `${b.name} ${b.surname}${cfStr}`;
-        li.onclick = function() {
+        li.onclick = function () {
           input.value = `${b.name} ${b.surname}${cfStr}`;
           list.style.display = 'none';
-          
+
           // Se siamo nel form del nucleo, autocompila residenza e domicilio se presenti
           if (inputId === 'nuc-intestatario') {
             document.getElementById('nuc-residenza').value = b.residenza || '';
@@ -925,7 +947,7 @@
     }
 
     // Chiudi liste di autocompletamento al click fuori
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
       const ids = ['inc-benef-list', 'nuc-intest-list', 'firme-benef-list', 'seg-benef-list', 'mon-benef-list', 'app-benef-list'];
       ids.forEach(id => {
         const el = document.getElementById(id);
@@ -965,7 +987,7 @@
       filtered.forEach(m => {
         const tr = document.createElement('tr');
         const levelBadge = m.tipoIncontro === 'assistente' ? '<span class="badge bg-warning text-dark">Secondo Livello</span>' : '<span class="badge bg-primary">Primo Livello</span>';
-        
+
         // Pulisce e formatta data se ISO
         let dispData = m.data;
         if (m.data && m.data.indexOf('T') > 0) {
@@ -989,7 +1011,7 @@
 
     function editMeetingUI(encodedMeeting) {
       const m = JSON.parse(decodeURIComponent(encodedMeeting));
-      
+
       document.getElementById('inc-edit-id').value = JSON.stringify({
         beneficiario: m.beneficiario,
         operatore: m.operatore,
@@ -1000,7 +1022,7 @@
       document.getElementById('inc-beneficiario').value = m.beneficiario;
       document.getElementById('inc-operatore').value = m.operatore;
       document.getElementById('inc-tipo').value = m.tipoIncontro;
-      
+
       let formattedDate = m.data;
       if (m.data && m.data.indexOf('T') > 0) {
         formattedDate = m.data.split('T')[0];
@@ -1010,7 +1032,7 @@
       document.getElementById('inc-ora-fine').value = m.oraFine;
       document.getElementById('inc-attivita').value = m.attivita;
       document.getElementById('inc-descrizione').value = m.descrizione;
-      
+
       if (m.segnalazione === 'Sì') {
         document.querySelector('input[name="segnalazione"][value="Sì"]').checked = true;
       } else {
@@ -1043,7 +1065,7 @@
         segnalazione: document.querySelector('input[name="segnalazione"]:checked')?.value || 'No'
       };
 
-      const withSuccess = function(res) {
+      const withSuccess = function (res) {
         submitBtn.disabled = false;
         spin.classList.add('d-none');
         if (res.success) {
@@ -1058,7 +1080,7 @@
         }
       };
 
-      const withFailure = function(err) {
+      const withFailure = function (err) {
         submitBtn.disabled = false;
         spin.classList.add('d-none');
         showToast("Errore di rete: " + err.message, "error");
@@ -1104,7 +1126,7 @@
       filtered.forEach(n => {
         // Trova i membri del nucleo
         const members = dbBeneficiaries.filter(b => b.idNucleo === n.id || (b.cf === n.intestatario && !b.idNucleo));
-        
+
         // Trova incontri associati ai membri di questo nucleo
         const memberCFs = members.map(m => m.cf.toLowerCase());
         const meetingsCount = dbMeetings.filter(meet => {
@@ -1117,12 +1139,12 @@
 
         const card = document.createElement('div');
         card.className = 'card card-custom mb-3';
-        
+
         let membersHTML = '';
         members.forEach(m => {
           const isIntestatario = m.cf.toUpperCase() === n.intestatario.toUpperCase();
           const badge = isIntestatario ? '<span class="badge bg-dark">Intestatario</span>' : `<span class="badge bg-secondary">${m.rapportoIntestatario || 'Membro'}</span>`;
-          
+
           membersHTML += `
             <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
               <div>
@@ -1167,7 +1189,7 @@
 
     function editNucleoUI(encodedNucleo) {
       const n = JSON.parse(decodeURIComponent(encodedNucleo));
-      
+
       document.getElementById('nuc-id').value = n.id;
       document.getElementById('nuc-intestatario').value = n.intestatario;
       document.getElementById('nuc-isee').value = n.isee || '';
@@ -1183,7 +1205,7 @@
 
       document.getElementById('nucleo-form-title').textContent = 'Modifica Nucleo #' + n.id;
       document.getElementById('btn-nuc-submit').textContent = 'Salva Modifiche Nucleo';
-      
+
       // Scorri verso il form
       document.getElementById('nucleo-form').scrollIntoView({ behavior: 'smooth' });
     }
@@ -1211,7 +1233,7 @@
       };
 
       google.script.run
-        .withSuccessHandler(function(res) {
+        .withSuccessHandler(function (res) {
           submitBtn.disabled = false;
           spin.classList.add('d-none');
           if (res.success) {
@@ -1225,7 +1247,7 @@
             showToast("Errore: " + res.message, "error");
           }
         })
-        .withFailureHandler(function(err) {
+        .withFailureHandler(function (err) {
           submitBtn.disabled = false;
           spin.classList.add('d-none');
           showToast("Errore di rete: " + err.message, "error");
@@ -1240,7 +1262,7 @@
       document.getElementById('ben-is-update').value = 'false';
       document.getElementById('ben-cf').disabled = false;
       document.getElementById('modal-ben-title').textContent = `Aggiungi Membro al Nucleo #${nucleoId}`;
-      
+
       // Auto-compila residenza con quella del nucleo
       const nucleoObj = dbNuclei.find(n => n.id === nucleoId);
       if (nucleoObj) {
@@ -1261,12 +1283,12 @@
       document.getElementById('modal-ben-form').reset();
       document.getElementById('ben-is-update').value = 'true';
       document.getElementById('ben-id-nucleo').value = ben.idNucleo || '';
-      
+
       document.getElementById('ben-cf').value = ben.cf;
       document.getElementById('ben-cf').disabled = true; // Non modificare CF
       document.getElementById('ben-nome').value = ben.nome;
       document.getElementById('ben-cognome').value = ben.cognome;
-      
+
       let formattedDate = ben.dataNascita;
       if (ben.dataNascita && ben.dataNascita.indexOf('T') > 0) {
         formattedDate = ben.dataNascita.split('T')[0];
@@ -1284,7 +1306,7 @@
       document.getElementById('ben-anno-arrivo').value = ben.annoArrivo || '';
       document.getElementById('ben-lavoro').value = ben.statoLavorativo || 'disoccupato';
       document.getElementById('ben-studio').value = ben.titoloStudio || 'diploma';
-      document.getElementById('ben-servizi').value = ben.inCaricoServizi || 'No';
+      document.getElementById('ben-servizi').value = ben.assistenteSociale || 'No';
 
       // Checkbox documenti
       document.getElementById('ben-doc-passaporto').checked = !!ben.passaporto;
@@ -1319,7 +1341,7 @@
         annoArrivo: document.getElementById('ben-anno-arrivo').value ? parseInt(document.getElementById('ben-anno-arrivo').value, 10) : null,
         statoLavorativo: document.getElementById('ben-lavoro').value,
         titoloStudio: document.getElementById('ben-studio').value,
-        inCaricoServizi: document.getElementById('ben-servizi').value,
+        assistenteSociale: document.getElementById('ben-servizi').value,
         idNucleo: document.getElementById('ben-id-nucleo').value,
         isUpdate: document.getElementById('ben-is-update').value === 'true',
         documents: {
@@ -1332,7 +1354,7 @@
       };
 
       google.script.run
-        .withSuccessHandler(function(res) {
+        .withSuccessHandler(function (res) {
           submitBtn.disabled = false;
           if (res.success) {
             showToast(res.message, "success");
@@ -1342,7 +1364,7 @@
             showToast("Errore: " + res.message, "error");
           }
         })
-        .withFailureHandler(function(err) {
+        .withFailureHandler(function (err) {
           submitBtn.disabled = false;
           showToast("Errore di rete: " + err.message, "error");
         })
@@ -1354,7 +1376,7 @@
 
       showToast("Rimozione in corso...", "info");
       google.script.run
-        .withSuccessHandler(function(res) {
+        .withSuccessHandler(function (res) {
           if (res.success) {
             showToast(res.message, "success");
             reloadData();
@@ -1362,7 +1384,7 @@
             showToast("Errore: " + res.message, "error");
           }
         })
-        .withFailureHandler(function(err) {
+        .withFailureHandler(function (err) {
           showToast("Errore di rete: " + err.message, "error");
         })
         .removeBeneficiary(cf);
@@ -1374,7 +1396,7 @@
       if (cf.length === 16) {
         cfInput.disabled = true;
         google.script.run
-          .withSuccessHandler(function(res) {
+          .withSuccessHandler(function (res) {
             cfInput.disabled = false;
             if (res.success) {
               if (res.dataNascita) document.getElementById('ben-data-nascita').value = res.dataNascita;
@@ -1383,7 +1405,7 @@
               showToast("Codice Fiscale decodificato!", "success");
             }
           })
-          .withFailureHandler(function() {
+          .withFailureHandler(function () {
             cfInput.disabled = false;
           })
           .decodeCF(cf);
@@ -1409,7 +1431,7 @@
       };
 
       google.script.run
-        .withSuccessHandler(function(res) {
+        .withSuccessHandler(function (res) {
           submitBtn.disabled = false;
           spin.classList.add('d-none');
           if (res.success) {
@@ -1421,7 +1443,7 @@
             showToast("Errore: " + res.message, "error");
           }
         })
-        .withFailureHandler(function(err) {
+        .withFailureHandler(function (err) {
           submitBtn.disabled = false;
           spin.classList.add('d-none');
           showToast("Errore di rete: " + err.message, "error");
@@ -1460,7 +1482,7 @@
       const mese = document.getElementById('firme-mese').value;
 
       google.script.run
-        .withSuccessHandler(function(res) {
+        .withSuccessHandler(function (res) {
           submitBtn.disabled = false;
           spin.classList.add('d-none');
           if (res.success) {
@@ -1470,7 +1492,7 @@
             showToast("Errore: " + res.name, "error");
           }
         })
-        .withFailureHandler(function(err) {
+        .withFailureHandler(function (err) {
           submitBtn.disabled = false;
           spin.classList.add('d-none');
           showToast("Errore: " + err.message, "error");
@@ -1488,7 +1510,7 @@
       const dataStr = document.getElementById('diario-data').value;
 
       google.script.run
-        .withSuccessHandler(function(res) {
+        .withSuccessHandler(function (res) {
           submitBtn.disabled = false;
           spin.classList.add('d-none');
           if (res.success) {
@@ -1498,7 +1520,7 @@
             showToast("Errore: " + res.name, "error");
           }
         })
-        .withFailureHandler(function(err) {
+        .withFailureHandler(function (err) {
           submitBtn.disabled = false;
           spin.classList.add('d-none');
           showToast("Errore: " + err.message, "error");
@@ -1521,7 +1543,7 @@
       const cfMatch = benStr.match(/\(([A-Z0-9]{16})\)/i);
       const cf = cfMatch ? cfMatch[1].toUpperCase() : '';
       const ben = dbBeneficiaries.find(b => b.cf.toUpperCase() === cf);
-      
+
       if (!ben) {
         showToast("Beneficiario non trovato nel database. Impossibile compilare scheda.", "error");
         submitBtn.disabled = false;
@@ -1548,7 +1570,7 @@
       };
 
       google.script.run
-        .withSuccessHandler(function(res) {
+        .withSuccessHandler(function (res) {
           submitBtn.disabled = false;
           spin.classList.add('d-none');
           if (res.success) {
@@ -1559,7 +1581,7 @@
             showToast("Errore: " + res.url, "error");
           }
         })
-        .withFailureHandler(function(err) {
+        .withFailureHandler(function (err) {
           submitBtn.disabled = false;
           spin.classList.add('d-none');
           showToast("Errore: " + err.message, "error");
@@ -1580,7 +1602,7 @@
       };
 
       google.script.run
-        .withSuccessHandler(function(res) {
+        .withSuccessHandler(function (res) {
           submitBtn.disabled = false;
           spin.classList.add('d-none');
           if (res.success) {
@@ -1590,7 +1612,7 @@
             showToast("Errore: " + res.message, "error");
           }
         })
-        .withFailureHandler(function(err) {
+        .withFailureHandler(function (err) {
           submitBtn.disabled = false;
           spin.classList.add('d-none');
           showToast("Errore: " + err.message, "error");
@@ -1602,7 +1624,7 @@
     function showToast(message, type = "info") {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
-      
+
       let bgClass = "bg-primary";
       if (type === "success") bgClass = "bg-success";
       if (type === "error") bgClass = "bg-danger";
