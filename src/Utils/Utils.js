@@ -12,17 +12,40 @@ function titleCase(str) {
 }
 
 /**
+ * Helper generico per applicare una funzione personalizzata Google Sheets su valori singoli, vettori o matrici di celle (range).
+ * Gestisce ricorsivamente vettori e matrici 2D, celle vuote ed errori.
+ * 
+ * @param {any} input - Singolo valore o matrice di celle da Google Sheets.
+ * @param {(val: string) => any} fn - Funzione di calcolo da eseguire sul singolo valore.
+ * @param {any} [fallbackOnError="Errore"] - Valore da restituire in caso di errore.
+ * @param {any} [emptyValue=""] - Valore da restituire in caso di cella vuota.
+ * @return {any}
+ */
+function applyCustomFunction(input, fn, fallbackOnError = "Errore", emptyValue = "") {
+  if (Array.isArray(input)) {
+    return input.map(row =>
+      Array.isArray(row)
+        ? row.map(val => applyCustomFunction(val, fn, fallbackOnError, emptyValue))
+        : applyCustomFunction(row, fn, fallbackOnError, emptyValue)
+    );
+  }
+  if (input == null || input === "") return emptyValue;
+  try {
+    return fn(input.toString());
+  } catch (e) {
+    return fallbackOnError;
+  }
+}
+
+/**
  * Formula personalizzata per convertire una stringa in title case.
- * @param {string} str La stringa da convertire.
- * @return {string} La stringa convertita in title case.
+ * Accetta un singolo valore o un intervallo di celle.
+ * @param {any} str La stringa o la lista di stringhe da convertire.
+ * @return {any} La stringa o matrice di stringhe convertite in title case.
  * @customfunction
  */
 function TITLECASE(str) {
-  try {
-    return titleCase(str);
-  } catch (e) {
-    return "Errore";
-  }
+  return applyCustomFunction(str, val => titleCase(val));
 }
 
 /**
