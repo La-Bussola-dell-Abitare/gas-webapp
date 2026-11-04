@@ -12,6 +12,7 @@ Documentazione tecnica, operativa e architetturale del software di gestione dell
 5. [Mappa delle Funzionalità](#5-mappa-delle-funzionalità)
 6. [Punti Critici, Bug Rilevati e Possibili Errori](#6-punti-critici-bug-rilevati-e-possibili-errori)
 7. [Suggerimenti e Buone Pratiche](#7-suggerimenti-e-buone-pratiche)
+8. [Indice Completo della Documentazione (.md)](#8-indice-completo-della-documentazione-md)
 
 ---
 
@@ -23,6 +24,9 @@ Documentazione tecnica, operativa e architetturale del software di gestione dell
 - Presa in carico sociale e progettualità personalizzata.
 - Assistenza nella gestione documentale (ISEE, documenti di soggiorno, residenza, contratti di locazione).
 - Monitoraggio delle presenze e rendicontazione periodica nei confronti della pubblica amministrazione.
+
+> [!NOTE]
+> Per la documentazione formale sulle procedure operative, gli orari e l'organizzazione del personale (operatori e assistenti sociali), fare riferimento al documento [**Regolamento e Funzionamento dello Sportello**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/funzionamentoSportello.md) ([`docs/funzionamentoSportello.md`](docs/funzionamentoSportello.md)).
 
 ### 1.2 Obiettivo del Software
 Questo progetto digitalizza e centralizza l'intera catena di lavoro dello sportello. Il programma converte un insieme di fogli di calcolo sparsi e modelli cartacei in un'**applicazione web integrata** con l'ecosistema **Google Workspace** (Google Sheets, Google Docs, Google Drive).
@@ -185,6 +189,7 @@ flowchart TD
    - [`Frontend.html`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/Frontend.html): Single Page Application (SPA) reattiva senza framework pesanti (Vanilla JS + Bootstrap 5 + font Outfit + CSS personalizzato).
    - Comunica in modo asincrono con il server tramite l'API standard `google.script.run`.
    - [`src/View/Menu/main.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/Menu/main.js): Inietta menu personalizzati nella barra degli strumenti di Google Sheets all'evento `onOpen()`.
+   - Consulta [**Requisiti e Funzionamento Web App**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/webapp.md) ([`src/View/WebApp/webapp.md`](src/View/WebApp/webapp.md)) per le specifiche della UI.
 3. **Controller (`src/Controller/Backend.js`):**
    - Fornisce l'endpoint web `doGet(e)` con `HtmlService`.
    - Espone funzioni di interfaccia richiamabili dal client (RPC) che ricevono parametri, coordinano i Model e i Repository e restituiscono oggetti JSON piani (POJO) o risposte standard `{ success: boolean, message: string }`.
@@ -219,29 +224,29 @@ Per consentire una comprensione approfondita e formale dell'architettura softwar
 
 ## 5. Mappa delle Funzionalità
 
-| Modulo / Funzionalità | Descrizione | File Principali | Stato |
+| Modulo / Funzionalità | Descrizione | File di Codice / Istruzioni | Stato |
 | :--- | :--- | :--- | :---: |
-| **Interfaccia Web App (SPA)** | Maschera responsive a 4 tab: Incontri, Nuclei, Documenti, Appuntamenti | [`Frontend.html`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/Frontend.html) | ✅ Implementata |
+| **Interfaccia Web App (SPA)** | Maschera responsive a 4 tab: Incontri, Nuclei, Documenti, Appuntamenti | [`Frontend.html`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/Frontend.html) • [Specifiche](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/webapp.md) | ✅ Implementata |
 | **Registrazione Incontri** | Form per operatori (1° livello) e assistenti (2° livello), con data, orari e note | [`Incontro.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Meeting/Incontro.js), [`Backend.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Controller/Backend.js) | ✅ Implementata |
 | **Visualizzazione & Filtro Incontri** | Tabella interattiva incontri con filtri per beneficiario, operatore e data | [`Frontend.html`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/Frontend.html) | ✅ Implementata |
 | **Modifica Incontri** | Modifica di un incontro esistente sul foglio tramite identificazione a chiave | [`Incontro.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Meeting/Incontro.js) | ✅ Implementata |
-| **Gestione Nuclei Familiari** | Creazione e modifica nucleo con generazione ID progressivo numerico (`generateNextId`) | [`NucleoFamiliare.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Nucleo/NucleoFamiliare.js) | ✅ Implementata |
+| **Gestione Nuclei Familiari** | Creazione e modifica nucleo con generazione ID progressivo numerico (`generateNextId`) | [`NucleoFamiliare.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Nucleo/NucleoFamiliare.js) • [Specifiche](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Nucleo/Istruzioni.md) | ✅ Implementata |
 | **Decodifica Codice Fiscale** | Validazione formale, calcolo CIN, estrazione sesso, data e comune/stato di nascita | [`CodiceFiscale.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/CodiceFiscale.js) | ✅ Implementata |
 | **Formule Personalizzate Google Sheets** | `CF_DATA_NASCITA`, `CF_SESSO`, `CF_VALIDA`, `CF_COMUNE`, `CF_STATO`, `TITLECASE` | [`CodiceFiscale.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/CodiceFiscale.js), [`Utils.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Utils/Utils.js) | ✅ Implementata |
-| **Scheda di Segnalazione Google Doc** | Creazione da template, sostituzione tag, gestione spunte (☑), firma e download PDF | [`SchedaSegnalazione.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Documenti/SchedaSegnalazione/SchedaSegnalazione.js) | ✅ Implementata |
-| **Foglio Firme Google Doc (Base)** | Duplicazione template e assegnazione metadati per mese/operatore/beneficiario | [`FoglioFirme.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Documenti/FoglioFirme/FoglioFirme.js), [`Fogliofirme.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Repository/Fogliofirme.js) | ✅ Implementata |
+| **Scheda di Segnalazione Google Doc** | Creazione da template, sostituzione tag, gestione spunte (☑), firma e download PDF | [`SchedaSegnalazione.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Documenti/SchedaSegnalazione/SchedaSegnalazione.js) • [Specifiche](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Documenti/SchedaSegnalazione/Istruzioni.md) | ✅ Implementata |
+| **Foglio Firme Google Doc (Base)** | Duplicazione template e assegnazione metadati per mese/operatore/beneficiario | [`FoglioFirme.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Documenti/FoglioFirme/FoglioFirme.js) • [Specifiche](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Documenti/FoglioFirme/Istruzioni.md) | ✅ Implementata |
 | **Diario Giornaliero Google Doc (Base)** | Creazione documento standard del giorno o copia da template | [`Diariogiornaliero.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Repository/Diariogiornaliero.js) | ✅ Implementata |
 | **Riga Monitoraggio Ufficiale** | Inserimento riga nel foglio ministeriale con calcolo età e dati operatore/beneficiario | [`Backend.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Controller/Backend.js#L348-L428) | ✅ Implementata |
 | **Gestione Appuntamenti (Base)** | Registrazione e visualizzazione appuntamenti su foglio dedicato | [`Backend.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Controller/Backend.js#L290-L341) | ✅ Implementata |
-| **Integrazione Membri nei Nuclei** | Modal aggiunta/modifica componente nel nucleo nel frontend | [`Frontend.html`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/Frontend.html) | 🟡 In corso |
+| **Integrazione Membri nei Nuclei** | Modal aggiunta/modifica componente nel nucleo nel frontend | [`Frontend.html`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/Frontend.html) • [Specifiche](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Person/Beneficiari/Istruzioni.md) | 🟡 In corso |
 | **CRUD Beneficiari nel Backend** | Collegamento tra maschera componenti e salvataggio sul foglio | [`Backend.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Controller/Backend.js), [`Beneficiario.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Repository/Beneficiario.js) | 🟡 In corso *(bloccato da bug)* |
 | **Geocodifica e CAP automatici** | Autocompletamento e normalizzazione indirizzi con API Nominatim e comuni | [`0_City.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Places/0_City.js), [`Address.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Places/Address.js) | 🟡 In corso |
-| **Creazione Cartella Drive Beneficiario** | Creazione automatica cartella `ID progressivo + Nome + Cognome` su Google Drive | Da implementare (in `docs/automazione.md`) | ⏳ Da implementare |
-| **Popolamento Righe Foglio Firme** | Inserimento automatico righe con orari, firme e totale ore nei Google Doc | Da implementare (in `docs/automazione.md`) | ⏳ Da implementare |
-| **Aggiunta Persone al Diario Giornaliero** | Aggiunta automatica dei beneficiari transitati nel doc del diario del giorno | Da implementare (in `docs/automazione.md`) | ⏳ Da implementare |
-| **Sanity Checks su Orari e Visite** | Controlli di validazione (durata visita < 3h, nessuna sovrapposizione operatore) | Da implementare (in `docs/automazione.md`) | ⏳ Da implementare |
-| **Sincronizzazione Google Contatti** | Creazione automatica del contatto Google alla registrazione del beneficiario | Da implementare (in `docs/automazione.md`) | ⏳ Da implementare |
-| **Verifica Completezza Fascicolo** | Dashboard per verificare documenti o campi anagrafici mancanti | Da implementare (in `webapp.md`) | ⏳ Da implementare |
+| **Creazione Cartella Drive Beneficiario** | Creazione automatica cartella `ID progressivo + Nome + Cognome` su Google Drive | [Piano Automazione](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/automazione.md) | ⏳ Da implementare |
+| **Popolamento Righe Foglio Firme** | Inserimento automatico righe con orari, firme e totale ore nei Google Doc | [Piano Automazione](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/automazione.md) | ⏳ Da implementare |
+| **Aggiunta Persone al Diario Giornaliero** | Aggiunta automatica dei beneficiari transitati nel doc del diario del giorno | [Piano Automazione](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/automazione.md) | ⏳ Da implementare |
+| **Sanity Checks su Orari e Visite** | Controlli di validazione (durata visita < 3h, nessuna sovrapposizione operatore) | [Piano Automazione](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/automazione.md) | ⏳ Da implementare |
+| **Sincronizzazione Google Contatti** | Creazione automatica del contatto Google alla registrazione del beneficiario | [Piano Automazione](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/automazione.md) | ⏳ Da implementare |
+| **Verifica Completezza Fascicolo** | Dashboard per verificare documenti o campi anagrafici mancanti | [Specifiche WebApp](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/webapp.md) | ⏳ Da implementare |
 
 ---
 
@@ -377,3 +382,39 @@ I file [`src/Service/Document/Diariogiornaliero.js`](file:///d:/Lorenzo/Public/#
 - **Database Locale per Comuni e Codici Belfiore:** Anziché scaricare a ogni riavvio della cache un file JSON da GitHub con `UrlFetchApp`, caricare l'elenco dei comuni italiani (già presente in [`src/Models/Places/Elenco-comuni-italiani.csv`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Places/Elenco-comuni-italiani.csv)) all'interno di un foglio di configurazione nascosto o in `PropertiesService`. Questo renderà le formule del foglio (`CF_COMUNE`) istantanee e conformi alle policy di sicurezza.
 - **Automazione Cartelle Beneficiari:** Implementare un listener che all'inserimento di un nuovo nucleo o beneficiario crei automaticamente in Google Drive la cartella `ID - Nome Cognome` con permessi condivisi e vi collochi all'interno le Schede di Segnalazione e i file allegati.
 - **Monitoraggio Errori Centralizzato:** Sfruttare Google Cloud Logging / Stackdriver (già abilitato nel manifest `"exceptionLogging": "STACKDRIVER"`) avvolgendo le chiamate del controller con logging strutturato per tracciare in tempo reale eventuali problemi riscontrati dagli operatori sul campo.
+
+---
+
+## 8. Indice Completo della Documentazione (.md)
+
+Tutti i file di documentazione e specifica in formato Markdown presenti nel repository sono accessibili tramite i link sottostanti, raggruppati per tipologia:
+
+### 8.1 Processi, Procedure e Funzionamento dello Sportello
+- [**Regolamento e Funzionamento dello Sportello**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/funzionamentoSportello.md) ([`docs/funzionamentoSportello.md`](docs/funzionamentoSportello.md)):  
+  Descrizione dettagliata della missione dello sportello, procedure operative di Primo Livello (front office libero) e Secondo Livello (assistenti sociali su appuntamento), ruoli e persone di riferimento (Lorenzo, Carlotta/Luana, Valentina, Kristina/Rachele), gestione dei fascicoli cartelle su Google Drive e routine quotidiane e mensili.
+- [**Piano delle Automazioni da Sviluppare**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/automazione.md) ([`docs/automazione.md`](docs/automazione.md)):  
+  Specifiche tecniche sui flussi di lavoro da automatizzare: per ogni nuovo beneficiario (creazione contatto Google e cartella Drive), per ogni visita (Foglio Firme individuale, Diario e riga Monitoraggio), per inizio/fine giornata e controlli di congruità (sanity checks su orari e durate).
+- [**Note Agente**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/agent.md) ([`docs/agent.md`](docs/agent.md)):  
+  Spazio riservato per annotazioni operative e istruzioni per agenti AI.
+
+### 8.2 Architettura Software e Diagrammi UML
+- [**Diagrammi dei Casi d'Uso (Use Case)**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/uml_casi_uso.md) ([`docs/uml_casi_uso.md`](docs/uml_casi_uso.md)):  
+  Mappa completa delle interazioni tra attori (Operatore Sociale, Assistente Sociale, Coordinatore, Google Workspace APIs) e casi d'uso (Incontri, Nuclei, Documenti, Appuntamenti).
+- [**Diagramma delle Classi (Class Diagram)**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/uml_classi.md) ([`docs/uml_classi.md`](docs/uml_classi.md)):  
+  Struttura OOP del sistema, ereditarietà (`Person` → `Beneficiario` / `Operatore`), Value Objects (`CodiceFiscale`, `City`, `Address`), entità di aggregazione e Repository Pattern.
+- [**Diagrammi di Sequenza (Sequence Diagrams)**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/uml_sequenza.md) ([`docs/uml_sequenza.md`](docs/uml_sequenza.md)):  
+  Flussi temporali asincroni dettagliati per registrazione incontri e segnalazioni, censimento nucleo con autocompilazione CF, generazione Foglio Firme e aggregazione Monitoraggio Ufficiale.
+- [**Diagrammi di Attività (Activity Diagrams)**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/uml_attivita.md) ([`docs/uml_attivita.md`](docs/uml_attivita.md)):  
+  Workflow operativi dello sportello modellati con decisioni e join: accoglienza/smistamento a sportello, presa in carico del fascicolo di secondo livello e routine periodiche (giornaliere e mensili).
+
+### 8.3 Specifiche Tecniche della Web App e Modelli Dati
+- [**Requisiti e Funzionamento Web App**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/webapp.md) ([`src/View/WebApp/webapp.md`](src/View/WebApp/webapp.md)):  
+  Specifiche architetturali, tecnologie frontend (Bootstrap 5, Single Page Application), principi di sincronizzazione tra oggetti JavaScript e fogli di calcolo Google, e backlog delle funzionalità.
+- [**Specifiche Modello: Dati Beneficiari**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Person/Beneficiari/Istruzioni.md) ([`src/Models/Person/Beneficiari/Istruzioni.md`](src/Models/Person/Beneficiari/Istruzioni.md)):  
+  Tabella dettagliata di ogni campo dell'anagrafica beneficiario (tipi di dato, obbligatorietà, autocompletamento da CF, gestione documenti posseduti, status lavorativo e titolo di studio).
+- [**Specifiche Modello: Nucleo Familiare**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Nucleo/Istruzioni.md) ([`src/Models/Nucleo/Istruzioni.md`](src/Models/Nucleo/Istruzioni.md)):  
+  Regole e vincoli sui dati del nucleo (generazione ID progressivo, CF intestatario, ISEE con 2 decimali, indirizzi geocodificati, bisogni e riferimenti dei servizi sociali).
+- [**Specifiche Documento: Scheda di Segnalazione**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Documenti/SchedaSegnalazione/Istruzioni.md) ([`src/Models/Documenti/SchedaSegnalazione/Istruzioni.md`](src/Models/Documenti/SchedaSegnalazione/Istruzioni.md)):  
+  Regole di compilazione per l'invio al secondo livello, convenzione di denominazione del file Google Doc (`Scheda segnalazione <ID_Nucleo> (<Nome Intestatario>) <- <Nome Inviante>`), cartelle Drive di destinazione e campi di testata.
+- [**Specifiche Documento: Foglio Firme Individuale**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Documenti/FoglioFirme/Istruzioni.md) ([`src/Models/Documenti/FoglioFirme/Istruzioni.md`](src/Models/Documenti/FoglioFirme/Istruzioni.md)):  
+  Convenzione di denominazione (`Foglio Firme individuale AAAA/MM - Nome Beneficiario (Nome Operatore)`), struttura tabellare con data, orari, calcolo automatico della durata in ore, firma dell'operatore, firma del beneficiario e totale a fine mese.
