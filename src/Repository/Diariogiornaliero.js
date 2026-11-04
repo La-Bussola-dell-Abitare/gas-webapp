@@ -1,4 +1,11 @@
 /**
+ * @file Diariogiornaliero.js
+ * @description Repository per la generazione e l'archiviazione dei Diari Giornalieri su Google Drive e Docs.
+ * Duplica il template configurato o, in sua assenza, crea da zero un documento strutturato per la giornata lavorativa.
+ * @module Repository/DiarioGiornaliero
+ */
+
+/**
  * Repository per la gestione e la generazione dei Diari Giornalieri.
  */
 class DiarioGiornalieroRepository {

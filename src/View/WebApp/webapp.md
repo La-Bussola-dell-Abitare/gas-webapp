@@ -20,7 +20,7 @@ Gli oggetti devono essere sempre sincronizzati con i fogli google.
 - Aggiungere incontro
 - Modificare incontro
 - Visualizzare e filtrare incontri
-## Documenti
+## Modulistica
 - Generare foglio firme (dati operatore, nucleo familiare e mese)
 - Generare scheda di segnalazione (dato operatore inviante e nucleo familiare)
 - Generare diario giornaliero (dato giorno)
@@ -34,3 +34,4 @@ Gli oggetti devono essere sempre sincronizzati con i fogli google.
     - Per tipo di documento
 ## Appuntamenti
 - Aggiungere appuntamento
+- Importare dati da appuntamento (email, telefono)

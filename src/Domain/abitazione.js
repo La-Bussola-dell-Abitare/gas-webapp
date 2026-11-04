@@ -1,3 +1,16 @@
+/**
+ * @file abitazione.js
+ * @description Modulo di dominio per la classificazione e tipizzazione delle tipologie abitative
+ * monitorate dallo sportello sociale "La Bussola dell'Abitare" (es. locazione, casa rifugio, senza dimora).
+ * Fornisce un array immutabile delle tipologie valide e il relativo tipo JSDoc.
+ * @module Domain/Abitazione
+ */
+
+/**
+ * Elenco immutabile delle tipologie di sistemazione abitativa rilevate dallo sportello.
+ * @readonly
+ * @enum {string}
+ */
 const Abitazione = Object.freeze(/** @type {const} */([
     "Senza dimora",
     "Casa rifugio",
@@ -12,13 +25,15 @@ const Abitazione = Object.freeze(/** @type {const} */([
     "Altro"
 ]));
 
-// 2. Estraiamo il tipo degli elementi dell'array
 /**
- * @typedef {typeof Relations[number]} Relation
+ * Tipo unione che rappresenta una tipologia abitativa valida tra quelle supportate.
+ * @typedef {typeof Abitazione[number]} TipoAbitazione
  */
 
 /**
- * @param {Relation} relazione
+ * Funzione di test/debug per la validazione statica del tipo di abitazione.
+ * @param {TipoAbitazione} relazione - Tipologia abitativa da verificare.
+ * @return {void}
  */
 function testEnum(relazione) {
     console.log(relazione);

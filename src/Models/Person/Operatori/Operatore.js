@@ -1,21 +1,32 @@
 /**
- * @typedef {Object} OperatoreOnlyData
- * @property {string} operatore - Il nome dell'operatore.
- * @property {string} qualifica - La qualifica dell'operatore.
- * @property {string} ruolo - Il ruolo dell'operatore.
+ * @file Operatore.js
+ * @description Modello per la gestione dell'Operatore dello sportello (operatore sociale o assistente sociale).
+ * Estende la classe Person memorizzando qualifica professionale, ruolo (es. accoglienza, coordinamento),
+ * identificativo operatore e factory method per l'idratazione da riga di Google Sheets.
+ * @module Models/Person/Operatore
  */
 
 /**
- * @typedef {PersonData & OperatoreOnlyData} OperatoreData
+ * Proprietà professionali specifiche dell'operatore.
+ * @typedef {Object} OperatoreOnlyData
+ * @property {string} operatore - Sigla o identificativo testuale dell'operatore.
+ * @property {string} qualifica - La qualifica professionale (es. "Operatore Sociale", "Assistente Sociale").
+ * @property {string} ruolo - Il ruolo assegnato nello sportello (es. "Accoglienza", "Coordinamento").
+ */
 
 /**
- * Classe Operatore che rappresenta un operatore dello sportello.
+ * Struttura combinata dei dati anagrafici e professionali dell'operatore.
+ * @typedef {PersonData & OperatoreOnlyData} OperatoreData
+ */
+
+/**
+ * Classe che rappresenta un operatore o assistente sociale dello sportello.
  * @extends Person
  */
 class Operatore extends Person {
   /**
    * Crea un'istanza di Operatore.
-   * @param {OperatoreData} data - I dati dell'operatore.
+   * @param {OperatoreData} data - I dati anagrafici e lavorativi dell'operatore.
    */
   constructor(data) {
     super(data);
@@ -25,10 +36,12 @@ class Operatore extends Person {
   }
 
   /**
-   * Factory statico per creare un'istanza di Operatore da una riga del foglio ed indici.
-   * @param {any[]} row - La riga di dati
-   * @param {Record<string, number>} idx - Mappa degli indici delle colonne
-   * @return {Operatore}
+   * Factory statico per istanziare un Operatore a partire da una riga grezza di Google Sheets
+   * e dalla mappa dinamica degli indici di colonna.
+   * 
+   * @param {any[]} row - La riga di dati del foglio "Operatori".
+   * @param {Record<string, number>} idx - Mappa degli indici delle colonne calcolata dalle intestazioni.
+   * @return {Operatore} La nuova istanza dell'Operatore idratata con i dati del foglio.
    */
   static fromRow(row, idx) {
     const nomeVal = getSheetVal(row, idx, "nome", "");

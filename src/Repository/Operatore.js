@@ -1,15 +1,26 @@
 /**
+ * @file Operatore.js
+ * @description Repository per l'accesso e la lettura dei dati degli Operatori e Assistenti Sociali
+ * memorizzati sul foglio Google "Operatori".
+ * @module Repository/Operatore
+ */
+
+/**
  * Repository per gestire le operazioni di persistenza e lettura degli Operatori.
  */
 class OperatoreRepository {
     /**
-     * Ottiene tutti gli operatori.
-     * @return {Operatore[]}
+     * Restituisce l'oggetto Sheet corrispondente al foglio "Operatori".
+     * @return {GoogleAppsScript.Spreadsheet.Sheet | null} Il foglio Operatori o null se inesistente.
      */
     static sheet() {
         return SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Operatori");
     }
 
+    /**
+     * Recupera tutti gli operatori censiti nel foglio di calcolo, idratandoli in istanze della classe Operatore.
+     * @return {Operatore[]} Elenco degli operatori registrati.
+     */
     static getAll() {
         const sheet = OperatoreRepository.sheet();
         if (!sheet) return [];
@@ -34,9 +45,9 @@ class OperatoreRepository {
     }
 
     /**
-     * Trova un operatore per nome completo (nome cognome) o solo per nome.
-     * @param {string} searchName - Nome da cercare
-     * @return {Operatore|null}
+     * Trova un operatore per nome completo ("Nome Cognome") o solo per nome (case-insensitive).
+     * @param {string} searchName - Nome o nominativo completo da cercare.
+     * @return {Operatore|null} L'istanza dell'Operatore trovato o null.
      */
     static getByName(searchName) {
         if (!searchName) return null;
@@ -50,10 +61,10 @@ class OperatoreRepository {
     }
 
     /**
-     * Mappa gli indici delle colonne in base alle intestazioni.
+     * Mappa gli indici delle colonne del foglio "Operatori" in base ai possibili nomi dell'intestazione.
      * @private
-     * @param {string[]} headers
-     * @return {Record<string, number>}
+     * @param {string[]} headers - Intestazioni della prima riga del foglio.
+     * @return {Record<string, number>} Mappa nomeColonna -> indice (0-based).
      */
     static _getColIndexes(headers) {
         return {

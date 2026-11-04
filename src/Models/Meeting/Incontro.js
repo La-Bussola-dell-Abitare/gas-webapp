@@ -1,4 +1,12 @@
 /**
+ * @file Incontro.js
+ * @description Modello e repository per la gestione degli incontri di Primo e Secondo Livello.
+ * Include la classe Incontro (colloquio o visita di sportello) e la classe IncontroRepository
+ * per il salvataggio, la ricerca e l'aggiornamento sui fogli Google 'Incontri con operatore' e 'Incontri con assistente sociale'.
+ * @module Models/Meeting/Incontro
+ */
+
+/**
  * @typedef {Object} IncontroData
  * @property {string} beneficiario - Nome del beneficiario (senza CF).
  * @property {string} operatore - Nome dell'operatore.

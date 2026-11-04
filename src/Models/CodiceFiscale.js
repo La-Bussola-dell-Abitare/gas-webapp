@@ -1,4 +1,13 @@
 /**
+ * @file CodiceFiscale.js
+ * @description Modello per il parsing, la validazione e la decodifica del Codice Fiscale italiano.
+ * Implementa la gestione dell'omocodia, il calcolo del carattere di controllo (CIN),
+ * l'estrazione di data di nascita e sesso, e la decodifica del codice catastale Belfiore.
+ * Include anche le formule personalizzate per le celle di Google Sheets (CF_*).
+ * @module Models/CodiceFiscale
+ */
+
+/**
  * Classe per la gestione e la decodifica del Codice Fiscale.
  */
 class CodiceFiscale {

@@ -1,4 +1,12 @@
 /**
+ * @file Test.js
+ * @description Suite di test automatizzati e asserzioni per la validazione di sistema.
+ * Verifica il corretto funzionamento di CodiceFiscale (omocodie, sesso, data, decodifica Belfiore),
+ * della classe geografica City, dei modelli Person/Operatore/Beneficiario e della connettività ai Repository.
+ * @module Utils/Test
+ */
+
+/**
  * Suite di test per la validazione automatica dei Modelli e dei Repository del progetto.
  */
 function runSystemTests() {

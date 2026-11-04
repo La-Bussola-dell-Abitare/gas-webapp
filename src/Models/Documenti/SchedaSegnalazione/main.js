@@ -1,10 +1,23 @@
+/**
+ * @file main.js
+ * @description Script di esempio e test per la generazione e compilazione delle Schede di Segnalazione
+ * e la scrittura di dati tabellari su documenti Google Docs.
+ * @module Models/Documenti/SchedaSegnalazione/Test
+ */
+
+/**
+ * Funzione di test per verificare la clonazione e compilazione di una Scheda di Segnalazione da template.
+ * Sostituisce i segnaposto con dati fittizi, spunta le checkbox e inserisce un'immagine di firma.
+ * 
+ * @return {void}
+ */
 function testCreaDocumento() {
     const templateId = "1d8lSB1b40QGmZ5yC7ILh7fljzUHuqpllZnDjA0URnx0";
     const folderId = "1RJ_GC2VpCN8tBwsa48jV6sWo6szrqYRs";
     const nomeDocumento = "Scheda Segnalazione - Mario Rossi";
 
     const dati = {
-        //        operatore_nome: "Lorenzo Mazza",
+        // operatore_nome: "Lorenzo Mazza",
         operatore_contatto: "info@mazzalorenzo.com",
         beneficiario_nome: "Mario",
         beneficiario_cognome: "Rossi",
@@ -23,7 +36,11 @@ function testCreaDocumento() {
     Logger.log("Creato documento con ID: " + nuovoId);
 }
 
-// Esempio di utilizzo pratico e pulito
+/**
+ * Funzione di test per verificare l'inserimento dinamico di dati in tabelle multiple di un Google Doc.
+ * 
+ * @return {void}
+ */
 function testAutomatico() {
 
     // Dati per la TABELLA 0 (la prima nel documento)

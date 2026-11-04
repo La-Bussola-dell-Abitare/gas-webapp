@@ -1,4 +1,12 @@
 /**
+ * @file NucleoFamiliare.js
+ * @description Modello e gestione persistenza per i Nuclei Familiari assistiti dallo sportello.
+ * Incapsula le informazioni socio-economiche (ISEE, anamnesi del caso, progettualità, residenza/domicilio),
+ * l'assegnazione automatica dell'ID progressivo (generateNextId) e la sincronizzazione con il foglio Google.
+ * @module Models/Nucleo/NucleoFamiliare
+ */
+
+/**
  * Classe per la gestione e la modellazione del Nucleo Familiare dello sportello.
  */
 class NucleoFamiliare {

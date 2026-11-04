@@ -1,4 +1,12 @@
 /**
+ * @file Beneficiario.js
+ * @description Repository per l'accesso e la persistenza dei dati dei Beneficiari sul foglio Google 'Beneficiari'.
+ * Gestisce la lettura massiva (getAll), la mappatura dinamica delle intestazioni, l'inserimento/aggiornamento (add)
+ * e la cancellazione (removeByCF) con controllo di unicità su codice fiscale e nominativo.
+ * @module Repository/Beneficiario
+ */
+
+/**
  * Repository per gestire le operazioni di persistenza e lettura dei Beneficiari.
  */
 class BeneficiarioRepository {

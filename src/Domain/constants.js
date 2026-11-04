@@ -1,4 +1,15 @@
 /**
+ * @file constants.js
+ * @description Modulo di dominio per la mappatura geografica tra cittadinanze e nazioni mondiali.
+ * Fornisce il dizionario immutabile CountryByCitizenship e le definizioni di tipo JSDoc
+ * per la gestione standardizzata delle anagrafiche dei beneficiari dello sportello.
+ * @module Domain/Constants
+ */
+
+/**
+ * Mappatura immutabile tra aggettivo di cittadinanza (chiave) e nome ufficiale dello stato in italiano (valore).
+ * Utilizzato per la normalizzazione dei dati anagrafici e la compilazione del monitoraggio ufficiale.
+ * @readonly
  * @enum {string}
  */
 const CountryByCitizenship = /** @type {const}*/Object.freeze({
@@ -220,14 +231,12 @@ const CountryByCitizenship = /** @type {const}*/Object.freeze({
     Zimbabwese: "Zimbabwe"
 });
 
-/** @typedef {keyof typeof CountryByCitizenship} Citizenship */
-/** @typedef {typeof CountryByCitizenship[Citizenship]} Country */
+/** 
+ * Tipo che rappresenta una chiave valida di cittadinanza (es. "Italiana", "Marocchina").
+ * @typedef {keyof typeof CountryByCitizenship} Citizenship 
+ */
 
-
-
-
-// --- TEST ---
-
-testEnum("Coniuge"); // ✅ OK! L'editor ti darà l'autocompletamento per i 4 valori
-
-testEnum("Italiana");    // ❌ ERRORE: Argument of type '"ciao"' is not assignable to parameter of type 'TipoRelazione'
+/** 
+ * Tipo che rappresenta il nome ufficiale di una nazione (es. "Italia", "Marocco").
+ * @typedef {typeof CountryByCitizenship[Citizenship]} Country 
+ */

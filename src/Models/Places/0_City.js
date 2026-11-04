@@ -1,10 +1,19 @@
 /**
+ * @file 0_City.js
+ * @description Modello geografico per la rappresentazione, geocodifica e validazione dei Comuni italiani
+ * e delle città estere. Interroga la cache interna di Apps Script (CacheService) e servizi remoti
+ * (comuni-json e OpenStreetMap Nominatim) per estrarre provincia, CAP, codice catastale e nazione.
+ * @module Models/Places/City
+ */
+
+/**
+ * Struttura dei dati geografici associati a una città.
  * @typedef {Object} CityData
- * @property {string} name - Nome del comune / Città.
- * @property {string[]} cap - Codice di Avviamento Postale.
- * @property {string} province - Sigla della provincia (es. "RM").
- * @property {Country} country - Nazione.
- * @property {string} [codiceCatastale] - Codice catastale (se in Italia).
+ * @property {string} name - Nome del comune o della città.
+ * @property {string[]} cap - Elenco dei Codici di Avviamento Postale associati.
+ * @property {string} province - Sigla della provincia (es. "RM", "MI").
+ * @property {Country|string} country - Nome della nazione di appartenenza.
+ * @property {string} [codiceCatastale] - Codice catastale Belfiore (per i comuni italiani).
  */
 
 /**
@@ -13,13 +22,14 @@
  * @property {string} name - Nome del comune / Città.
  * @property {string[]} cap - Codice di Avviamento Postale.
  * @property {string} province - Sigla della provincia (es. "RM").
- * @property {Country} country - Nazione.
+ * @property {Country|string} country - Nazione.
  * @property {string} [codiceCatastale] - Codice catastale (se in Italia).
  */
 class City {
   /**
-   * Crea un'istanza di City ricavando le informazioni in tempo reale.
+   * Crea un'istanza di City ricavando le informazioni in tempo reale o da cache.
    * @param {string} name - Il nome esatto del comune o della città.
+   * @throws {Error} Se il nome della città è vuoto o non definito.
    */
   constructor(name) {
     if (!name) throw new Error("City: il nome della città non può essere vuoto.");
@@ -31,7 +41,7 @@ class City {
     this.province = "";
     /** @type {string} */
     this.codiceCatastale = "";
-    /** @type {Country} */
+    /** @type {Country|string} */
     this.country = "";
 
     this._resolve();
@@ -39,7 +49,9 @@ class City {
 
   /**
    * Risolve le informazioni geografiche tramite cache e API pubbliche gratuite.
+   * Cerca prima nei comuni italiani (comuni-json) e successivamente su OpenStreetMap Nominatim.
    * @private
+   * @return {void}
    */
   _resolve() {
     const cache = CacheService.getScriptCache();
@@ -121,10 +133,11 @@ class City {
   }
 
   /**
-   * Salva le proprietà correnti in cache.
+   * Salva le proprietà geografiche correnti nella cache di script di Google Apps Script (validità 6 ore).
    * @private
-   * @param {GoogleAppsScript.Cache.Cache} cache
-   * @param {string} key
+   * @param {GoogleAppsScript.Cache.Cache} cache - Istanza della cache di script.
+   * @param {string} key - Chiave univoca identificativa della città.
+   * @return {void}
    */
   _saveToCache(cache, key) {
     try {
@@ -141,6 +154,11 @@ class City {
   }
 }
 
-/** @type {City} */
-let rome = new City("Roma");
-console.log(rome);
+/**
+ * Funzione di esempio/test per verificare la corretta risoluzione dei dati di un comune.
+ * @return {void}
+ */
+function testCityExample() {
+  const rome = new City("Roma");
+  Logger.log(JSON.stringify(rome));
+}

@@ -1,5 +1,9 @@
 /**
- * WEB APP - CONTROLLER E INTERFACCIA SERVER-SIDE (MVC)
+ * @file Backend.js
+ * @description Controller principale e interfaccia server-side (MVC) per la Web App "La Bussola dell'Abitare".
+ * Gestisce l'entry point HTTP doGet, l'esposizione delle API RPC per google.script.run,
+ * l'interfacciamento tra la UI e i Repository/Model, e la generazione dei documenti Google Docs.
+ * @module Controller/Backend
  */
 
 const WA_SHEET_BENEFICIARI = "Beneficiari";
@@ -8,9 +12,11 @@ const WA_SHEET_INCONTRI_OPERATORE = "Incontri con operatore";
 const WA_SHEET_INCONTRI_ASSISTENTE = "Incontri con assistente sociale";
 
 /**
- * Gestisce la richiesta HTTP GET per servire la pagina web.
- * @param {GoogleAppsScript.Events.AppsScriptEvent} e - Evento GET
- * @return {GoogleAppsScript.HTML.HtmlOutput}
+ * Gestisce la richiesta HTTP GET per servire la pagina web dell'applicazione.
+ * Renderizza il template HTML "View/WebApp/Frontend" con configurazione viewport e x-frame.
+ * 
+ * @param {GoogleAppsScript.Events.AppsScriptEvent} e - Evento GET contenente parametri di query e contesto.
+ * @return {GoogleAppsScript.HTML.HtmlOutput} L'output HTML per il rendering della Web App nel browser.
  */
 function doGet(e) {
   return HtmlService.createTemplateFromFile("View/WebApp/Frontend")
@@ -20,12 +26,37 @@ function doGet(e) {
     .addMetaTag("viewport", "width=device-width, initial-scale=1");
 }
 
+/**
+ * Verifica l'esistenza di un foglio firme per l'operatore, il beneficiario e la data indicati.
+ * 
+ * @param {string|Operatore} operator - Nome o istanza dell'operatore.
+ * @param {string|Beneficiario} client - Nome o istanza del beneficiario.
+ * @param {Date|string} date - Data o mese di riferimento.
+ * @param {GoogleAppsScript.Drive.Folder} [folder] - Cartella di destinazione su Google Drive.
+ * @return {FoglioFirme|null} L'istanza del FoglioFirme se trovato, altrimenti null.
+ */
 function checkFoglioFirme(operator, client, date, folder) {
   return FoglioFirmeRepository.get(operator, client, date, folder);
 }
+
+/**
+ * Crea un nuovo foglio firme individuale copiando il modello predefinito.
+ * 
+ * @param {string} operator - Nome dell'operatore assegnato.
+ * @param {string} client - Nome del beneficiario associato.
+ * @param {Date|string} date - Data o periodo del foglio firme.
+ * @return {FoglioFirme} Il nuovo oggetto FoglioFirme creato su Google Drive/Docs.
+ */
 function createFoglioFirme(operator, client, date) {
   return FoglioFirmeRepository.create(operator, client, date);
 }
+
+/**
+ * Aggiunge una riga di incontro all'interno del foglio firme.
+ * Delega l'operazione al FoglioFirmeRepository.
+ * 
+ * @return {*} Risultato dell'operazione di inserimento riga.
+ */
 function appendRowToFoglioFirme() {
   return FoglioFirmeRepository.appendRow();
 }

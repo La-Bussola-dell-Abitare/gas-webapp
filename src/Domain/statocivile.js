@@ -1,3 +1,15 @@
+/**
+ * @file statocivile.js
+ * @description Modulo di dominio per la definizione e tipizzazione degli stati civili legali
+ * dei beneficiari registrati presso lo sportello "La Bussola dell'Abitare".
+ * @module Domain/StatoCivile
+ */
+
+/**
+ * Elenco immutabile degli stati civili ammessi per la compilazione anagrafica.
+ * @readonly
+ * @enum {string}
+ */
 const StatiCivili = Object.freeze(/** @type {const} */([
     "Celibe/Nubile",
     "Coniugato/Coniugata",
@@ -8,14 +20,16 @@ const StatiCivili = Object.freeze(/** @type {const} */([
     "In unione di fatto"
 ]));
 
-// 2. Estraiamo il tipo degli elementi dell'array
 /**
+ * Tipo unione che rappresenta uno stato civile valido.
  * @typedef {typeof StatiCivili[number]} StatoCivile
  */
 
 /**
- * @param {Relation} relazione
+ * Funzione di test/debug per la validazione del tipo di stato civile.
+ * @param {StatoCivile} statoCivile - Lo stato civile da verificare.
+ * @return {void}
  */
-function testEnum(relazione) {
-    console.log(relazione);
+function testEnum(statoCivile) {
+    console.log(statoCivile);
 }

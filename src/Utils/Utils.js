@@ -1,4 +1,11 @@
 /**
+ * @file Utils.js
+ * @description Funzioni di utilità generale per la manipolazione di stringhe, la mappatura vettoriale di formule,
+ * l'estrazione sicura di valori da righe di fogli di calcolo e l'indicizzazione dinamica case-insensitive delle colonne.
+ * @module Utils/Common
+ */
+
+/**
  * Converte una stringa in Title Case (iniziali maiuscole).
  * @param {string} str - La stringa da convertire.
  * @return {string}

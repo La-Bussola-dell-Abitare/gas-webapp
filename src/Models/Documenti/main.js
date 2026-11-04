@@ -1,18 +1,28 @@
 /**
- * Crea un documento Google Docs a partire da un template,
- * lo inserisce in una cartella specifica e sostituisce i segnaposto.
+ * @file main.js
+ * @description Modulo di utilità e manipolazione per Google Docs e Google Drive.
+ * Fornisce funzioni per la clonazione di template Google Docs, la sostituzione avanzata di segnaposto
+ * testuali, caselle di spunta (checkbox) e immagini (firme autografe), nonché il popolamento dinamico di tabelle.
+ * @module Models/Documenti/Main
+ */
+
+/**
+ * Crea un documento Google Docs a partire da un template, lo inserisce in una cartella specifica
+ * e sostituisce i segnaposto con testo, checkbox spuntate o immagini.
  *
- * @param {string} templateId - ID del documento template (A)
- * @param {string} folderId - ID della cartella di destinazione (B)
- * @param {string} newDocName - Nome del nuovo documento (C)
- * @param {Object} params - Oggetto con coppie chiave:valore per le sostituzioni
+ * @param {string} templateId - ID del file Google Docs usato come template.
+ * @param {string} folderId - ID della cartella di Google Drive di destinazione.
+ * @param {string} newDocName - Nome da assegnare al nuovo documento creato.
+ * @param {Record<string, any>} params - Oggetto chiave/valore contenente i dati da sostituire nei placeholder `{chiave}`.
+ * @return {string} L'ID del documento Google Docs appena generato.
  *
- * Esempio params:
- * {
- *   operatore: "lorenzo",
+ * @example
+ * const id = createGoogleDocFromTemplate("templateId123", "folderId456", "Scheda - Mario Rossi", {
+ *   operatore: "Lorenzo Mazza",
  *   beneficiario: "Mario Rossi",
- *   data: "10/07/2026"
- * }
+ *   data: "10/07/2026",
+ *   Iscrizione: true
+ * });
  */
 function createGoogleDocFromTemplate(templateId, folderId, newDocName, params) {
 
@@ -53,22 +63,30 @@ function createGoogleDocFromTemplate(templateId, folderId, newDocName, params) {
     });
 
     // 4. Rimuove eventuali placeholder rimasti
-    //    cleanRemainingPlaceholders(body);
-    //    body.replaceText(/\{[^}]+\}/g, "");
+    // cleanRemainingPlaceholders(body);
 
     doc.saveAndClose();
     return newDocId;
 }
 
 /**
- * Rimuove tutti i placeholder rimasti nel documento.
- * Un placeholder è definito come qualsiasi testo nel formato {qualcosa}
+ * Rimuove tutti i placeholder rimasti non valorizzati nel corpo del documento.
+ * Un placeholder è identificato dal formato `{qualcosa}`.
+ * 
+ * @param {GoogleAppsScript.Document.Body} body - Il corpo (Body) del documento Google Docs.
+ * @return {void}
  */
 function cleanRemainingPlaceholders(body) {
     // In Google Apps Script, replaceText richiede un pattern regex sotto forma di stringa (con double backslash)
     body.replaceText("\\{[^}]+\\}", "");
 }
 
+/**
+ * Verifica se un valore corrisponde a un riferimento a un'immagine valida su Google Drive.
+ * 
+ * @param {*} value - Valore da verificare (ID stringa o oggetto `{ id: string }`).
+ * @return {boolean} True se il valore punta a un file con MIME type di tipo immagine.
+ */
 function isImageData(value) {
     // Caso 1: stringa → ID immagine
     if (typeof value === "string") {
@@ -80,7 +98,7 @@ function isImageData(value) {
     }
 
     // Caso 2: oggetto → deve avere .id
-    if (typeof value === "object" && value.id) {
+    if (typeof value === "object" && value !== null && value.id) {
         try {
             return DriveApp.getFileById(value.id).getMimeType().startsWith("image/");
         } catch (e) {
@@ -91,14 +109,28 @@ function isImageData(value) {
     return false;
 }
 
+/**
+ * Verifica se un dato rappresenta una configurazione di casella di spunta (checkbox).
+ * 
+ * @param {*} value - Valore da esaminare (booleano o oggetto con proprietà `check`).
+ * @return {boolean} True se è un valore o oggetto di tipo checkbox.
+ */
 function isCheckboxData(value) {
     if (typeof value === "boolean") return true;
-    if (typeof value === "object" && value.check !== undefined) return true;
+    if (typeof value === "object" && value !== null && value.check !== undefined) return true;
     return false;
 }
 
+/**
+ * Cerca e spunta una casella di tipo checkbox (☐ o [ ]) associata a una determinata etichetta/chiave.
+ * 
+ * @param {GoogleAppsScript.Document.Body} body - Il corpo del documento Google Docs.
+ * @param {string} key - La chiave di testo che individua la riga della checkbox.
+ * @param {boolean|{check: boolean}} value - Il valore booleano di spunta.
+ * @return {void}
+ */
 function handleCheckboxSearchAndReplace(body, key, value) {
-    const isChecked = (value === true || value.check === true);
+    const isChecked = (value === true || (typeof value === "object" && value !== null && value.check === true));
     if (!isChecked) return; // Se non deve essere selezionato, lasciamo com'è (vuoto)
 
     // Trova ☐ o [ ] seguiti da testo sulla stessa riga che contiene la chiave (case-insensitive)
@@ -117,9 +149,11 @@ function handleCheckboxSearchAndReplace(body, key, value) {
     }
 }
 
-
 /**
- * Verifica se un ID Drive punta a un file immagine
+ * Verifica se un ID di file su Google Drive punta a un file immagine supportato.
+ * 
+ * @param {string} fileId - ID del file Google Drive.
+ * @return {boolean} True se il file esiste ed è un'immagine, false altrimenti.
  */
 function isImageFile(fileId) {
     try {
@@ -132,7 +166,12 @@ function isImageFile(fileId) {
 }
 
 /**
- * Sostituisce un segnaposto con un'immagine
+ * Sostituisce un segnaposto testuale con un'immagine incorporata (es. firma autografa digitalizzata).
+ * 
+ * @param {GoogleAppsScript.Document.Body} body - Il corpo del documento Google Docs.
+ * @param {string} placeholder - Il testo del segnaposto da sostituire (es. "{firma}").
+ * @param {string|{ id: string, width?: number, height?: number }} imageData - ID immagine Drive o oggetto con dimensioni.
+ * @return {void}
  */
 function replacePlaceholderWithImage(body, placeholder, imageData) {
     const found = body.findText(placeholder);
@@ -168,8 +207,14 @@ function replacePlaceholderWithImage(body, placeholder, imageData) {
     element.asText().deleteText(0, element.asText().getText().length - 1);
 }
 
-
-// Il primo parametro è l'ID del file, i successivi (...) sono i dati delle tabelle
+/**
+ * Popola una o più tabelle presenti in un documento Google Docs con matrici di dati fornite.
+ * Clona l'ultima riga esistente per preservare formattazione e bordi se le righe attuali non bastano.
+ *
+ * @param {string} idDocumento - L'ID del documento Google Docs da modificare.
+ * @param {...Array<Array<string|number>>} listaDati - Liste 2D di dati: ciascuna matrice corrisponde a una tabella in ordine sequenziale.
+ * @return {void}
+ */
 function addDataToGoogleDocTables(idDocumento, ...listaDati) {
   try {
     var doc = DocumentApp.openById(idDocumento);
