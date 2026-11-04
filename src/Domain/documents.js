@@ -18,3 +18,33 @@ const pds = Object.freeze(
         Autonomo: [],
     })
 );
+
+/**
+ * Elenco immutabile delle tipologie standard di documenti personali e titoli di identità/soggiorno.
+ * Costituisce la Single Source of Truth di dominio per i fascicoli dei beneficiari e le dropdown.
+ * @readonly
+ * @enum {string}
+ */
+const TipiDocumenti = Object.freeze(/** @type {const} */([
+    "Cartà identità",
+    "Tessera sanitaria",
+    "Passaporto",
+    "Permesso di soggiorno",
+    "Stato di famiglia",
+    "Certificato di residenza",
+    "ISEE",
+    "Certificazione unica",
+    "Dichiarazione residenza",
+    "Residenza fittizia",
+    "Sfratto",
+    "Visura catastale",
+    "Bolletta",
+    "Patente di Guida",
+    "Contratto di lavoro",
+    "Contratto di locazione"
+]));
+
+/**
+ * Tipo unione per una tipologia di documento personale.
+ * @typedef {typeof TipiDocumenti[number]} TipoDocumento
+ */

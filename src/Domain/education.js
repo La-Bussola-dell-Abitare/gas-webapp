@@ -51,3 +51,26 @@ const EQF = /** @type {const}*/Object.freeze({
  * Tipo che rappresenta un livello EQF valido.
  * @typedef {keyof typeof EQF} TitoloStudioEQF 
  */
+
+/**
+ * Elenco immutabile delle descrizioni testuali standard dei titoli di studio per i beneficiari.
+ * Costituisce la Single Source of Truth di dominio per la convalida anagrafica e le dropdown.
+ * @readonly
+ * @enum {string}
+ */
+const TitoliStudio = Object.freeze(/** @type {const} */([
+    "Nessuno",
+    "Licenza elementare",
+    "Licenza media",
+    "Qualifica professionale (3 anni)",
+    "Diploma di scuola superiore",
+    "Laurea triennale",
+    "Laurea magistrale / specialistica",
+    "Dottorato di ricerca / Master",
+    "Altro"
+]));
+
+/**
+ * Tipo unione per un titolo di studio valido.
+ * @typedef {typeof TitoliStudio[number]} TitoloDiStudio
+ */

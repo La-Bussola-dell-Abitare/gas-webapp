@@ -199,7 +199,7 @@
             <p class="text-muted m-0 small">Municipio XI • Gestione Operativa Web App</p>
           </div>
           <div>
-            <button class="btn btn-outline-primary btn-sm" onclick="reloadData()">
+            <button class="btn btn-outline-primary btn-sm" onclick="reloadData(true)">
               Sincronizza Dati
             </button>
           </div>
@@ -607,7 +607,9 @@
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Cittadinanza *</label>
-                <input type="text" class="form-control" id="ben-cittadinanza" placeholder="Italiana" required>
+                <select class="form-select" id="ben-cittadinanza" required>
+                  <option value="Italiana">Italiana</option>
+                </select>
               </div>
               <div class="col-md-6">
                 <label class="form-label font-outfit small">Residenza</label>
@@ -743,11 +745,15 @@
               </div>
               <div class="col-md-6">
                 <label class="form-label font-outfit small">Tipologia di Richiesta *</label>
-                <input type="text" class="form-control" id="nuc-richiesta" required>
+                <select class="form-select" id="nuc-richiesta" required>
+                  <option value="">Seleziona Richiesta...</option>
+                </select>
               </div>
               <div class="col-md-6">
                 <label class="form-label font-outfit small">Tipologia Abitazione *</label>
-                <input type="text" class="form-control" id="nuc-abitazione" required>
+                <select class="form-select" id="nuc-abitazione" required>
+                  <option value="">Seleziona Abitazione...</option>
+                </select>
               </div>
               <div class="col-md-6">
                 <label class="form-label font-outfit small">Assistente Sociale *</label>
@@ -794,6 +800,7 @@
     let dbNuclei = [];        // oggetti NucleoFamiliare
     let dbMeetings = [];      // oggetti Incontro
     let dbOperators = [];     // stringhe operatori completi
+    let dbLookups = {};       // liste di valori dai Named Ranges
     let activeTabId = 'tab-incontri';
 
     // Inizializzazione pagina
@@ -808,13 +815,24 @@
     };
 
     // Ricarica tutti i dati in asincrono
-    function reloadData() {
+    function reloadData(forceRefresh = false) {
       showToast("Caricamento dati in corso...", "info");
 
       const failHandler = function (err) {
         console.error("Errore caricamento dati:", err);
         showToast("Autorizzazione richiesta: avvia un test nell'editor Apps Script per concedere i permessi.", "warning");
       };
+
+      // Carica Valori Ammessi e Dropdown dai Named Ranges
+      google.script.run
+        .withSuccessHandler(function (lookups) {
+          dbLookups = lookups || {};
+          populateAllLookups(dbLookups);
+        })
+        .withFailureHandler(function (err) {
+          console.error("Errore caricamento lookups:", err);
+        })
+        .getFormLookups(forceRefresh);
 
       // Carica Operatori
       google.script.run
@@ -897,6 +915,87 @@
           el.appendChild(opt);
         });
       });
+    }
+
+    /**
+     * Popola un elemento <select> con un array di voci.
+     * @param {string} selectId - ID dell'elemento select
+     * @param {string[]} items - Voci da inserire
+     * @param {string} [placeholder="Seleziona..."] - Testo dell'opzione vuota iniziale
+     */
+    function populateSelectOptions(selectId, items, placeholder = "Seleziona...") {
+      const el = document.getElementById(selectId);
+      if (!el || !Array.isArray(items) || items.length === 0) return;
+      const currentVal = el.value;
+      el.innerHTML = `<option value="">${placeholder}</option>`;
+      items.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item;
+        opt.textContent = item;
+        el.appendChild(opt);
+      });
+      if (currentVal) {
+        setSelectValue(el, currentVal);
+      }
+    }
+
+    /**
+     * Imposta il valore selezionato di una select preservando valori preesistenti
+     * anche se non presenti nell'elenco (utile per retrocompatibilità in modifica).
+     * @param {HTMLSelectElement} selectEl - Elemento select
+     * @param {string} value - Valore da selezionare
+     */
+    function setSelectValue(selectEl, value) {
+      if (!selectEl) return;
+      if (!value) {
+        selectEl.value = "";
+        return;
+      }
+      const valStr = String(value).trim();
+      let found = false;
+      for (let i = 0; i < selectEl.options.length; i++) {
+        if (selectEl.options[i].value.toLowerCase() === valStr.toLowerCase()) {
+          selectEl.selectedIndex = i;
+          found = true;
+          break;
+        }
+      }
+      if (!found && valStr !== "") {
+        const opt = document.createElement('option');
+        opt.value = valStr;
+        opt.textContent = valStr;
+        selectEl.appendChild(opt);
+        selectEl.value = valStr;
+      }
+    }
+
+    /**
+     * Popola tutti i menu a tendina dell'applicazione con i valori scaricati dai Named Ranges.
+     * @param {Record<string, string[]>} lookups - Oggetto dizionario con le liste di valori
+     */
+    function populateAllLookups(lookups) {
+      if (!lookups) return;
+      if (lookups.abitazione) {
+        populateSelectOptions('nuc-abitazione', lookups.abitazione, 'Seleziona Abitazione...');
+      }
+      if (lookups.servizi) {
+        populateSelectOptions('nuc-richiesta', lookups.servizi, 'Seleziona Tipologia Richiesta...');
+      }
+      if (lookups.relazioni) {
+        populateSelectOptions('ben-rapporto', lookups.relazioni, 'Seleziona Rapporto Parentela...');
+      }
+      if (lookups.statiCivili) {
+        populateSelectOptions('ben-stato-civile', lookups.statiCivili, 'Seleziona Stato Civile...');
+      }
+      if (lookups.statiLavorativi) {
+        populateSelectOptions('ben-lavoro', lookups.statiLavorativi, 'Seleziona Condizione Lavorativa...');
+      }
+      if (lookups.titoliStudio) {
+        populateSelectOptions('ben-studio', lookups.titoliStudio, 'Seleziona Titolo di Studio...');
+      }
+      if (lookups.stati && document.getElementById('ben-cittadinanza')?.tagName === 'SELECT') {
+        populateSelectOptions('ben-cittadinanza', lookups.stati, 'Seleziona Cittadinanza / Stato...');
+      }
     }
 
     // Gestione Tab della Sidebar
@@ -1208,6 +1307,8 @@
     function openAddNucleoModal() {
       document.getElementById('nucleo-form').reset();
       document.getElementById('nuc-id').value = '';
+      document.getElementById('nuc-richiesta').value = '';
+      document.getElementById('nuc-abitazione').value = '';
       document.getElementById('nucleo-form-title').textContent = 'Crea Nuovo Nucleo Familiare';
       const textEl = document.getElementById('btn-nuc-submit-text');
       if (textEl) {
@@ -1234,9 +1335,9 @@
       document.getElementById('nuc-domicilio').value = n.domicilio || '';
       document.getElementById('nuc-descrizione').value = n.descrizioneCaso;
       document.getElementById('nuc-obiettivi').value = n.obiettiviProgettualita;
-      document.getElementById('nuc-richiesta').value = n.tipologiaRichiesta;
+      setSelectValue(document.getElementById('nuc-richiesta'), n.tipologiaRichiesta);
       document.getElementById('nuc-followup').value = n.orientamentoFollowUp;
-      document.getElementById('nuc-abitazione').value = n.tipologiaAbitazione;
+      setSelectValue(document.getElementById('nuc-abitazione'), n.tipologiaAbitazione);
       document.getElementById('nuc-assistente').value = n.assistenteSociale;
       document.getElementById('nuc-medico').value = n.medicoDiBase;
 
@@ -1318,6 +1419,7 @@
       document.getElementById('ben-is-update').value = 'false';
       document.getElementById('ben-cf').disabled = false;
       document.getElementById('modal-ben-title').textContent = `Aggiungi Membro al Nucleo #${nucleoId}`;
+      setSelectValue(document.getElementById('ben-cittadinanza'), 'Italiana');
 
       // Auto-compila residenza con quella del nucleo
       const nucleoObj = dbNuclei.find(n => n.id === nucleoId);
@@ -1354,14 +1456,14 @@
       document.getElementById('ben-sesso').value = ben.taxCode ? CodiceFiscale.getSesso(ben.cf) : 'M';
       document.getElementById('ben-telefono').value = ben.telefono || '';
       document.getElementById('ben-email').value = ben.email || '';
-      document.getElementById('ben-cittadinanza').value = ben.cittadinanza || 'Italiana';
+      setSelectValue(document.getElementById('ben-cittadinanza'), ben.cittadinanza || 'Italiana');
       document.getElementById('ben-residenza').value = ben.residenza || '';
       document.getElementById('ben-domicilio').value = ben.domicilio || '';
-      document.getElementById('ben-stato-civile').value = ben.statoCivile || 'singolo';
-      document.getElementById('ben-rapporto').value = ben.rapportoIntestatario || 'figlio';
+      setSelectValue(document.getElementById('ben-stato-civile'), ben.statoCivile || 'singolo');
+      setSelectValue(document.getElementById('ben-rapporto'), ben.rapportoIntestatario || 'figlio');
       document.getElementById('ben-anno-arrivo').value = ben.annoArrivo || '';
-      document.getElementById('ben-lavoro').value = ben.statoLavorativo || 'disoccupato';
-      document.getElementById('ben-studio').value = ben.titoloStudio || 'diploma';
+      setSelectValue(document.getElementById('ben-lavoro'), ben.statoLavorativo || 'disoccupato');
+      setSelectValue(document.getElementById('ben-studio'), ben.titoloStudio || 'diploma');
       document.getElementById('ben-servizi').value = ben.assistenteSociale || 'No';
 
       // Checkbox documenti

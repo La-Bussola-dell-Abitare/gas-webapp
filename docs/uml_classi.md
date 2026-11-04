@@ -208,6 +208,13 @@ classDiagram
     FoglioFirmeRepository ..> FoglioFirme : gestisce
     DiarioGiornalieroRepository ..> DiarioGiornaliero : gestisce
 
+    class LookupRepository {
+        +getNamedRangeValues(rangeName)$ string[]
+        +getAll(forceRefresh)$ Object
+        +getDefaults()$ Object
+        +clearCache()$ void
+    }
+
     %% =========================================================================
     %% CONTROLLER E SERVICES
     %% =========================================================================
@@ -220,6 +227,7 @@ classDiagram
         +submitMeeting(data) Object
         +getNucleiObjects() Object[]
         +submitNucleo(data) Object
+        +getFormLookups(forceRefresh) Object
         +decodeCF(cf) Object
         +generateFoglioFirmeDoc(op, cl, d) Object
         +generateSchedaSegnalazioneDoc(data) Object
@@ -234,6 +242,7 @@ classDiagram
     BackendController ..> SchedaSegnalazione
     BackendController ..> FoglioFirmeRepository
     BackendController ..> DiarioGiornalieroRepository
+    BackendController ..> LookupRepository
 ```
 
 ---
@@ -271,3 +280,4 @@ I Repository incapsulano le letture e scritture verso i fogli Google e Google Dr
 - **`OperatoreRepository`:** Fornisce la lista degli operatori e la ricerca per nominativo.
 - **`IncontroRepository`:** Gestisce la persistenza separata nei due fogli "Incontri con operatore" (1° livello) e "Incontri con assistente sociale" (2° livello), supportando anche l'aggiornamento di righe esistenti.
 - **`FoglioFirmeRepository` / `DiarioGiornalieroRepository` / `SchedaSegnalazione`:** Coordinano la duplicazione dei template Google Docs, la sostituzione dei segnaposto e l'archiviazione organizzata nelle cartelle Google Drive.
+- **[`LookupRepository`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Repository/LookupRepository.js):** Gestisce il recupero centralizzato di tutti i valori ammessi (lookup lists e dropdown) interrogando i Named Ranges del foglio Google (`Abitazione`, `Sportello_Servizi`, `Criticità`, `Relazioni`, `StatoCivile`, `StatoLavorativo`, `TitoliStudio`, `Stati`, `TipiDocumenti`), con fallback automatico sui moduli di Dominio e memorizzazione in `CacheService` per 6 ore.

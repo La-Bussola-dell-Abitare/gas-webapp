@@ -273,6 +273,23 @@ function submitNucleo(data) {
 }
 
 /**
+ * Recupera l'insieme dei valori ammessi e delle opzioni per i menu a tendina della Web App.
+ * Interroga il LookupRepository con supporto ai Named Ranges, cache ed enums di dominio.
+ * In caso di errore, delega al repository la restituzione dei valori di fallback (DRY).
+ * 
+ * @param {boolean} [forceRefresh=false] - Se true, invalida la cache e rilegge dal foglio.
+ * @return {Record<string, string[]>} Dizionario contenente le liste di valori per ogni categoria.
+ */
+function getFormLookups(forceRefresh) {
+  try {
+    return LookupRepository.getAll(forceRefresh);
+  } catch (err) {
+    Logger.log("Errore getFormLookups: " + (err instanceof Error ? err.message : String(err)));
+    return LookupRepository.getDefaults();
+  }
+}
+
+/**
  * Genera il Foglio Firme individuale in Google Docs.
  * @param {string} operator - Nome dell'operatore
  * @param {string} client - Nome del beneficiario

@@ -12,17 +12,19 @@
  * @enum {string}
  */
 const Abitazione = Object.freeze(/** @type {const} */([
-    "Senza dimora",
-    "Casa rifugio",
-    "Casa famiglia",
-    "Semi-autonomia",
-    "Ospite temporaneo presso amici/parenti",
-    "Housing first",
+    "Nessuna",
+    "Accoglienza: Casa rifugio",
+    "Accoglienza: Casa famiglia",
+    "Accoglienza: Semi-autonomia",
+    "Ospite temporaneo presso parenti / amici",
+    "Stabile occupato",
     "Locazione",
     "Proprietà",
-    "Stabile occupato",
     "Usufrutto o titolo gratuito",
-    "Altro"
+    "Accoglienza: Dormitorio",
+    "Accoglienza: CPA",
+    "Accoglienza: Co-housing sociale",
+    "Accoglienza: Housing first"
 ]));
 
 /**

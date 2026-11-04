@@ -240,3 +240,13 @@ const CountryByCitizenship = /** @type {const}*/Object.freeze({
  * Tipo che rappresenta il nome ufficiale di una nazione (es. "Italia", "Marocco").
  * @typedef {typeof CountryByCitizenship[Citizenship]} Country 
  */
+
+/**
+ * Elenco immutabile e ordinato delle nazioni mondiali (valori univoci da CountryByCitizenship).
+ * Costituisce la Single Source of Truth di dominio per la lista degli stati e la nazionalità.
+ * @readonly
+ * @type {readonly string[]}
+ */
+const StatiMondiali = Object.freeze(
+    Array.from(new Set(Object.values(CountryByCitizenship))).sort((a, b) => a.localeCompare(b, "it"))
+);
