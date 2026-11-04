@@ -165,17 +165,17 @@
         <ul class="nav flex-column">
           <li class="nav-item">
             <a class="nav-link active" href="javascript:void(0)" id="menu-incontri" onclick="showTab('tab-incontri')">
-              Incontri & Visite
+              Incontri e Visite
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="javascript:void(0)" id="menu-nuclei" onclick="showTab('tab-nuclei')">
-              Nuclei & Persone
+              Nuclei e Persone
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="javascript:void(0)" id="menu-documenti" onclick="showTab('tab-documenti')">
-              Documenti & Stampa
+              Documenti e Stampa
             </a>
           </li>
           <li class="nav-item">
@@ -208,7 +208,7 @@
         <div class="content-area">
 
           <!-- ========================================================================= -->
-          <!-- TAB 1: INCONTRI & VISITE -->
+          <!-- TAB 1: INCONTRI E VISITE -->
           <!-- ========================================================================= -->
           <div id="tab-incontri" class="tab-pane-custom">
             <div class="row g-4">
@@ -325,85 +325,24 @@
           </div>
 
           <!-- ========================================================================= -->
-          <!-- TAB 2: NUCLEI & PERSONE -->
+          <!-- TAB 2: NUCLEI E PERSONE -->
           <!-- ========================================================================= -->
           <div id="tab-nuclei" class="tab-pane-custom d-none">
             <div class="row g-4">
-              <!-- Aggiungi Nucleo -->
-              <div class="col-xl-4">
-                <div class="card card-custom mb-4">
-                  <div class="card-header card-header-custom" id="nucleo-form-title">Crea Nuovo Nucleo Familiare</div>
-                  <div class="card-body">
-                    <form id="nucleo-form" onsubmit="handleNucleoSubmit(event)">
-                      <input type="hidden" id="nuc-id">
-                      <div class="mb-3 position-relative">
-                        <label class="form-label font-outfit small">Intestatario (Codice Fiscale) *</label>
-                        <input type="text" class="form-control" id="nuc-intestatario"
-                          placeholder="Cerca beneficiario..." required autocomplete="off"
-                          oninput="filterBeneficiaries('nuc-intestatario', 'nuc-intest-list')">
-                        <ul id="nuc-intest-list" class="autocomplete-list"></ul>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label font-outfit small">ISEE del Nucleo</label>
-                        <input type="number" step="0.01" class="form-control" id="nuc-isee" placeholder="Es. 12000.50">
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label font-outfit small">Indirizzo Residenza *</label>
-                        <input type="text" class="form-control" id="nuc-residenza"
-                          placeholder="Stato, Comune, CAP, Via, Civico" required>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label font-outfit small">Indirizzo Domicilio</label>
-                        <input type="text" class="form-control" id="nuc-domicilio"
-                          placeholder="Lascia vuoto se coincide">
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label font-outfit small">Descrizione Caso *</label>
-                        <textarea class="form-control" id="nuc-descrizione" rows="2" required></textarea>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label font-outfit small">Obiettivi e Progettualità *</label>
-                        <textarea class="form-control" id="nuc-obiettivi" rows="2" required></textarea>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label font-outfit small">Tipologia di Richiesta *</label>
-                        <input type="text" class="form-control" id="nuc-richiesta" required>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label font-outfit small">Orientamento e Follow-up *</label>
-                        <input type="text" class="form-control" id="nuc-followup" required>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label font-outfit small">Tipologia Abitazione *</label>
-                        <input type="text" class="form-control" id="nuc-abitazione" required>
-                      </div>
-                      <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                          <label class="form-label font-outfit small">Assistente Sociale *</label>
-                          <input type="text" class="form-control" id="nuc-assistente" placeholder="Nome o 'No'"
-                            required>
-                        </div>
-                        <div class="col-md-6">
-                          <label class="form-label font-outfit small">Medico di Base *</label>
-                          <input type="text" class="form-control" id="nuc-medico" placeholder="Nome o 'No'" required>
-                        </div>
-                      </div>
-                      <button type="submit" class="btn btn-success w-100" id="btn-nuc-submit">
-                        <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-nucleo"></span>
-                        Salva Nucleo Familiare
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Lista Nuclei -->
-              <div class="col-xl-8">
+              <!-- Lista Nuclei a tutta larghezza -->
+              <div class="col-12">
                 <div class="card card-custom">
-                  <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
-                    <span>Mappatura Nuclei Familiari</span>
-                    <input type="text" class="form-control form-control-sm w-50" id="search-nuclei"
-                      placeholder="Filtra nuclei..." oninput="renderNucleiList()">
+                  <div class="card-header card-header-custom d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-3">
+                      <span class="fs-6 fw-semibold font-outfit">Mappatura Nuclei Familiari</span>
+                      <button type="button" class="btn btn-primary btn-sm font-outfit" onclick="openAddNucleoModal()">
+                        + Aggiungi Nucleo
+                      </button>
+                    </div>
+                    <div class="d-flex align-items-center" style="min-width: 250px;">
+                      <input type="text" class="form-control form-control-sm" id="search-nuclei"
+                        placeholder="Filtra nuclei..." oninput="renderNucleiList()">
+                    </div>
                   </div>
                   <div class="card-body" id="nuclei-cards-container">
                     <p class="text-center text-muted">Caricamento in corso...</p>
@@ -414,7 +353,7 @@
           </div>
 
           <!-- ========================================================================= -->
-          <!-- TAB 3: DOCUMENTI & GENERAZIONE -->
+          <!-- TAB 3: DOCUMENTI E GENERAZIONE -->
           <!-- ========================================================================= -->
           <div id="tab-documenti" class="tab-pane-custom d-none">
             <div class="row g-4">
@@ -769,6 +708,81 @@
     </div>
   </div>
 
+  <!-- Modal Nucleo Familiare -->
+  <div class="modal fade" id="modal-nucleo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title font-outfit" id="nucleo-form-title">Crea Nuovo Nucleo Familiare</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="nucleo-form" onsubmit="handleNucleoSubmit(event)">
+            <input type="hidden" id="nuc-id">
+            <div class="row g-3">
+              <div class="col-md-8 position-relative">
+                <label class="form-label font-outfit small">Intestatario (Codice Fiscale) *</label>
+                <input type="text" class="form-control" id="nuc-intestatario"
+                  placeholder="Cerca beneficiario..." required autocomplete="off"
+                  oninput="filterBeneficiaries('nuc-intestatario', 'nuc-intest-list')">
+                <ul id="nuc-intest-list" class="autocomplete-list"></ul>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label font-outfit small">ISEE del Nucleo</label>
+                <input type="number" step="0.01" class="form-control" id="nuc-isee" placeholder="Es. 12000.50">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label font-outfit small">Indirizzo Residenza *</label>
+                <input type="text" class="form-control" id="nuc-residenza"
+                  placeholder="Stato, Comune, CAP, Via, Civico" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label font-outfit small">Indirizzo Domicilio</label>
+                <input type="text" class="form-control" id="nuc-domicilio"
+                  placeholder="Lascia vuoto se coincide">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label font-outfit small">Tipologia di Richiesta *</label>
+                <input type="text" class="form-control" id="nuc-richiesta" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label font-outfit small">Tipologia Abitazione *</label>
+                <input type="text" class="form-control" id="nuc-abitazione" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label font-outfit small">Assistente Sociale *</label>
+                <input type="text" class="form-control" id="nuc-assistente" placeholder="Nome o 'No'" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label font-outfit small">Medico di Base *</label>
+                <input type="text" class="form-control" id="nuc-medico" placeholder="Nome o 'No'" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label font-outfit small">Descrizione Caso *</label>
+                <textarea class="form-control" id="nuc-descrizione" rows="2" required></textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label font-outfit small">Obiettivi e Progettualità *</label>
+                <textarea class="form-control" id="nuc-obiettivi" rows="2" required></textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label font-outfit small">Orientamento e Follow-up *</label>
+                <textarea class="form-control" id="nuc-followup" rows="2" required></textarea>
+              </div>
+            </div>
+            <div class="modal-footer px-0 pb-0 mt-4">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+              <button type="submit" class="btn btn-primary" id="btn-nuc-submit">
+                <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-nucleo"></span>
+                <span id="btn-nuc-submit-text">Salva Nucleo Familiare</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="toast-container-custom" id="toast-container"></div>
 
   <!-- Bootstrap and Client Scripts -->
@@ -1101,7 +1115,7 @@
     }
 
     // =========================================================================
-    // NUCLEI & PERSONE LOGIC
+    // NUCLEI E PERSONE LOGIC
     // =========================================================================
     function renderNucleiList() {
       const container = document.getElementById('nuclei-cards-container');
@@ -1187,9 +1201,32 @@
       });
     }
 
+    /**
+     * Apre il popup modale per la creazione di un nuovo nucleo familiare,
+     * resettando i campi del modulo e reimpostando i testi della form.
+     */
+    function openAddNucleoModal() {
+      document.getElementById('nucleo-form').reset();
+      document.getElementById('nuc-id').value = '';
+      document.getElementById('nucleo-form-title').textContent = 'Crea Nuovo Nucleo Familiare';
+      const textEl = document.getElementById('btn-nuc-submit-text');
+      if (textEl) {
+        textEl.textContent = 'Salva Nucleo Familiare';
+      } else {
+        document.getElementById('btn-nuc-submit').textContent = 'Salva Nucleo Familiare';
+      }
+      new bootstrap.Modal(document.getElementById('modal-nucleo')).show();
+    }
+
+    /**
+     * Popola i campi del form modale con i dati del nucleo selezionato
+     * e apre il popup modale in modalità modifica.
+     * @param {string} encodedNucleo - Stringa JSON URI-encoded dell'oggetto nucleo.
+     */
     function editNucleoUI(encodedNucleo) {
       const n = JSON.parse(decodeURIComponent(encodedNucleo));
 
+      document.getElementById('nucleo-form').reset();
       document.getElementById('nuc-id').value = n.id;
       document.getElementById('nuc-intestatario').value = n.intestatario;
       document.getElementById('nuc-isee').value = n.isee || '';
@@ -1204,18 +1241,27 @@
       document.getElementById('nuc-medico').value = n.medicoDiBase;
 
       document.getElementById('nucleo-form-title').textContent = 'Modifica Nucleo #' + n.id;
-      document.getElementById('btn-nuc-submit').textContent = 'Salva Modifiche Nucleo';
+      const textEl = document.getElementById('btn-nuc-submit-text');
+      if (textEl) {
+        textEl.textContent = 'Salva Modifiche Nucleo';
+      } else {
+        document.getElementById('btn-nuc-submit').textContent = 'Salva Modifiche Nucleo';
+      }
 
-      // Scorri verso il form
-      document.getElementById('nucleo-form').scrollIntoView({ behavior: 'smooth' });
+      new bootstrap.Modal(document.getElementById('modal-nucleo')).show();
     }
 
+    /**
+     * Gestisce la sottomissione del modulo nucleo (creazione o modifica).
+     * Invia i dati al backend Apps Script, chiude il popup modale e aggiorna la vista.
+     * @param {Event} e - Evento di submit del form.
+     */
     function handleNucleoSubmit(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('btn-nuc-submit');
       const spin = document.getElementById('spin-nucleo');
       submitBtn.disabled = true;
-      spin.classList.remove('d-none');
+      if (spin) spin.classList.remove('d-none');
 
       const data = {
         id: document.getElementById('nuc-id').value,
@@ -1235,13 +1281,23 @@
       google.script.run
         .withSuccessHandler(function (res) {
           submitBtn.disabled = false;
-          spin.classList.add('d-none');
+          if (spin) spin.classList.add('d-none');
           if (res.success) {
             showToast(res.message, "success");
+            const modalEl = document.getElementById('modal-nucleo');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) {
+              modalInstance.hide();
+            }
             document.getElementById('nucleo-form').reset();
             document.getElementById('nuc-id').value = '';
             document.getElementById('nucleo-form-title').textContent = 'Crea Nuovo Nucleo Familiare';
-            document.getElementById('btn-nuc-submit').textContent = 'Salva Nucleo Familiare';
+            const textEl = document.getElementById('btn-nuc-submit-text');
+            if (textEl) {
+              textEl.textContent = 'Salva Nucleo Familiare';
+            } else {
+              document.getElementById('btn-nuc-submit').textContent = 'Salva Nucleo Familiare';
+            }
             reloadData();
           } else {
             showToast("Errore: " + res.message, "error");
@@ -1249,7 +1305,7 @@
         })
         .withFailureHandler(function (err) {
           submitBtn.disabled = false;
-          spin.classList.add('d-none');
+          if (spin) spin.classList.add('d-none');
           showToast("Errore di rete: " + err.message, "error");
         })
         .submitNucleo(data);
@@ -1452,7 +1508,7 @@
     }
 
     // =========================================================================
-    // DOCUMENTI & GENERAZIONE LOGIC
+    // DOCUMENTI E GENERAZIONE LOGIC
     // =========================================================================
     function pushDocLink(name, url) {
       const container = document.getElementById('doc-links-container');
