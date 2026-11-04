@@ -8,9 +8,10 @@ Documentazione tecnica, operativa e architetturale del software di gestione dell
 1. [Cos'è questo Programma e Finalità](#1-cosè-questo-programma-e-finalità)
 2. [Gestione e Aggiornamento: Comandi da Terminale e CI/CD](#2-gestione-e-aggiornamento-comandi-da-terminale-e-cicd)
 3. [Filosofia Architetturale e Design Pattern](#3-filosofia-architetturale-e-design-pattern)
-4. [Mappa delle Funzionalità](#4-mappa-delle-funzionalità)
-5. [Punti Critici, Bug Rilevati e Possibili Errori](#5-punti-critici-bug-rilevati-e-possibili-errori)
-6. [Suggerimenti e Buone Pratiche](#6-suggerimenti-e-buone-pratiche)
+4. [Diagrammi UML del Sistema](#4-diagrammi-uml-del-sistema)
+5. [Mappa delle Funzionalità](#5-mappa-delle-funzionalità)
+6. [Punti Critici, Bug Rilevati e Possibili Errori](#6-punti-critici-bug-rilevati-e-possibili-errori)
+7. [Suggerimenti e Buone Pratiche](#7-suggerimenti-e-buone-pratiche)
 
 ---
 
@@ -203,7 +204,20 @@ flowchart TD
 
 ---
 
-## 4. Mappa delle Funzionalità
+## 4. Diagrammi UML del Sistema
+
+Per consentire una comprensione approfondita e formale dell'architettura software e dei processi aziendali, sono stati redatti quattro documenti dedicati nella cartella [`docs/`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/):
+
+| Tipologia di Diagramma | Documento Dedicato | Descrizione dei Contenuti |
+| :--- | :--- | :--- |
+| **Casi d'Uso (Use Case)** | [**`docs/uml_casi_uso.md`**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/uml_casi_uso.md) ([link relativo](docs/uml_casi_uso.md)) | Mappa completa delle interazioni tra attori (Operatore Sociale, Assistente Sociale, Coordinatore, Google Workspace API) e i casi d'uso coperti dai moduli Incontri, Nuclei, Documenti e Appuntamenti. |
+| **Classi (Class Diagram)** | [**`docs/uml_classi.md`**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/uml_classi.md) ([link relativo](docs/uml_classi.md)) | Struttura OOP completa con ereditarietà (`Person` → `Beneficiario` / `Operatore`), aggregazioni (`NucleoFamiliare`, `Address`, `City`), Value Object (`CodiceFiscale`) e strato di persistenza (`Repository`). |
+| **Sequenza (Sequence Diagrams)** | [**`docs/uml_sequenza.md`**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/uml_sequenza.md) ([link relativo](docs/uml_sequenza.md)) | Flussi temporali asincroni dettagliati: 1) Registrazione Incontro e Segnalazione, 2) Censimento Nucleo con decodifica istantanea CF, 3) Generazione Foglio Firme Google Doc, 4) Incrocio anagrafico per Monitoraggio Ufficiale. |
+| **Attività (Activity Diagrams)** | [**`docs/uml_attivita.md`**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/uml_attivita.md) ([link relativo](docs/uml_attivita.md)) | Workflow operativi dello sportello: Accoglienza e smistamento 1° vs 2° Livello, Presa in carico del fascicolo specialistico, Routine giornaliere (Diario) e Routine mensili (Timesheet e Fogli Firme). |
+
+---
+
+## 5. Mappa delle Funzionalità
 
 | Modulo / Funzionalità | Descrizione | File Principali | Stato |
 | :--- | :--- | :--- | :---: |
@@ -231,7 +245,7 @@ flowchart TD
 
 ---
 
-## 5. Punti Critici, Bug Rilevati e Possibili Errori
+## 6. Punti Critici, Bug Rilevati e Possibili Errori
 
 Analisi dettagliata delle anomalie riscontrate durante la scansione del codice:
 
@@ -256,27 +270,19 @@ A differenza di [`Operatore.fromRow(row, idx)`](file:///d:/Lorenzo/Public/#Work/
 ---
 
 ### 🔴 Criticità 3: Variabili non definite e bug in `FoglioFirmeRepository`
-In [`src/Repository/Fogliofirme.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Repository/Fogliofirme.js#L11-L29):
-```javascript
-static get(foglioFirme) {
-    const monthYear = foglioFirme.date.getFullYear() + "-" + ("0" + (foglioFirme.date.getMonth() + 1)).slice(-2);
-    const existingFilesMatchingProperties = folder.searchFiles(
-        `properties has { key='mese' and value='${monthYear}' ... and value='${operator}' ... and value='${client}' ...`
-    );
-```
-- Le variabili `folder`, `operator` e `client` **non sono definite** all'interno del metodo (dovrebbero essere `CONFIG.FOGLIFIRME.FOLDER`, `foglioFirme.operator`, `foglioFirme.client`).
-- In [`Backend.js` (riga 24)](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Controller/Backend.js#L24), la chiamata è `FoglioFirmeRepository.get(operator, client, date, folder)`, passando 4 parametri invece di 1 oggetto.
-- Alla riga 64 di `Fogliofirme.js`: `return new FoglioFirme(id, fileName, newFile.getUrl())`. Tuttavia il costruttore di [`FoglioFirme.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Documenti/FoglioFirme/FoglioFirme.js) accetta `(operator, client, date)`, invertendo completamente i campi.
+In [`src/Repository/Fogliofirme.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Repository/Fogliofirme.js):
+- Le variabili `folder`, `operator` e `client` in `get(foglioFirme)` non erano correttamente scoped rispetto ai parametri passati da `Backend.js`.
+- Il costruttore di [`FoglioFirme.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Documenti/FoglioFirme/FoglioFirme.js) prevedeva `(operator, client, date)` mentre il repository istanziava `new FoglioFirme(id, fileName, url)`. *(Nota: è stato introdotto il supporto ibrido retrocompatibile nel modello FoglioFirme)*.
 
 ---
 
 ### 🟡 Criticità 4: Codice di Test Eseguito al Top-Level (Rallentamento Globale)
-In diversi file sono presenti istruzioni di test eseguite a livello globale (top-level):
-- [`src/Models/Places/0_City.js` (riga 145)](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Places/0_City.js#L145): `let rome = new City("Roma"); console.log(rome);`
-- [`src/Models/Places/Address.js` (riga 28)](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Places/Address.js#L28): `let address = new Address("Via Roma", new City("Roma"), "00100");`
-- [`src/Domain/constants.js` (riga 231)](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Domain/constants.js#L231): `testEnum("Coniuge");`
+In diversi file erano presenti istruzioni di test eseguite a livello globale (top-level):
+- `0_City.js`: `let rome = new City("Roma"); console.log(rome);`
+- `Address.js`: `let address = new Address("Via Roma", new City("Roma"), "00100");`
+- `constants.js`: `testEnum("Coniuge");`
 
-**Perché è grave in Google Apps Script:** In GAS tutti i file del progetto vengono valutati nel contesto globale all'avvio di qualsiasi invocazione (`doGet`, funzioni da foglio, trigger). Ogni volta che viene chiamata qualunque funzione, viene instanziata la classe `City("Roma")` che effettua chiamate HTTP sincrone verso GitHub o OpenStreetMap, rallentando ogni singola richiesta di diversi secondi!
+**Perché è grave in Google Apps Script:** In GAS tutti i file del progetto vengono valutati nel contesto globale all'avvio di qualsiasi invocazione (`doGet`, funzioni da foglio, trigger). Ogni volta che viene chiamata qualunque funzione, veniva istanziata la classe `City("Roma")` che effettuava chiamate HTTP sincrone verso GitHub o OpenStreetMap, rallentando ogni singola richiesta di diversi secondi! *(Queste istruzioni sono state incapsulate in funzioni di test)*.
 
 ---
 
@@ -295,7 +301,7 @@ Quando più operatori compilano contemporaneamente la Web App (es. due operatori
 ---
 
 ### 🟡 Criticità 7: ID Template Mancante in `Config.js`
-In [`src/Utils/Config.js` (riga 22)](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Utils/Config.js#L22):
+In [`src/Utils/Config.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Utils/Config.js):
 ```javascript
 ID_TEMPLATEDIARIOGIORNALIERO: "",
 ```
@@ -304,13 +310,13 @@ La costante per il template del diario giornaliero è una stringa vuota. Anche s
 ---
 
 ### 🟡 Criticità 8: File di Servizio Vuoti
-I file [`src/Service/Document/Diariogiornaliero.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/Document/Diariogiornaliero.js) e [`src/Service/Document/Fogliofirme.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/Document/Fogliofirme.js) sono attualmente vuoti (0 byte). Fanno parte di un'architettura a servizi pianificata ma non ancora implementata.
+I file [`src/Service/Document/Diariogiornaliero.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/Document/Diariogiornaliero.js) e [`src/Service/Document/Fogliofirme.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/Document/Fogliofirme.js) erano precedentemente a 0 byte. Sono stati provvisti di struttura base JSDoc e classi di servizio per future estensioni.
 
 ---
 
-## 6. Suggerimenti e Buone Pratiche
+## 7. Suggerimenti e Buone Pratiche
 
-### 6.1 Interventi Correttivi Immediati Prioritari
+### 7.1 Interventi Correttivi Immediati Prioritari
 
 1. **Riconnettere `Backend.js` con `BeneficiarioRepository`:**
    Sostituire in `Backend.js` le chiamate `Beneficiario.getAll()` con `BeneficiarioRepository.getAll()`, `Beneficiario.add()` con `BeneficiarioRepository.add()`, e `Beneficiario.remove()` con `BeneficiarioRepository.removeByCF()`.
@@ -352,7 +358,7 @@ I file [`src/Service/Document/Diariogiornaliero.js`](file:///d:/Lorenzo/Public/#
    ```
 
 3. **Rimuovere il codice top-level:**
-   Eliminare o racchiudere dentro funzioni di test (es. in [`src/Utils/Test.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Utils/Test.js)) tutte le istruzioni come `let rome = new City(...)` e `testEnum(...)`.
+   Mantenere incapsulate dentro funzioni di test (es. in [`src/Utils/Test.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Utils/Test.js)) tutte le istruzioni come `let rome = new City(...)` e `testEnum(...)`.
 
 4. **Proteggere le scritture con `LockService`:**
    Nei metodi `IncontroRepository.add`, `NucleoFamiliare.add` e `BeneficiarioRepository.add`:
@@ -366,7 +372,7 @@ I file [`src/Service/Document/Diariogiornaliero.js`](file:///d:/Lorenzo/Public/#
    }
    ```
 
-### 6.2 Suggerimenti Evolutivi e di Architettura
+### 7.2 Suggerimenti Evolutivi e di Architettura
 
 - **Database Locale per Comuni e Codici Belfiore:** Anziché scaricare a ogni riavvio della cache un file JSON da GitHub con `UrlFetchApp`, caricare l'elenco dei comuni italiani (già presente in [`src/Models/Places/Elenco-comuni-italiani.csv`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Places/Elenco-comuni-italiani.csv)) all'interno di un foglio di configurazione nascosto o in `PropertiesService`. Questo renderà le formule del foglio (`CF_COMUNE`) istantanee e conformi alle policy di sicurezza.
 - **Automazione Cartelle Beneficiari:** Implementare un listener che all'inserimento di un nuovo nucleo o beneficiario crei automaticamente in Google Drive la cartella `ID - Nome Cognome` con permessi condivisi e vi collochi all'interno le Schede di Segnalazione e i file allegati.

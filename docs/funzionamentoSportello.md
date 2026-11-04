@@ -32,7 +32,7 @@ L’accesso avviene solo tramite scheda di segnalazione compilata dall’ente in
 - Servizi esterni (associazioni, enti, sportelli)
 
 ### Come avviene l’invio
-1. L’ente compila la scheda di segnalazione (obbligatoria e completa).  
+1. L’ente compila la scheda di segnalazione (obbligatoria e completa).
 2. La invia:
    - tramite cartellina interna (operatori sociali), oppure  
    - via email a info@labussoladellabitare.com.
@@ -71,11 +71,11 @@ All’interno vengono inseriti:
 
 ## 5. Funzionamento del Primo Livello
 
-Operatori sociali (Carlotta e Lorenzo) svolgono:
+Operatori sociali svolgono:
 
-- Aggiunta della persona al Foglio firme individuale  
+- Aggiunta della persona al Foglio firme individuale (ora non più)
 - Firma del Diario giornaliero  
-- Compilazione della Scheda di segnalazione  
+- Compilazione della Scheda di segnalazione
 - Registrazione nel file MONITORAGGIO UFFICIALE ACCESSI GIORNALIERI  
 - Registrano solo chi accede al primo livello
 
@@ -83,7 +83,7 @@ Operatori sociali (Carlotta e Lorenzo) svolgono:
 
 ## 6. Funzionamento del Secondo Livello
 
-Assistenti sociali (Kristina e Valentina) svolgono:
+Assistenti sociali svolgono:
 
 - Fissano appuntamenti e ricevono le persone
 - Aggiungono la persona al Foglio firme individuale
