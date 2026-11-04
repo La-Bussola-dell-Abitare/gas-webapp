@@ -25,27 +25,27 @@ flowchart LR
     subgraph Sistema ["Sistema Gestionale 'La Bussola dell'Abitare'"]
         direction TB
 
-        subgraph ModuloIncontri ["Gestione Incontri & Visite"]
+        subgraph ModuloIncontri ["Gestione Incontri e Visite"]
             UC01(["UC01: Registra Incontro 1° Livello"])
             UC02(["UC02: Registra Incontro 2° Livello"])
             UC03(["UC03: Modifica Incontro"])
             UC04(["UC04: Filtra e Consulta Storico"])
         end
 
-        subgraph ModuloNuclei ["Gestione Nuclei & Anagrafica"]
+        subgraph ModuloNuclei ["Gestione Nuclei e Anagrafica"]
             UC05(["UC05: Registra / Modifica Nucleo"])
             UC06(["UC06: Gestione Membri Nucleo"])
             UC07(["UC07: Decodifica CF e Dati Anagrafici"])
         end
 
-        subgraph ModuloDocumentale ["Gestione Documentale & Stampa"]
+        subgraph ModuloDocumentale ["Gestione Documentale e Stampa"]
             UC08(["UC08: Genera Scheda di Segnalazione"])
             UC09(["UC09: Genera Foglio Firme"])
             UC10(["UC10: Genera Diario Giornaliero"])
             UC11(["UC11: Aggiungi a Monitoraggio Ufficiale"])
         end
 
-        subgraph ModuloAppuntamenti ["Agenda & Presenze"]
+        subgraph ModuloAppuntamenti ["Agenda e Presenze"]
             UC12(["UC12: Fissa Appuntamento"])
             UC13(["UC13: Consulta Appuntamenti"])
         end
@@ -106,7 +106,7 @@ flowchart LR
 
 ### UC01: Registrazione Incontro di Primo Livello
 - **Attore Primario:** Operatore Sociale.
-- **Precondizioni:** L'operatore ha aperto la Web App o la Sidebar su Google Sheets e ha selezionato la scheda "Incontri & Visite".
+- **Precondizioni:** L'operatore ha aperto la Web App o la Sidebar su Google Sheets e ha selezionato la scheda "Incontri e Visite".
 - **Flusso Principale:**
   1. L'operatore inserisce il nome del beneficiario (avvalendosi dell'autocompletamento con codice fiscale).
   2. Seleziona il proprio nominativo dall'elenco degli operatori accreditati.
@@ -124,7 +124,7 @@ flowchart LR
 
 ### UC05: Registrazione / Modifica Nucleo Familiare
 - **Attore Primario:** Operatore Sociale / Assistente Sociale.
-- **Precondizioni:** Accesso alla scheda "Nuclei & Persone".
+- **Precondizioni:** Accesso alla scheda "Nuclei e Persone".
 - **Flusso Principale:**
   1. L'utente inserisce il Codice Fiscale dell'intestatario della scheda.
   2. Il sistema esegue la decodifica istantanea del CF (UC07), ricavando sesso, data di nascita e comune/stato di nascita.

@@ -1,4 +1,4 @@
-# La Bussola dell'Abitare — Web App & Sistema Gestionale
+# La Bussola dell'Abitare — Web App e Sistema Gestionale
 
 Documentazione tecnica, operativa e architetturale del software di gestione dello sportello per l'abitare **"La Bussola dell'Abitare"** (Municipio XI di Roma - Azzurra84).
 
@@ -145,19 +145,19 @@ flowchart TD
     end
 
     subgraph Controller ["Livello Controller"]
-        Backend["Controller/Backend.js (doGet & RPC API)"]
+        Backend["Controller/Backend.js (doGet e RPC API)"]
     end
 
     subgraph Service ["Livello di Servizio"]
         DocService["Service/Document/ (Orchestrazione)"]
     end
 
-    subgraph Model ["Modello & Dominio"]
+    subgraph Model ["Modello e Dominio"]
         Person["Person / Beneficiario / Operatore"]
         Nucleo["NucleoFamiliare"]
         Incontro["Incontro"]
-        CF["CodiceFiscale & City"]
-        Constants["Domain Constants & Enum"]
+        CF["CodiceFiscale e City"]
+        Constants["Domain Constants ed Enum"]
     end
 
     subgraph Repository ["Persistenza (Repository)"]
@@ -167,10 +167,10 @@ flowchart TD
         DocRepo["FoglioFirme / Diario / Scheda Segnalazione"]
     end
 
-    subgraph Storage ["Google Workspace (Database & File System)"]
+    subgraph Storage ["Google Workspace (Database e File System)"]
         GSheets[("Google Sheets (Tabelle Dati)")]
-        GDocs["Google Docs (Modelli & Documenti Generati)"]
-        GDrive["Google Drive (Fascicoli & Cartelle)"]
+        GDocs["Google Docs (Modelli e Documenti Generati)"]
+        GDrive["Google Drive (Fascicoli e Cartelle)"]
     end
 
     UI -->|"google.script.run"| Backend
@@ -182,7 +182,7 @@ flowchart TD
 ```
 
 ### 3.1 Model-View-Controller (MVC)
-1. **Model (`src/Models/` & `src/Domain/`):**
+1. **Model (`src/Models/` e `src/Domain/`):**
    - Incapsula entità del dominio (`Person`, `Beneficiario`, `Operatore`, `NucleoFamiliare`, `Incontro`, `CodiceFiscale`, `City`, `Address`).
    - Gestisce la validazione delle regole aziendali, l'ereditarietà OOP (`Beneficiario extends Person`, `Operatore extends Person`), la decodifica del codice catastale e il parsing anagrafico.
 2. **View (`src/View/`):**
@@ -198,7 +198,7 @@ flowchart TD
 - Separa la logica di business e le classi di dominio dal meccanismo fisico di memorizzazione (Google Sheets e Google Drive).
 - **Risoluzione dinamica delle colonne:** I repository (`BeneficiarioRepository`, `IncontroRepository`, `OperatoreRepository`, `NucleoFamiliare`) non si affidano a numeri di colonna fissi (che si romperebbero se un utente inserisse una colonna nel foglio), bensì leggono la riga di intestazione ed estraggono gli indici tramite `findHeaderIndex(headers, ["nome", "cognome", ...])`.
 
-### 3.3 Domain-Driven Design (DDD) & Type Safety con JSDoc
+### 3.3 Domain-Driven Design (DDD) e Type Safety con JSDoc
 - I file in [`src/Domain/`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Domain/) definiscono dizionari immutabili con `Object.freeze` (`Abitazione`, `Relations`, `StatiCivili`, `WorkStatus`, `CountryByCitizenship`, `ISCED`, `EQF`).
 - Con l'ausilio di [`jsconfig.json`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/jsconfig.json), il codice beneficia dell'autocompletamento avanzato di TypeScript nell'editor pur rimanendo JavaScript nativo per Google Apps Script.
 
@@ -228,7 +228,7 @@ Per consentire una comprensione approfondita e formale dell'architettura softwar
 | :--- | :--- | :--- | :---: |
 | **Interfaccia Web App (SPA)** | Maschera responsive a 4 tab: Incontri, Nuclei, Documenti, Appuntamenti | [`Frontend.html`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/Frontend.html) • [Specifiche](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/webapp.md) | ✅ Implementata |
 | **Registrazione Incontri** | Form per operatori (1° livello) e assistenti (2° livello), con data, orari e note | [`Incontro.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Meeting/Incontro.js), [`Backend.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Controller/Backend.js) | ✅ Implementata |
-| **Visualizzazione & Filtro Incontri** | Tabella interattiva incontri con filtri per beneficiario, operatore e data | [`Frontend.html`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/Frontend.html) | ✅ Implementata |
+| **Visualizzazione e Filtro Incontri** | Tabella interattiva incontri con filtri per beneficiario, operatore e data | [`Frontend.html`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/Frontend.html) | ✅ Implementata |
 | **Modifica Incontri** | Modifica di un incontro esistente sul foglio tramite identificazione a chiave | [`Incontro.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Meeting/Incontro.js) | ✅ Implementata |
 | **Gestione Nuclei Familiari** | Creazione e modifica nucleo con generazione ID progressivo numerico (`generateNextId`) | [`NucleoFamiliare.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Nucleo/NucleoFamiliare.js) • [Specifiche](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Nucleo/Istruzioni.md) | ✅ Implementata |
 | **Decodifica Codice Fiscale** | Validazione formale, calcolo CIN, estrazione sesso, data e comune/stato di nascita | [`CodiceFiscale.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/CodiceFiscale.js) | ✅ Implementata |

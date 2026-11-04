@@ -62,7 +62,7 @@ classDiagram
     Person <|-- Operatore : extends
 
     %% =========================================================================
-    %% VALUE OBJECTS & GEOGRAFIA
+    %% VALUE OBJECTS E GEOGRAFIA
     %% =========================================================================
     class CodiceFiscale {
         +string originale
@@ -102,7 +102,7 @@ classDiagram
     Beneficiario "1" *-- "0..1" Address : domicilio
 
     %% =========================================================================
-    %% NUCLEO FAMILIARE & INCONTRO
+    %% NUCLEO FAMILIARE E INCONTRO
     %% =========================================================================
     class NucleoFamiliare {
         +string id
@@ -209,7 +209,7 @@ classDiagram
     DiarioGiornalieroRepository ..> DiarioGiornaliero : gestisce
 
     %% =========================================================================
-    %% CONTROLLER & SERVICES
+    %% CONTROLLER E SERVICES
     %% =========================================================================
     class BackendController {
         +doGet(e) HtmlOutput
