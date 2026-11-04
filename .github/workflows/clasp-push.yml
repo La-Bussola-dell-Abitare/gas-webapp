@@ -46,4 +46,6 @@ jobs:
           EOF
 
       - name: Push to Google Apps Script
-        run: clasp push
+        run: |
+          clasp status
+          clasp push --force
