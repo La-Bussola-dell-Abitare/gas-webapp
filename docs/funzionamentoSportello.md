@@ -19,7 +19,7 @@ Accesso diretto allo sportello senza appuntamento.
 È il livello di accoglienza iniziale, ascolto e raccolta dei bisogni.
 
 ### Secondo livello – Su appuntamento
-Colloquio con le assistenti sociali (Kristina e Valentina).  
+Colloquio con le assistenti sociali: Kristina (sostituita da Rachele) e Valentina.  
 L’accesso avviene solo tramite scheda di segnalazione compilata dall’ente inviante.
 
 ---
@@ -27,7 +27,7 @@ L’accesso avviene solo tramite scheda di segnalazione compilata dall’ente in
 ## 2. Invio al Secondo Livello
 
 ### Chi può inviare
-- Operatori sociali interni (Carlotta e Lorenzo)  
+- Operatori sociali interni: Carlotta (sostituita da Luana) e Lorenzo
 - Municipio XI  
 - Servizi esterni (associazioni, enti, sportelli)
 
