@@ -85,36 +85,54 @@ function getOperatoreByName(nome) {
  */
 function getBeneficiariObjects() {
   try {
-    return BeneficiarioRepository.getAll().map(b => ({
-      name: b.name,
-      surname: b.surname,
-      nome: b.nome,
-      cognome: b.cognome,
-      cf: b.cf,
-      dataNascita: b.dataNascita instanceof Date 
-        ? Utilities.formatDate(b.dataNascita, Session.getScriptTimeZone() || "Europe/Rome", "yyyy-MM-dd") 
-        : (b.dataNascita ? String(b.dataNascita).split("T")[0] : ""),
-      luogoNascita: b.luogoNascita,
-      email: b.email,
-      phone: b.phone,
-      telefono: b.telefono,
-      cittadinanza: b.cittadinanza,
-      residenza: b.residenza,
-      domicilio: b.domicilio,
-      statoLavorativo: b.statoLavorativo,
-      titoloStudio: b.titoloStudio,
-      assistenteSociale: b.assistenteSociale,
-      rapportoIntestatario: b.rapportoIntestatario,
-      statoCivile: b.statoCivile,
-      annoArrivo: b.annoArrivo,
-      idNucleo: b.idNucleo,
-      passaporto: b.documents?.passaporto || false,
-      patente: b.documents?.patente || false,
-      permessoSoggiorno: b.documents?.permessoSoggiorno || false,
-      tesseraSanitaria: b.documents?.tesseraSanitaria || false,
-      cartaIdentita: b.documents?.cartaIdentita || "Non posseduto",
-      sesso: (b.cf && typeof CodiceFiscale !== "undefined") ? CodiceFiscale.getSesso(b.cf) : "M"
-    }));
+    return BeneficiarioRepository.getAll().map(b => {
+      let formattedDate = "";
+      if (b.dataNascita instanceof Date) {
+        if (!isNaN(b.dataNascita.getTime())) {
+          try {
+            const tz = (typeof Session !== "undefined" && Session.getScriptTimeZone && Session.getScriptTimeZone()) || "Europe/Rome";
+            formattedDate = Utilities.formatDate(b.dataNascita, tz, "yyyy-MM-dd");
+          } catch (e) {
+            const y = b.dataNascita.getFullYear();
+            const m = String(b.dataNascita.getMonth() + 1).padStart(2, "0");
+            const d = String(b.dataNascita.getDate()).padStart(2, "0");
+            formattedDate = `${y}-${m}-${d}`;
+          }
+        }
+      } else if (b.dataNascita) {
+        const s = String(b.dataNascita).trim();
+        formattedDate = s.includes("T") ? s.split("T")[0] : s;
+      }
+
+      return {
+        name: b.name,
+        surname: b.surname,
+        nome: b.nome,
+        cognome: b.cognome,
+        cf: b.cf,
+        dataNascita: formattedDate,
+        luogoNascita: b.luogoNascita,
+        email: b.email,
+        phone: b.phone,
+        telefono: b.telefono,
+        cittadinanza: b.cittadinanza,
+        residenza: b.residenza,
+        domicilio: b.domicilio,
+        statoLavorativo: b.statoLavorativo,
+        titoloStudio: b.titoloStudio,
+        assistenteSociale: b.assistenteSociale,
+        rapportoIntestatario: b.rapportoIntestatario,
+        statoCivile: b.statoCivile,
+        annoArrivo: b.annoArrivo,
+        idNucleo: b.idNucleo !== null && b.idNucleo !== undefined ? String(b.idNucleo).trim() : "",
+        passaporto: b.documents?.passaporto || false,
+        patente: b.documents?.patente || false,
+        permessoSoggiorno: b.documents?.permessoSoggiorno || false,
+        tesseraSanitaria: b.documents?.tesseraSanitaria || false,
+        cartaIdentita: b.documents?.cartaIdentita || "Non posseduto",
+        sesso: (b.cf && typeof CodiceFiscale !== "undefined") ? CodiceFiscale.getSesso(b.cf) : "M"
+      };
+    });
   } catch (err) {
     Logger.log("Errore getBeneficiariObjects: " + (err instanceof Error ? err.message : String(err)));
     return [];
@@ -245,8 +263,8 @@ function getMeetingsList() {
 function getNucleiObjects() {
   try {
     return NucleoFamiliare.getAll().map(n => ({
-      id: n.id,
-      intestatario: n.intestatario,
+      id: String(n.id || "").trim(),
+      intestatario: String(n.intestatario || "").trim(),
       isee: n.isee,
       residenza: n.residenza,
       domicilio: n.domicilio,

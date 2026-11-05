@@ -16,7 +16,11 @@ class BeneficiarioRepository {
      */
     static getAll() {
         const ss = SpreadsheetApp.getActiveSpreadsheet();
-        const sheet = ss.getSheetByName(WA_SHEET_BENEFICIARI);
+        if (!ss) return [];
+        let sheet = ss.getSheetByName(typeof WA_SHEET_BENEFICIARI !== 'undefined' ? WA_SHEET_BENEFICIARI : 'Beneficiari');
+        if (!sheet) sheet = ss.getSheetByName('Beneficiari');
+        if (!sheet) sheet = ss.getSheetByName('Beneficiario');
+        if (!sheet) sheet = ss.getSheetByName('Anagrafica');
         if (!sheet) return [];
 
         const data = sheet.getDataRange().getValues();
@@ -30,9 +34,14 @@ class BeneficiarioRepository {
             const row = data[i];
             const nome = idx.nome >= 0 && idx.nome < row.length ? safeString(row[idx.nome]) : "";
             const cognome = idx.cognome >= 0 && idx.cognome < row.length ? safeString(row[idx.cognome]) : "";
+            const cf = idx.cf >= 0 && idx.cf < row.length ? safeString(row[idx.cf]) : "";
 
-            if (nome || cognome) {
-                list.push(Beneficiario.fromRow(row, idx));
+            if (nome || cognome || cf) {
+                try {
+                    list.push(Beneficiario.fromRow(row, idx));
+                } catch (rowErr) {
+                    Logger.log("BeneficiarioRepository - Errore idratazione riga " + (i + 1) + ": " + (rowErr instanceof Error ? rowErr.message : String(rowErr)));
+                }
             }
         }
         return list;
@@ -204,7 +213,7 @@ class BeneficiarioRepository {
             residenza: findHeaderIndex(headers, ["residenza"]),
             domicilio: findHeaderIndex(headers, ["domicilio"]),
             assistenteSociale: findHeaderIndex(headers, ["in carico ai servizi", "in carico", "servizi"]),
-            rapportoIntestatario: findHeaderIndex(headers, ["rapporto con intestatario del nucleo familiare", "rapporto intestatario", "rapporto", "rapporto con intestatario nucleo familiare"]),
+            rapportoIntestatario: findHeaderIndex(headers, ["rapporto con intestatario del nucleo familiare", "rapporto intestatario", "rapporto", "rapporto con intestatario nucleo familiare", "relazione", "ruolo nucleo", "ruolo"]),
             cartaIdentita: findHeaderIndex(headers, ["carta identità", "carta d'identità", "ci"]),
             passaporto: findHeaderIndex(headers, ["passaporto"]),
             patente: findHeaderIndex(headers, ["patente"]),
@@ -213,7 +222,7 @@ class BeneficiarioRepository {
             statoCivile: findHeaderIndex(headers, ["stato civile"]),
             annoArrivo: findHeaderIndex(headers, ["anno arrivo in italia", "anno arrivo", "arrivo italia"]),
             dataInserimento: findHeaderIndex(headers, ["data inserimento", "data di inserimento", "inserimento"]),
-            idNucleo: findHeaderIndex(headers, ["nucleo familiare", "id nucleo", "nucleo"])
+            idNucleo: findHeaderIndex(headers, ["nucleo familiare", "id nucleo", "nucleo", "id_nucleo", "id nucleo familiare", "id_nucleo_familiare", "famiglia", "id famiglia", "codice nucleo", "scheda nucleo", "nucleo id"])
         };
     }
 }

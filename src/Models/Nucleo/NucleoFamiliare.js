@@ -41,6 +41,9 @@ class NucleoFamiliare {
     if (!sheet) {
       sheet = ss.getSheetByName("Nucleo Familiare");
     }
+    if (!sheet) {
+      sheet = ss.getSheetByName("Nuclei");
+    }
     if (!sheet) return [];
 
     const data = sheet.getDataRange().getValues();
@@ -143,6 +146,40 @@ class NucleoFamiliare {
       sheet.getRange(newRowIdx, idx.dataInserimento + 1).setValue(new Date());
     }
 
+    // Collega automaticamente idNucleo all'intestatario nel foglio Beneficiari se non ancora associato
+    try {
+      const rawIntest = data.intestatario ? String(data.intestatario).trim() : "";
+      const match = rawIntest.match(/\b([A-Za-z0-9]{16})\b/);
+      const intestCF = match ? match[1].toUpperCase() : (rawIntest.length === 16 ? rawIntest.toUpperCase() : "");
+
+      const benSheet = ss.getSheetByName(typeof WA_SHEET_BENEFICIARI !== 'undefined' ? WA_SHEET_BENEFICIARI : "Beneficiari") || ss.getSheetByName("Beneficiari") || ss.getSheetByName("Beneficiario");
+      if (benSheet) {
+        const bData = benSheet.getDataRange().getValues();
+        if (bData.length > 1) {
+          const bHeaders = bData[0].map(h => h.toString().trim().toLowerCase());
+          const bIdx = BeneficiarioRepository._getColIndexes(bHeaders);
+          if (bIdx.idNucleo >= 0) {
+            for (let r = 1; r < bData.length; r++) {
+              const rowCF = bIdx.cf >= 0 ? safeString(bData[r][bIdx.cf]).toUpperCase() : "";
+              const rowName = ((bIdx.nome >= 0 ? safeString(bData[r][bIdx.nome]) : "") + " " + (bIdx.cognome >= 0 ? safeString(bData[r][bIdx.cognome]) : "")).toLowerCase();
+              const matchByCF = intestCF && rowCF === intestCF;
+              const matchByName = rawIntest && rowName && rawIntest.toLowerCase().includes(rowName);
+
+              if (matchByCF || matchByName) {
+                const currentNuc = safeString(bData[r][bIdx.idNucleo]);
+                if (!currentNuc) {
+                  benSheet.getRange(r + 1, bIdx.idNucleo + 1).setValue(nextId);
+                }
+                break;
+              }
+            }
+          }
+        }
+      }
+    } catch (linkErr) {
+      Logger.log("Avviso: Impossibile collegare idNucleo dell'intestatario: " + (linkErr instanceof Error ? linkErr.message : String(linkErr)));
+    }
+
     return {
       success: true,
       message: isUpdate ? "Nucleo Familiare aggiornato con successo (ID " + nextId + ")." : "Nucleo Familiare registrato con successo con ID " + nextId + ".",
@@ -158,8 +195,8 @@ class NucleoFamiliare {
    */
   static _getColIndexes(headers) {
     return {
-      id: findHeaderIndex(headers, ["id", "identificativo"]),
-      intestatario: findHeaderIndex(headers, ["intestatario", "cf intestatario", "codice fiscale"]),
+      id: findHeaderIndex(headers, ["id", "identificativo", "id nucleo", "id_nucleo", "codice nucleo"]),
+      intestatario: findHeaderIndex(headers, ["intestatario", "cf intestatario", "codice fiscale", "cf"]),
       isee: findHeaderIndex(headers, ["isee", "valore isee"]),
       residenza: findHeaderIndex(headers, ["residenza", "indirizzo residenza"]),
       domicilio: findHeaderIndex(headers, ["domicilio", "indirizzo domicilio"]),

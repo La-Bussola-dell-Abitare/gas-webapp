@@ -848,6 +848,7 @@
         .withSuccessHandler(function (list) {
           dbMeetings = list;
           renderMeetingsTable();
+          renderNucleiList();
         })
         .withFailureHandler(failHandler)
         .getMeetingsList();
@@ -865,6 +866,7 @@
       google.script.run
         .withSuccessHandler(function (list) {
           dbBeneficiaries = list;
+          renderNucleiList();
           showToast("Sincronizzazione dati completata!", "success");
         })
         .withFailureHandler(failHandler)
@@ -1015,6 +1017,12 @@
       document.getElementById(matchMenu[tabId]).classList.add('active');
       const pane = document.getElementById(tabId);
       pane.classList.remove('d-none', 'none-class');
+
+      if (tabId === 'tab-nuclei') {
+        renderNucleiList();
+      } else if (tabId === 'tab-incontri') {
+        renderMeetingsTable();
+      }
     }
 
     // Autocompletamento Generico Beneficiari
@@ -1030,7 +1038,7 @@
       }
 
       const filtered = dbBeneficiaries.filter(b => {
-        const full = (b.name + ' ' + b.surname + ' ' + (b.taxCode?.originale || '')).toLowerCase();
+        const full = ((b.name || b.nome || '') + ' ' + (b.surname || b.cognome || '') + ' ' + (b.cf || '')).toLowerCase();
         return full.includes(val);
       });
 
@@ -1041,8 +1049,9 @@
 
       filtered.forEach(b => {
         const li = document.createElement('li');
-        const cfStr = b.taxCode?.originale ? ` (${b.taxCode.originale})` : '';
-        li.textContent = `${b.name} ${b.surname}${cfStr}`;
+        const cfStr = b.cf ? ` (${b.cf})` : '';
+        const displayName = `${b.name || b.nome || ''} ${b.surname || b.cognome || ''}`.trim();
+        li.textContent = `${displayName}${cfStr}`;
         li.onclick = function () {
           input.value = `${b.name} ${b.surname}${cfStr}`;
           list.style.display = 'none';
@@ -1216,18 +1225,89 @@
     // =========================================================================
     // NUCLEI E PERSONE LOGIC
     // =========================================================================
+
+    /**
+     * Verifica in modo resiliente se un beneficiario appartiene a un nucleo familiare,
+     * supportando corrispondenza per ID nucleo (stringa/numero) e per intestatario (CF o nome).
+     */
+    function matchMemberToNucleo(b, n) {
+      if (!b || !n) return false;
+
+      // 1. Corrispondenza diretta su ID Nucleo
+      const bNuc = String(b.idNucleo !== null && b.idNucleo !== undefined ? b.idNucleo : '').trim();
+      const nId = String(n.id !== null && n.id !== undefined ? n.id : '').trim();
+      if (bNuc && nId) {
+        if (bNuc.toLowerCase() === nId.toLowerCase()) return true;
+        const bNucNum = parseInt(bNuc, 10);
+        const nIdNum = parseInt(nId, 10);
+        if (!isNaN(bNucNum) && !isNaN(nIdNum) && bNucNum === nIdNum) return true;
+      }
+
+      // 2. Corrispondenza come intestatario del nucleo (se non ancora assegnato ID esplicito)
+      const nIntest = String(n.intestatario || '').trim();
+      if (!nIntest) return false;
+
+      // Estrazione del codice fiscale (16 caratteri alfanumerici)
+      const cfMatch = nIntest.match(/\b([A-Za-z0-9]{16})\b/);
+      const intestCF = cfMatch ? cfMatch[1].toUpperCase() : '';
+
+      if (b.cf) {
+        const bCF = b.cf.trim().toUpperCase();
+        if (intestCF && bCF === intestCF) return true;
+        if (nIntest.toUpperCase().includes(bCF)) return true;
+      }
+
+      // Corrispondenza per Nome e Cognome completo
+      const bNome = (b.name || b.nome || '').trim().toLowerCase();
+      const bCognome = (b.surname || b.cognome || '').trim().toLowerCase();
+      if (bNome && bCognome) {
+        const fn1 = `${bNome} ${bCognome}`;
+        const fn2 = `${bCognome} ${bNome}`;
+        const nLower = nIntest.toLowerCase();
+        if (nLower === fn1 || nLower === fn2 || nLower.includes(fn1) || nLower.includes(fn2)) return true;
+      }
+
+      return false;
+    }
+
+    /**
+     * Determina se un membro è l'intestatario del nucleo.
+     */
+    function isMemberIntestatario(m, n) {
+      if (!m || !n || !n.intestatario) return false;
+      const nIntest = String(n.intestatario).trim();
+      const cfMatch = nIntest.match(/\b([A-Za-z0-9]{16})\b/);
+      const intestCF = cfMatch ? cfMatch[1].toUpperCase() : '';
+
+      if (m.cf && intestCF && m.cf.trim().toUpperCase() === intestCF) return true;
+      if (m.cf && nIntest.toUpperCase().includes(m.cf.trim().toUpperCase())) return true;
+
+      const mNome = (m.name || m.nome || '').trim().toLowerCase();
+      const mCognome = (m.surname || m.cognome || '').trim().toLowerCase();
+      if (mNome && mCognome) {
+        const fn1 = `${mNome} ${mCognome}`;
+        const fn2 = `${mCognome} ${mNome}`;
+        const nLower = nIntest.toLowerCase();
+        if (nLower === fn1 || nLower === fn2 || nLower.includes(fn1) || nLower.includes(fn2)) return true;
+      }
+
+      return (m.rapportoIntestatario || '').toLowerCase() === 'intestatario';
+    }
+
     function renderNucleiList() {
       const container = document.getElementById('nuclei-cards-container');
-      const search = document.getElementById('search-nuclei').value.toLowerCase().trim();
+      if (!container) return;
+      const searchInput = document.getElementById('search-nuclei');
+      const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
       container.innerHTML = '';
 
-      if (dbNuclei.length === 0) {
+      if (!dbNuclei || dbNuclei.length === 0) {
         container.innerHTML = '<p class="text-center text-muted p-3">Nessun nucleo registrato.</p>';
         return;
       }
 
       const filtered = dbNuclei.filter(n => {
-        const matchStr = `${n.id} ${n.intestatario} ${n.residenza} ${n.descrizioneCaso}`.toLowerCase();
+        const matchStr = `${n.id || ''} ${n.intestatario || ''} ${n.residenza || ''} ${n.descrizioneCaso || ''}`.toLowerCase();
         return matchStr.includes(search);
       });
 
@@ -1237,16 +1317,15 @@
       }
 
       filtered.forEach(n => {
-        // Trova i membri del nucleo
-        const members = dbBeneficiaries.filter(b => b.idNucleo === n.id || (b.cf === n.intestatario && !b.idNucleo));
+        // Trova i membri del nucleo con algoritmo di matching resiliente
+        const members = (dbBeneficiaries || []).filter(b => matchMemberToNucleo(b, n));
 
         // Trova incontri associati ai membri di questo nucleo
-        const memberCFs = members.map(m => m.cf.toLowerCase());
-        const meetingsCount = dbMeetings.filter(meet => {
-          const meetBen = meet.beneficiario.toLowerCase();
+        const meetingsCount = (dbMeetings || []).filter(meet => {
+          const meetBen = (meet.beneficiario || '').toLowerCase();
           return members.some(m => {
-            const fullMatchName = `${m.name} ${m.surname}`.toLowerCase();
-            return meetBen.includes(fullMatchName) || (m.cf && meetBen.includes(m.cf.toLowerCase()));
+            const fullMatchName = `${m.name || m.nome || ''} ${m.surname || m.cognome || ''}`.trim().toLowerCase();
+            return (fullMatchName && meetBen.includes(fullMatchName)) || (m.cf && meetBen.includes(m.cf.toLowerCase()));
           });
         }).length;
 
@@ -1255,13 +1334,14 @@
 
         let membersHTML = '';
         members.forEach(m => {
-          const isIntestatario = m.cf.toUpperCase() === n.intestatario.toUpperCase();
+          const isIntestatario = isMemberIntestatario(m, n);
           const badge = isIntestatario ? '<span class="badge bg-dark">Intestatario</span>' : `<span class="badge bg-secondary">${m.rapportoIntestatario || 'Membro'}</span>`;
+          const displayName = `${m.name || m.nome || ''} ${m.surname || m.cognome || ''}`.trim();
 
           membersHTML += `
             <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
               <div>
-                <strong>${m.name} ${m.surname}</strong> <span class="text-muted text-xs ms-2">${m.cf}</span>
+                <strong>${displayName}</strong> <span class="text-muted text-xs ms-2">${m.cf || ''}</span>
                 <div class="mt-1">${badge}</div>
               </div>
               <div class="btn-group btn-group-sm">
@@ -1422,7 +1502,7 @@
       setSelectValue(document.getElementById('ben-cittadinanza'), 'Italiana');
 
       // Auto-compila residenza con quella del nucleo
-      const nucleoObj = dbNuclei.find(n => n.id === nucleoId);
+      const nucleoObj = dbNuclei.find(n => String(n.id).trim() === String(nucleoId).trim());
       if (nucleoObj) {
         document.getElementById('ben-residenza').value = nucleoObj.residenza || '';
         document.getElementById('ben-domicilio').value = nucleoObj.domicilio || '';
