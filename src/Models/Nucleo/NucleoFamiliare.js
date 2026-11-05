@@ -123,8 +123,26 @@ class NucleoFamiliare {
       }
     }
 
+    // Ricerca prima riga vuota nel foglio
+    let firstEmptyRowIdx = -1;
+    for (let r = 1; r < dataValues.length; r++) {
+      const row = dataValues[r];
+      const idVal = tempIdx.id >= 0 && tempIdx.id < row.length ? safeString(row[tempIdx.id]).trim() : "";
+      const intestVal = tempIdx.intestatario >= 0 && tempIdx.intestatario < row.length ? safeString(row[tempIdx.intestatario]).trim() : "";
+      if (!idVal && !intestVal) {
+        firstEmptyRowIdx = r + 1;
+        break;
+      }
+    }
+    if (firstEmptyRowIdx < 0) {
+      firstEmptyRowIdx = dataValues.length + 1;
+    }
+
     const nextId = isUpdate ? targetId : NucleoFamiliare.generateNextId();
-    const newRowIdx = isUpdate ? targetRowIdx : sheet.getLastRow() + 1;
+    const newRowIdx = isUpdate ? targetRowIdx : firstEmptyRowIdx;
+    if (newRowIdx > sheet.getMaxRows()) {
+      sheet.insertRowAfter(sheet.getMaxRows());
+    }
     const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => h.toString().trim().toLowerCase());
     const idx = NucleoFamiliare._getColIndexes(headers);
 

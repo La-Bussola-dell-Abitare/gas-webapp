@@ -91,64 +91,85 @@ class BeneficiarioRepository {
      */
     static add(data) {
         const ss = SpreadsheetApp.getActiveSpreadsheet();
-        const sheet = ss.getSheetByName(WA_SHEET_BENEFICIARI);
-        if (!sheet) throw new Error("Foglio '" + WA_SHEET_BENEFICIARI + "' non trovato.");
+        let sheet = ss ? ss.getSheetByName(typeof WA_SHEET_BENEFICIARI !== 'undefined' ? WA_SHEET_BENEFICIARI : 'Beneficiari') : null;
+        if (!sheet && ss) sheet = ss.getSheetByName('Beneficiari');
+        if (!sheet) throw new Error("Foglio '" + (typeof WA_SHEET_BENEFICIARI !== 'undefined' ? WA_SHEET_BENEFICIARI : 'Beneficiari') + "' non trovato.");
 
         const targetCF = data.cf ? data.cf.toUpperCase().trim() : "";
-        const targetFullName = (data.nome.trim() + " " + data.cognome.trim()).toLowerCase();
+        const targetFullName = (((data.nome || "").trim()) + " " + ((data.cognome || "").trim())).toLowerCase();
+
+        const dataValues = sheet.getDataRange().getValues();
+        const headers = dataValues.length > 0 ? dataValues[0].map(h => h.toString().trim().toLowerCase()) : [];
+        const idx = BeneficiarioRepository._getColIndexes(headers);
 
         let isUpdate = false;
         let targetRowIdx = -1;
 
-        if (data.isUpdate && targetCF) {
-            const dataValues = sheet.getDataRange().getValues();
-            if (dataValues.length > 1) {
-                const tempHeaders = dataValues[0].map(h => h.toString().trim().toLowerCase());
-                const tempIdx = BeneficiarioRepository._getColIndexes(tempHeaders);
-                if (tempIdx.cf >= 0) {
-                    for (let i = 1; i < dataValues.length; i++) {
-                        if (dataValues[i][tempIdx.cf].toString().toUpperCase().trim() === targetCF) {
-                            isUpdate = true;
-                            targetRowIdx = i + 1;
-                            break;
-                        }
-                    }
+        if (data.isUpdate && targetCF && idx.cf >= 0) {
+            for (let i = 1; i < dataValues.length; i++) {
+                if (safeString(dataValues[i][idx.cf]).toUpperCase().trim() === targetCF) {
+                    isUpdate = true;
+                    targetRowIdx = i + 1;
+                    break;
                 }
             }
         }
 
         // Validazione unicità (solo se NON è un aggiornamento)
         if (!isUpdate) {
-            const beneficiari = BeneficiarioRepository.getAll();
-            for (let i = 0; i < beneficiari.length; i++) {
-                const b = beneficiari[i];
-                if (targetCF && b.cf === targetCF) {
+            for (let i = 1; i < dataValues.length; i++) {
+                const row = dataValues[i];
+                const rowCF = idx.cf >= 0 && idx.cf < row.length ? safeString(row[idx.cf]).toUpperCase().trim() : "";
+                const rowNome = idx.nome >= 0 && idx.nome < row.length ? safeString(row[idx.nome]).trim() : "";
+                const rowCognome = idx.cognome >= 0 && idx.cognome < row.length ? safeString(row[idx.cognome]).trim() : "";
+                const rowFullName = (rowNome + " " + rowCognome).toLowerCase();
+
+                if (targetCF && rowCF && rowCF === targetCF) {
                     throw new Error("Un beneficiario con questo Codice Fiscale è già registrato.");
                 }
-                const bFullName = (b.nome + " " + b.cognome).toLowerCase();
-                if (bFullName === targetFullName) {
+                if (targetFullName && rowFullName && rowFullName === targetFullName) {
                     throw new Error("Un beneficiario con questo Nome e Cognome è già registrato.");
                 }
             }
         }
 
-        const newRowIdx = isUpdate ? targetRowIdx : sheet.getLastRow() + 1;
-        const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => h.toString().trim().toLowerCase());
-        const idx = BeneficiarioRepository._getColIndexes(headers);
+        // Ricerca della prima riga vuota nel foglio (evitando di andare all'ultima riga assoluta se ci sono righe vuote precedenti)
+        let firstEmptyRowIdx = -1;
+        for (let r = 1; r < dataValues.length; r++) {
+            const row = dataValues[r];
+            const cfVal = idx.cf >= 0 && idx.cf < row.length ? safeString(row[idx.cf]).trim() : "";
+            const nomeVal = idx.nome >= 0 && idx.nome < row.length ? safeString(row[idx.nome]).trim() : "";
+            const cognomeVal = idx.cognome >= 0 && idx.cognome < row.length ? safeString(row[idx.cognome]).trim() : "";
 
-        if (idx.nome >= 0) sheet.getRange(newRowIdx, idx.nome + 1).setValue(data.nome.trim());
-        if (idx.cognome >= 0) sheet.getRange(newRowIdx, idx.cognome + 1).setValue(data.cognome.trim());
+            if (!cfVal && !nomeVal && !cognomeVal) {
+                firstEmptyRowIdx = r + 1; // 1-indexed riga di Google Sheets
+                break;
+            }
+        }
+
+        // Se nessuna riga intermedia è vuota, si posiziona sulla riga successiva a quelle presenti
+        if (firstEmptyRowIdx < 0) {
+            firstEmptyRowIdx = dataValues.length + 1;
+        }
+
+        const newRowIdx = isUpdate ? targetRowIdx : firstEmptyRowIdx;
+        if (newRowIdx > sheet.getMaxRows()) {
+            sheet.insertRowAfter(sheet.getMaxRows());
+        }
+
+        if (idx.nome >= 0) sheet.getRange(newRowIdx, idx.nome + 1).setValue((data.nome || "").trim());
+        if (idx.cognome >= 0) sheet.getRange(newRowIdx, idx.cognome + 1).setValue((data.cognome || "").trim());
         if (idx.cf >= 0) sheet.getRange(newRowIdx, idx.cf + 1).setValue(targetCF);
         if (idx.dataNascita >= 0) sheet.getRange(newRowIdx, idx.dataNascita + 1).setValue(data.dataNascita || "");
-        if (idx.luogoNascita >= 0) sheet.getRange(newRowIdx, idx.luogoNascita + 1).setValue(data.luogoNascita.trim());
-        if (idx.email >= 0) sheet.getRange(newRowIdx, idx.email + 1).setValue(data.email.trim());
-        if (idx.telefono >= 0) sheet.getRange(newRowIdx, idx.telefono + 1).setValue(data.telefono.trim());
-        if (idx.statoLavorativo >= 0) sheet.getRange(newRowIdx, idx.statoLavorativo + 1).setValue(data.statoLavorativo);
-        if (idx.titoloStudio >= 0) sheet.getRange(newRowIdx, idx.titoloStudio + 1).setValue(data.titoloStudio);
-        if (idx.cittadinanza >= 0) sheet.getRange(newRowIdx, idx.cittadinanza + 1).setValue(data.cittadinanza.trim());
-        if (idx.residenza >= 0) sheet.getRange(newRowIdx, idx.residenza + 1).setValue(data.residenza.trim());
-        if (idx.domicilio >= 0) sheet.getRange(newRowIdx, idx.domicilio + 1).setValue(data.domicilio.trim());
-        if (idx.assistenteSociale >= 0) sheet.getRange(newRowIdx, idx.assistenteSociale + 1).setValue(data.assistenteSociale);
+        if (idx.luogoNascita >= 0) sheet.getRange(newRowIdx, idx.luogoNascita + 1).setValue((data.luogoNascita || "").trim());
+        if (idx.email >= 0) sheet.getRange(newRowIdx, idx.email + 1).setValue((data.email || "").trim());
+        if (idx.telefono >= 0) sheet.getRange(newRowIdx, idx.telefono + 1).setValue((data.telefono || "").trim());
+        if (idx.statoLavorativo >= 0) sheet.getRange(newRowIdx, idx.statoLavorativo + 1).setValue(data.statoLavorativo || "");
+        if (idx.titoloStudio >= 0) sheet.getRange(newRowIdx, idx.titoloStudio + 1).setValue(data.titoloStudio || "");
+        if (idx.cittadinanza >= 0) sheet.getRange(newRowIdx, idx.cittadinanza + 1).setValue((data.cittadinanza || "").trim());
+        if (idx.residenza >= 0) sheet.getRange(newRowIdx, idx.residenza + 1).setValue((data.residenza || "").trim());
+        if (idx.domicilio >= 0) sheet.getRange(newRowIdx, idx.domicilio + 1).setValue((data.domicilio || "").trim());
+        if (idx.assistenteSociale >= 0) sheet.getRange(newRowIdx, idx.assistenteSociale + 1).setValue(data.assistenteSociale || "No");
         if (idx.rapportoIntestatario >= 0) sheet.getRange(newRowIdx, idx.rapportoIntestatario + 1).setValue(data.rapportoIntestatario || "");
         if (idx.idNucleo >= 0) sheet.getRange(newRowIdx, idx.idNucleo + 1).setValue(data.idNucleo || "");
         if (idx.cartaIdentita >= 0) {
@@ -172,12 +193,15 @@ class BeneficiarioRepository {
             sheet.getRange(newRowIdx, idx.tesseraSanitaria + 1).setValue(val ? true : false);
         }
         if (idx.statoCivile >= 0) sheet.getRange(newRowIdx, idx.statoCivile + 1).setValue(data.statoCivile || "");
-        if (idx.annoArrivo >= 0) sheet.getRange(newRowIdx, idx.annoArrivo + 1).setValue(data.annoArrivo || "");
+        if (idx.annoArrivo >= 0) {
+            const annoVal = data.annoArrivo !== null && data.annoArrivo !== undefined && String(data.annoArrivo).trim() !== ""
+                ? Number(data.annoArrivo)
+                : "";
+            sheet.getRange(newRowIdx, idx.annoArrivo + 1).setValue(annoVal);
+        }
 
-        if (idx.dataInserimento >= 0) {
+        if (idx.dataInserimento >= 0 && !isUpdate) {
             sheet.getRange(newRowIdx, idx.dataInserimento + 1).setValue(new Date());
-        } else {
-            sheet.getRange(newRowIdx, 20).setValue(new Date());
         }
 
         try {

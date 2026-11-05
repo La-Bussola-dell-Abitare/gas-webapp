@@ -124,9 +124,6 @@ class IncontroRepository {
       throw new Error("Foglio '" + sheetName + "' non trovato nel documento.");
     }
 
-    const lastRow = sheet.getLastRow();
-    const newRowIdx = lastRow + 1;
-
     let beneficiarioNome = data.beneficiario.trim();
     // Pulisce il CF dal nome se presente (es. "Mario Rossi (CF)" -> "Mario Rossi")
     const cfMatch = beneficiarioNome.match(/^(.*?)\s*\([A-Z0-9]{16}\)$/i);
@@ -134,8 +131,29 @@ class IncontroRepository {
       beneficiarioNome = cfMatch[1].trim();
     }
 
-    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => h.toString().trim().toLowerCase());
+    const dataValues = sheet.getDataRange().getValues();
+    const headers = dataValues.length > 0 ? dataValues[0].map(h => h.toString().trim().toLowerCase()) : [];
     const idx = IncontroRepository._getColIndexes(headers, data.tipoIncontro);
+
+    // Ricerca prima riga vuota nel foglio
+    let firstEmptyRowIdx = -1;
+    for (let r = 1; r < dataValues.length; r++) {
+      const row = dataValues[r];
+      const benVal = idx.beneficiario >= 0 && idx.beneficiario < row.length ? safeString(row[idx.beneficiario]).trim() : "";
+      const opVal = idx.operatore >= 0 && idx.operatore < row.length ? safeString(row[idx.operatore]).trim() : "";
+      const dateVal = idx.data >= 0 && idx.data < row.length ? safeString(row[idx.data]).trim() : "";
+      if (!benVal && !opVal && !dateVal) {
+        firstEmptyRowIdx = r + 1;
+        break;
+      }
+    }
+    if (firstEmptyRowIdx < 0) {
+      firstEmptyRowIdx = dataValues.length + 1;
+    }
+    const newRowIdx = firstEmptyRowIdx;
+    if (newRowIdx > sheet.getMaxRows()) {
+      sheet.insertRowAfter(sheet.getMaxRows());
+    }
 
     if (idx.beneficiario >= 0) sheet.getRange(newRowIdx, idx.beneficiario + 1).setValue(beneficiarioNome);
     if (idx.operatore >= 0) sheet.getRange(newRowIdx, idx.operatore + 1).setValue(data.operatore.trim());
