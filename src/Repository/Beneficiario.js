@@ -194,9 +194,13 @@ class BeneficiarioRepository {
         }
         if (idx.statoCivile >= 0) sheet.getRange(newRowIdx, idx.statoCivile + 1).setValue(data.statoCivile || "");
         if (idx.annoArrivo >= 0) {
-            const annoVal = data.annoArrivo !== null && data.annoArrivo !== undefined && String(data.annoArrivo).trim() !== ""
-                ? Number(data.annoArrivo)
-                : "";
+            let annoVal = "";
+            if (data.annoArrivo !== null && data.annoArrivo !== undefined && String(data.annoArrivo).trim() !== "") {
+                const parsedInt = parseInt(data.annoArrivo, 10);
+                if (!isNaN(parsedInt) && parsedInt > 0) {
+                    annoVal = Math.trunc(parsedInt);
+                }
+            }
             sheet.getRange(newRowIdx, idx.annoArrivo + 1).setValue(annoVal);
         }
 

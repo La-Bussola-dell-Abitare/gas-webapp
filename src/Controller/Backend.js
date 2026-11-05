@@ -420,7 +420,7 @@ function submitNucleoCompleto(payload) {
         domicilio: nucData.domicilio || intestData.domicilio || nucData.residenza || "",
         statoCivile: intestData.statoCivile || "",
         rapportoIntestatario: "Intestatario",
-        annoArrivo: intestData.annoArrivo ? Number(intestData.annoArrivo) : null,
+        annoArrivo: (intestData.annoArrivo && !isNaN(parseInt(intestData.annoArrivo, 10))) ? Math.trunc(parseInt(intestData.annoArrivo, 10)) : null,
         statoLavorativo: intestData.statoLavorativo || "",
         titoloStudio: intestData.titoloStudio || "",
         assistenteSociale: nucData.assistenteSociale || intestData.assistenteSociale || "No",

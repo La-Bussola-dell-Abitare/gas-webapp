@@ -980,8 +980,10 @@
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Anno Arrivo Italia</label>
-                <input type="number" class="form-control" id="ben-anno-arrivo" placeholder="Es. 2020" min="1900"
-                  oninput="triggerValidationAnnoArrivo('ben-')" onblur="triggerValidationAnnoArrivo('ben-')">
+                <input type="number" class="form-control" id="ben-anno-arrivo" placeholder="Es. 2020" min="1900" step="1" inputmode="numeric"
+                  onkeydown="if(['.', ',', 'e', 'E', '+', '-'].includes(event.key)) event.preventDefault();"
+                  oninput="this.value = this.value.replace(/\D/g, '').slice(0, 4); triggerValidationAnnoArrivo('ben-')"
+                  onblur="triggerValidationAnnoArrivo('ben-')">
                 <div class="invalid-feedback font-outfit" id="ben-anno-arrivo-feedback"></div>
               </div>
               <div class="col-md-6">
@@ -1195,7 +1197,9 @@
                     <div class="col-md-4">
                       <label class="form-label font-outfit text-xs">Anno Arrivo in Italia</label>
                       <input type="number" class="form-control form-control-sm" id="nuc-ben-anno-arrivo"
-                        placeholder="Es. 2020" min="1900" oninput="triggerValidationAnnoArrivo('nuc-ben-')"
+                        placeholder="Es. 2020" min="1900" step="1" inputmode="numeric"
+                        onkeydown="if(['.', ',', 'e', 'E', '+', '-'].includes(event.key)) event.preventDefault();"
+                        oninput="this.value = this.value.replace(/\D/g, '').slice(0, 4); triggerValidationAnnoArrivo('nuc-ben-')"
                         onblur="triggerValidationAnnoArrivo('nuc-ben-')">
                       <div class="invalid-feedback font-outfit" id="nuc-ben-anno-arrivo-feedback"></div>
                     </div>
@@ -2633,9 +2637,14 @@
       if (anno === null || anno === undefined || String(anno).trim() === '') {
         return { valid: true, message: "" };
       }
-      const num = parseInt(anno, 10);
+      const strVal = String(anno).trim();
+      // Deve essere rigorosamente un numero intero di 4 cifre
+      if (!/^\d{4}$/.test(strVal)) {
+        return { valid: false, message: "L'anno di arrivo deve essere un numero intero di 4 cifre (es. 2020)." };
+      }
+      const num = parseInt(strVal, 10);
       const currentYear = new Date().getFullYear();
-      if (isNaN(num) || num < 1900 || num > currentYear) {
+      if (num < 1900 || num > currentYear) {
         return { valid: false, message: "L'anno di arrivo deve essere compreso tra il 1900 e il " + currentYear + "." };
       }
 
