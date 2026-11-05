@@ -14,30 +14,47 @@
   <style>
     :root {
       /* Palette Istituzionale Roma Capitale */
-      --primary: #8E001C;            /* Rosso Roma (Pantone 202 C / RGB 142, 0, 28) */
-      --primary-hover: #730017;      /* Rosso Roma scuro (interazione/focus) */
-      --primary-dark: #5A0012;       /* Tonalità profonda */
-      --primary-light: #FBEBEF;      /* Rosso Roma tenue per container / selezioni */
-      --primary-container: #FFDADA;  /* Container Material 3 */
+      --primary: #8E001C;
+      /* Rosso Roma (Pantone 202 C / RGB 142, 0, 28) */
+      --primary-hover: #730017;
+      /* Rosso Roma scuro (interazione/focus) */
+      --primary-dark: #5A0012;
+      /* Tonalità profonda */
+      --primary-light: #FBEBEF;
+      /* Rosso Roma tenue per container / selezioni */
+      --primary-container: #FFDADA;
+      /* Container Material 3 */
       --on-primary-container: #3B0007;
 
-      --accent: #FFB300;             /* Giallo Roma / Oro Capitolino (Pantone 130 C / RGB 255, 179, 0) */
-      --accent-hover: #E5A100;       /* Oro scuro */
-      --accent-light: #FFF8E1;       /* Oro tenue per container */
-      --accent-text: #664600;        /* Oro scuro per testi ad alto contrasto */
+      --accent: #FFB300;
+      /* Giallo Roma / Oro Capitolino (Pantone 130 C / RGB 255, 179, 0) */
+      --accent-hover: #E5A100;
+      /* Oro scuro */
+      --accent-light: #FFF8E1;
+      /* Oro tenue per container */
+      --accent-text: #664600;
+      /* Oro scuro per testi ad alto contrasto */
 
-      --success: #1E7E34;            /* Verde istituzionale */
-      --warning: #D97706;            /* Ambra */
-      --danger: #BA1A1A;             /* Material Error */
+      --success: #1E7E34;
+      /* Verde istituzionale */
+      --warning: #D97706;
+      /* Ambra */
+      --danger: #BA1A1A;
+      /* Material Error */
 
       /* Superfici e Sfondi Material 3 */
-      --bg: #F8F6F6;                 /* Warm off-white ispirato al travertino */
+      --bg: #F8F6F6;
+      /* Warm off-white ispirato al travertino */
       --card-bg: #FFFFFF;
-      --surface-variant: #F4EEEE;    /* Superficie secondaria calda */
-      --text: #1C191A;               /* On-surface Material ad alto contrasto */
-      --text-secondary: #54484A;     /* On-surface-variant */
+      --surface-variant: #F4EEEE;
+      /* Superficie secondaria calda */
+      --text: #1C191A;
+      /* On-surface Material ad alto contrasto */
+      --text-secondary: #54484A;
+      /* On-surface-variant */
       --text-muted: #7E7274;
-      --border: #E5DCDE;             /* Bordo outline morbido */
+      --border: #E5DCDE;
+      /* Bordo outline morbido */
       --border-focus: #8E001C;
       --focus-ring: rgba(142, 0, 28, 0.18);
 
@@ -170,7 +187,8 @@
     }
 
     /* Form Controls Material Outlined */
-    .form-control, .form-select {
+    .form-control,
+    .form-select {
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 9px 14px;
@@ -180,13 +198,15 @@
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .form-control:focus, .form-select:focus {
+    .form-control:focus,
+    .form-select:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 3px var(--focus-ring);
       outline: none;
     }
 
-    .form-control-sm, .form-select-sm {
+    .form-control-sm,
+    .form-select-sm {
       border-radius: 8px;
       padding: 6px 10px;
       font-size: 0.84rem;
@@ -222,7 +242,9 @@
       box-shadow: 0 1px 3px rgba(142, 0, 28, 0.25);
     }
 
-    .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+    .btn-primary:hover,
+    .btn-primary:focus,
+    .btn-primary:active {
       background-color: var(--primary-hover) !important;
       border-color: var(--primary-hover) !important;
       color: #ffffff !important;
@@ -236,7 +258,9 @@
       background-color: transparent;
     }
 
-    .btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active {
+    .btn-outline-primary:hover,
+    .btn-outline-primary:focus,
+    .btn-outline-primary:active {
       background-color: var(--primary) !important;
       border-color: var(--primary) !important;
       color: #ffffff !important;
@@ -391,8 +415,13 @@
       border-width: 0.15em;
     }
 
-    .text-xs { font-size: 0.78rem; }
-    .text-2xs { font-size: 0.70rem; }
+    .text-xs {
+      font-size: 0.78rem;
+    }
+
+    .text-2xs {
+      font-size: 0.70rem;
+    }
 
     .invalid-feedback {
       font-size: 0.76rem;
@@ -407,25 +436,28 @@
   <!-- TOP HEADER - ROMA CAPITALE -->
   <header class="app-header">
     <div class="container-fluid px-4">
-      <div class="d-flex flex-wrap align-items-center justify-content-between py-2 border-bottom border-white border-opacity-15">
+      <div
+        class="d-flex flex-wrap align-items-center justify-content-between py-2 border-bottom border-white border-opacity-15">
         <div class="d-flex align-items-center gap-3">
           <div class="header-logo-badge">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
               <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
           </div>
           <div>
             <div class="d-flex align-items-center gap-2 flex-wrap">
-              <h1 class="h5 m-0 font-outfit fw-bold text-white" style="letter-spacing: -0.3px;">La Bussola dell'Abitare</h1>
-              <span class="badge font-outfit text-xs px-2 py-1" style="background-color: var(--accent); color: #382400; font-weight: 700; letter-spacing: 0.3px;">ROMA CAPITALE</span>
-              <span class="badge bg-white bg-opacity-20 text-white font-outfit text-xs py-1 px-2">Sportello Sociale</span>
+              <h1 class="h5 m-0 font-outfit fw-bold text-white" style="letter-spacing: -0.3px;">La Bussola dell'Abitare
+              </h1>
             </div>
-            <p class="text-white text-opacity-75 m-0 text-xs">Municipio XI &bull; Sportello per il Diritto all'Abitare</p>
+            <p class="text-white text-opacity-75 m-0 text-xs">Municipio XI &bull; Sportello per il Diritto all'Abitare
+            </p>
           </div>
         </div>
         <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0">
-          <button class="btn btn-sm btn-roma-sync d-flex align-items-center gap-1 shadow-sm px-3" onclick="reloadData(true)">
+          <button class="btn btn-sm btn-roma-sync d-flex align-items-center gap-1 shadow-sm px-3"
+            onclick="reloadData(true)">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="23 4 23 10 17 10"></polyline>
               <polyline points="1 20 1 14 7 14"></polyline>
@@ -441,7 +473,8 @@
         <ul class="nav">
           <li class="nav-item">
             <a class="nav-link active" href="javascript:void(0)" id="menu-incontri" onclick="showTab('tab-incontri')">
-              <svg class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -452,7 +485,8 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="javascript:void(0)" id="menu-nuclei" onclick="showTab('tab-nuclei')">
-              <svg class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                 <polyline points="9 22 9 12 15 12 15 22"></polyline>
               </svg>
@@ -461,7 +495,8 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="javascript:void(0)" id="menu-documenti" onclick="showTab('tab-documenti')">
-              <svg class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <polyline points="14 2 14 8 20 8"></polyline>
                 <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -473,7 +508,8 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="javascript:void(0)" id="menu-appuntamenti" onclick="showTab('tab-appuntamenti')">
-              <svg class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="16" y1="2" x2="16" y2="6"></line>
                 <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -491,346 +527,345 @@
   <main class="main-content">
     <div class="content-area">
 
-          <!-- ========================================================================= -->
-          <!-- TAB 1: INCONTRI E VISITE -->
-          <!-- ========================================================================= -->
-          <div id="tab-incontri" class="tab-pane-custom">
-            <div class="row g-4">
-              <!-- Aggiungi Incontro Form -->
-              <div class="col-xl-4">
-                <div class="card card-custom">
-                  <div class="card-header card-header-custom">Registra Nuovo Incontro</div>
-                  <div class="card-body">
-                    <form id="incontro-form" onsubmit="handleIncontroSubmit(event)">
-                      <input type="hidden" id="inc-edit-id">
-                      <div class="mb-3 position-relative">
-                        <label class="form-label font-outfit small">Beneficiario *</label>
-                        <input type="text" class="form-control" id="inc-beneficiario" placeholder="Digita Nome..."
-                          required autocomplete="off"
-                          oninput="filterBeneficiaries('inc-beneficiario', 'inc-benef-list')">
-                        <ul id="inc-benef-list" class="autocomplete-list"></ul>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label font-outfit small">Operatore *</label>
-                        <select class="form-select" id="inc-operatore" required>
-                          <option value="">Seleziona...</option>
-                        </select>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label font-outfit small">Tipologia Incontro *</label>
-                        <select class="form-select" id="inc-tipo" onchange="toggleSegnalazioneUI()" required>
-                          <option value="operatore">Primo Livello (Operatore)</option>
-                          <option value="assistente">Secondo Livello (Ass. Sociale)</option>
-                        </select>
-                      </div>
-                      <div class="row g-2">
-                        <div class="col-md-6 mb-3">
-                          <label class="form-label font-outfit small">Data Incontro *</label>
-                          <input type="date" class="form-control" id="inc-data" required>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                          <label class="form-label font-outfit small">Inizio *</label>
-                          <input type="time" class="form-control" id="inc-ora-inizio" required>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                          <label class="form-label font-outfit small">Fine *</label>
-                          <input type="time" class="form-control" id="inc-ora-fine" required>
-                        </div>
-                      </div>
-                      <div id="inc-segnalazione-group" class="mb-3">
-                        <label class="form-label font-outfit small d-block">Richiede Segnalazione?</label>
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input" type="radio" name="segnalazione" value="Sì">
-                          <label class="form-check-label">Sì</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input" type="radio" name="segnalazione" value="No" checked>
-                          <label class="form-check-label">No</label>
-                        </div>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label font-outfit small">Attività Svolta *</label>
-                        <input type="text" class="form-control" id="inc-attivita" list="list-attivita" required>
-                        <datalist id="list-attivita">
-                          <option value="Segretariato sociale">
-                          <option value="Colloquio conoscitivo">
-                          <option value="Supporto alloggiativo">
-                          <option value="Accompagnamento servizi">
-                          <option value="Orientamento al lavoro">
-                        </datalist>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label font-outfit small">Descrizione Dettagliata</label>
-                        <textarea class="form-control" id="inc-descrizione" rows="3"
-                          placeholder="Annotazioni..."></textarea>
-                      </div>
-                      <button type="submit" class="btn btn-primary w-100" id="btn-inc-submit">
-                        <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-incontro"></span>
-                        Registra Incontro
-                      </button>
-                    </form>
+      <!-- ========================================================================= -->
+      <!-- TAB 1: INCONTRI E VISITE -->
+      <!-- ========================================================================= -->
+      <div id="tab-incontri" class="tab-pane-custom">
+        <div class="row g-4">
+          <!-- Aggiungi Incontro Form -->
+          <div class="col-xl-4">
+            <div class="card card-custom">
+              <div class="card-header card-header-custom">Registra Nuovo Incontro</div>
+              <div class="card-body">
+                <form id="incontro-form" onsubmit="handleIncontroSubmit(event)">
+                  <input type="hidden" id="inc-edit-id">
+                  <div class="mb-3 position-relative">
+                    <label class="form-label font-outfit small">Beneficiario *</label>
+                    <input type="text" class="form-control" id="inc-beneficiario" placeholder="Digita Nome..." required
+                      autocomplete="off" oninput="filterBeneficiaries('inc-beneficiario', 'inc-benef-list')">
+                    <ul id="inc-benef-list" class="autocomplete-list"></ul>
                   </div>
-                </div>
-              </div>
-
-              <!-- Tabella Incontri -->
-              <div class="col-xl-8">
-                <div class="card card-custom">
-                  <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
-                    <span>Storico Incontri Registrati</span>
-                    <input type="text" class="form-control form-control-sm w-50" id="search-incontri"
-                      placeholder="Cerca incontri..." oninput="renderMeetingsTable()">
+                  <div class="mb-3">
+                    <label class="form-label font-outfit small">Operatore *</label>
+                    <select class="form-select" id="inc-operatore" required>
+                      <option value="">Seleziona...</option>
+                    </select>
                   </div>
-                  <div class="card-body p-0">
-                    <div class="table-responsive">
-                      <table class="table table-hover align-middle m-0">
-                        <thead class="table-light">
-                          <tr>
-                            <th>Data</th>
-                            <th>Ora</th>
-                            <th>Beneficiario</th>
-                            <th>Operatore</th>
-                            <th>Livello</th>
-                            <th>Attività</th>
-                            <th>Azione</th>
-                          </tr>
-                        </thead>
-                        <tbody id="tbl-incontri-body">
-                          <tr>
-                            <td colspan="7" class="text-center text-muted p-4">Caricamento in corso...</td>
-                          </tr>
-                        </tbody>
-                      </table>
+                  <div class="mb-3">
+                    <label class="form-label font-outfit small">Tipologia Incontro *</label>
+                    <select class="form-select" id="inc-tipo" onchange="toggleSegnalazioneUI()" required>
+                      <option value="operatore">Primo Livello (Operatore)</option>
+                      <option value="assistente">Secondo Livello (Ass. Sociale)</option>
+                    </select>
+                  </div>
+                  <div class="row g-2">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label font-outfit small">Data Incontro *</label>
+                      <input type="date" class="form-control" id="inc-data" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                      <label class="form-label font-outfit small">Inizio *</label>
+                      <input type="time" class="form-control" id="inc-ora-inizio" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                      <label class="form-label font-outfit small">Fine *</label>
+                      <input type="time" class="form-control" id="inc-ora-fine" required>
                     </div>
                   </div>
-                </div>
+                  <div id="inc-segnalazione-group" class="mb-3">
+                    <label class="form-label font-outfit small d-block">Richiede Segnalazione?</label>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="segnalazione" value="Sì">
+                      <label class="form-check-label">Sì</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="segnalazione" value="No" checked>
+                      <label class="form-check-label">No</label>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label font-outfit small">Attività Svolta *</label>
+                    <input type="text" class="form-control" id="inc-attivita" list="list-attivita" required>
+                    <datalist id="list-attivita">
+                      <option value="Segretariato sociale">
+                      <option value="Colloquio conoscitivo">
+                      <option value="Supporto alloggiativo">
+                      <option value="Accompagnamento servizi">
+                      <option value="Orientamento al lavoro">
+                    </datalist>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label font-outfit small">Descrizione Dettagliata</label>
+                    <textarea class="form-control" id="inc-descrizione" rows="3"
+                      placeholder="Annotazioni..."></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-primary w-100" id="btn-inc-submit">
+                    <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-incontro"></span>
+                    Registra Incontro
+                  </button>
+                </form>
               </div>
             </div>
           </div>
 
-          <!-- ========================================================================= -->
-          <!-- TAB 2: NUCLEI E PERSONE -->
-          <!-- ========================================================================= -->
-          <div id="tab-nuclei" class="tab-pane-custom d-none">
-            <div class="row g-4">
-              <!-- Lista Nuclei a tutta larghezza -->
-              <div class="col-12">
-                <div class="card card-custom">
-                  <div class="card-header card-header-custom d-flex flex-wrap justify-content-between align-items-center gap-2">
-                    <div class="d-flex align-items-center gap-3">
-                      <span class="fs-6 fw-semibold font-outfit">Mappatura Nuclei Familiari</span>
-                      <button type="button" class="btn btn-primary btn-sm font-outfit" onclick="openAddNucleoModal()">
-                        + Aggiungi Nucleo
-                      </button>
-                    </div>
-                    <div class="d-flex align-items-center" style="min-width: 250px;">
-                      <input type="text" class="form-control form-control-sm" id="search-nuclei"
-                        placeholder="Filtra nuclei..." oninput="renderNucleiList()">
-                    </div>
-                  </div>
-                  <div class="card-body" id="nuclei-cards-container">
-                    <p class="text-center text-muted">Caricamento in corso...</p>
-                  </div>
+          <!-- Tabella Incontri -->
+          <div class="col-xl-8">
+            <div class="card card-custom">
+              <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+                <span>Storico Incontri Registrati</span>
+                <input type="text" class="form-control form-control-sm w-50" id="search-incontri"
+                  placeholder="Cerca incontri..." oninput="renderMeetingsTable()">
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle m-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Data</th>
+                        <th>Ora</th>
+                        <th>Beneficiario</th>
+                        <th>Operatore</th>
+                        <th>Livello</th>
+                        <th>Attività</th>
+                        <th>Azione</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbl-incontri-body">
+                      <tr>
+                        <td colspan="7" class="text-center text-muted p-4">Caricamento in corso...</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          <!-- ========================================================================= -->
-          <!-- TAB 3: DOCUMENTI E GENERAZIONE -->
-          <!-- ========================================================================= -->
-          <div id="tab-documenti" class="tab-pane-custom d-none">
-            <div class="row g-4">
-              <!-- Genera documenti moduli -->
-              <div class="col-xl-6">
-                <div class="card card-custom mb-4">
-                  <div class="card-header card-header-custom">Genera Documentazione in Google Drive</div>
-                  <div class="card-body">
-                    <!-- Foglio Firme Form -->
-                    <h5 class="font-outfit border-bottom pb-2">Genera Foglio Firme</h5>
-                    <form id="doc-firme-form" class="mb-4" onsubmit="handleGenerateFirme(event)">
-                      <div class="row g-2 mb-3">
-                        <div class="col-md-6 position-relative">
-                          <label class="form-label font-outfit small">Beneficiario (CF) *</label>
-                          <input type="text" class="form-control" id="firme-beneficiario" placeholder="Cerca..."
-                            required autocomplete="off"
-                            oninput="filterBeneficiaries('firme-beneficiario', 'firme-benef-list')">
-                          <ul id="firme-benef-list" class="autocomplete-list"></ul>
-                        </div>
-                        <div class="col-md-6">
-                          <label class="form-label font-outfit small">Operatore *</label>
-                          <select class="form-select" id="firme-operatore" required>
-                            <option value="">Seleziona...</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label font-outfit small">Mese / Anno di Riferimento *</label>
-                        <input type="month" class="form-control" id="firme-mese" required>
-                      </div>
-                      <button type="submit" class="btn btn-outline-primary btn-sm w-100" id="btn-gen-firme">
-                        <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-firme"></span>
-                        Genera Foglio Firme Individuale
-                      </button>
-                    </form>
-
-                    <!-- Diario Giornaliero Form -->
-                    <h5 class="font-outfit border-bottom pb-2 pt-2">Genera Diario Giornaliero</h5>
-                    <form id="doc-diario-form" class="mb-4" onsubmit="handleGenerateDiario(event)">
-                      <div class="mb-3">
-                        <label class="form-label font-outfit small">Data Giorno *</label>
-                        <input type="date" class="form-control" id="diario-data" required>
-                      </div>
-                      <button type="submit" class="btn btn-outline-primary btn-sm w-100" id="btn-gen-diario">
-                        <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-diario"></span>
-                        Genera Diario Giornaliero
-                      </button>
-                    </form>
-
-                    <!-- Scheda Segnalazione Form -->
-                    <h5 class="font-outfit border-bottom pb-2 pt-2">Genera Scheda Segnalazione</h5>
-                    <form id="doc-segnalazione-form" onsubmit="handleGenerateSegnalazione(event)">
-                      <div class="row g-2 mb-3">
-                        <div class="col-md-6 position-relative">
-                          <label class="form-label font-outfit small">Destinatario (CF) *</label>
-                          <input type="text" class="form-control" id="seg-beneficiario" placeholder="Cerca..." required
-                            autocomplete="off" oninput="filterBeneficiaries('seg-beneficiario', 'seg-benef-list')">
-                          <ul id="seg-benef-list" class="autocomplete-list"></ul>
-                        </div>
-                        <div class="col-md-6">
-                          <label class="form-label font-outfit small">Operatore Inviante *</label>
-                          <select class="form-select" id="seg-operatore" required>
-                            <option value="">Seleziona...</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label font-outfit small">Descrizione e Bisogno Rilevato *</label>
-                        <textarea class="form-control" id="seg-descrizione" rows="3" required></textarea>
-                      </div>
-                      <button type="submit" class="btn btn-outline-primary btn-sm w-100" id="btn-gen-seg">
-                        <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-seg"></span>
-                        Genera Scheda di Segnalazione
-                      </button>
-                    </form>
-                  </div>
+      <!-- ========================================================================= -->
+      <!-- TAB 2: NUCLEI E PERSONE -->
+      <!-- ========================================================================= -->
+      <div id="tab-nuclei" class="tab-pane-custom d-none">
+        <div class="row g-4">
+          <!-- Lista Nuclei a tutta larghezza -->
+          <div class="col-12">
+            <div class="card card-custom">
+              <div
+                class="card-header card-header-custom d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div class="d-flex align-items-center gap-3">
+                  <span class="fs-6 fw-semibold font-outfit">Mappatura Nuclei Familiari</span>
+                  <button type="button" class="btn btn-primary btn-sm font-outfit" onclick="openAddNucleoModal()">
+                    + Aggiungi Nucleo
+                  </button>
+                </div>
+                <div class="d-flex align-items-center" style="min-width: 250px;">
+                  <input type="text" class="form-control form-control-sm" id="search-nuclei"
+                    placeholder="Filtra nuclei..." oninput="renderNucleiList()">
                 </div>
               </div>
-
-              <!-- Monitoraggio Ufficiale ed Esportazione -->
-              <div class="col-xl-6">
-                <div class="card card-custom mb-4">
-                  <div class="card-header card-header-custom">Monitoraggio Ufficiale QSFP</div>
-                  <div class="card-body">
-                    <p class="small text-muted">Aggiungi una riga al Monitoraggio Ufficiale Accessi Giornalieri
-                      calcolando automaticamente l'età del beneficiario, i dati anagrafici e i dati dell'operatore dal
-                      database.</p>
-                    <form id="monitoraggio-form" onsubmit="handleMonitoraggioSubmit(event)">
-                      <div class="mb-3 position-relative">
-                        <label class="form-label font-outfit small">Destinatario *</label>
-                        <input type="text" class="form-control" id="mon-beneficiario" placeholder="Cerca..." required
-                          autocomplete="off" oninput="filterBeneficiaries('mon-beneficiario', 'mon-benef-list')">
-                        <ul id="mon-benef-list" class="autocomplete-list"></ul>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label font-outfit small">Operatore *</label>
-                        <select class="form-select" id="mon-operatore" required>
-                          <option value="">Seleziona...</option>
-                        </select>
-                      </div>
-                      <button type="submit" class="btn btn-outline-success btn-sm w-100" id="btn-gen-mon">
-                        <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-mon"></span>
-                        Aggiungi Riga Monitoraggio Ufficiale
-                      </button>
-                    </form>
-                  </div>
-                </div>
-
-                <div class="card card-custom">
-                  <div class="card-header card-header-custom">Documenti Recenti ed Esportati</div>
-                  <div class="card-body" id="doc-links-container">
-                    <p class="text-muted small text-center m-0">Nessun documento generato in questa sessione. I link
-                      verranno mostrati qui sopra dopo la creazione.</p>
-                  </div>
-                </div>
+              <div class="card-body" id="nuclei-cards-container">
+                <p class="text-center text-muted">Caricamento in corso...</p>
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          <!-- ========================================================================= -->
-          <!-- TAB 4: APPUNTAMENTI -->
-          <!-- ========================================================================= -->
-          <div id="tab-appuntamenti" class="tab-pane-custom d-none">
-            <div class="row g-4">
-              <!-- Aggiungi appuntamento form -->
-              <div class="col-xl-4">
-                <div class="card card-custom">
-                  <div class="card-header card-header-custom">Registra Nuovo Appuntamento</div>
-                  <div class="card-body">
-                    <form id="appuntamento-form" onsubmit="handleAppuntamentoSubmit(event)">
-                      <div class="mb-3 position-relative">
-                        <label class="form-label font-outfit small">Beneficiario *</label>
-                        <input type="text" class="form-control" id="app-beneficiario" placeholder="Nome..." required
-                          autocomplete="off" oninput="filterBeneficiaries('app-beneficiario', 'app-benef-list')">
-                        <ul id="app-benef-list" class="autocomplete-list"></ul>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label font-outfit small">Operatore *</label>
-                        <select class="form-select" id="app-operatore" required>
-                          <option value="">Seleziona...</option>
-                        </select>
-                      </div>
-                      <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                          <label class="form-label font-outfit small">Data *</label>
-                          <input type="date" class="form-control" id="app-data" required>
-                        </div>
-                        <div class="col-md-6">
-                          <label class="form-label font-outfit small">Orario *</label>
-                          <input type="time" class="form-control" id="app-ora" required>
-                        </div>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label font-outfit small">Note / Dettagli</label>
-                        <textarea class="form-control" id="app-note" rows="3"></textarea>
-                      </div>
-                      <button type="submit" class="btn btn-primary w-100" id="btn-app-submit">
-                        <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-app"></span>
-                        Aggiungi Appuntamento
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Elenco appuntamenti -->
-              <div class="col-xl-8">
-                <div class="card card-custom">
-                  <div class="card-header card-header-custom">Elenco Appuntamenti Registrati</div>
-                  <div class="card-body p-0">
-                    <div class="table-responsive">
-                      <table class="table table-hover align-middle m-0">
-                        <thead class="table-light">
-                          <tr>
-                            <th>Data</th>
-                            <th>Orario</th>
-                            <th>Beneficiario</th>
-                            <th>Operatore</th>
-                            <th>Note</th>
-                          </tr>
-                        </thead>
-                        <tbody id="tbl-appuntamenti-body">
-                          <tr>
-                            <td colspan="5" class="text-center text-muted p-4">Caricamento in corso...</td>
-                          </tr>
-                        </tbody>
-                      </table>
+      <!-- ========================================================================= -->
+      <!-- TAB 3: DOCUMENTI E GENERAZIONE -->
+      <!-- ========================================================================= -->
+      <div id="tab-documenti" class="tab-pane-custom d-none">
+        <div class="row g-4">
+          <!-- Genera documenti moduli -->
+          <div class="col-xl-6">
+            <div class="card card-custom mb-4">
+              <div class="card-header card-header-custom">Genera Documentazione in Google Drive</div>
+              <div class="card-body">
+                <!-- Foglio Firme Form -->
+                <h5 class="font-outfit border-bottom pb-2">Genera Foglio Firme</h5>
+                <form id="doc-firme-form" class="mb-4" onsubmit="handleGenerateFirme(event)">
+                  <div class="row g-2 mb-3">
+                    <div class="col-md-6 position-relative">
+                      <label class="form-label font-outfit small">Beneficiario (CF) *</label>
+                      <input type="text" class="form-control" id="firme-beneficiario" placeholder="Cerca..." required
+                        autocomplete="off" oninput="filterBeneficiaries('firme-beneficiario', 'firme-benef-list')">
+                      <ul id="firme-benef-list" class="autocomplete-list"></ul>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label font-outfit small">Operatore *</label>
+                      <select class="form-select" id="firme-operatore" required>
+                        <option value="">Seleziona...</option>
+                      </select>
                     </div>
                   </div>
+                  <div class="mb-3">
+                    <label class="form-label font-outfit small">Mese / Anno di Riferimento *</label>
+                    <input type="month" class="form-control" id="firme-mese" required>
+                  </div>
+                  <button type="submit" class="btn btn-outline-primary btn-sm w-100" id="btn-gen-firme">
+                    <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-firme"></span>
+                    Genera Foglio Firme Individuale
+                  </button>
+                </form>
+
+                <!-- Diario Giornaliero Form -->
+                <h5 class="font-outfit border-bottom pb-2 pt-2">Genera Diario Giornaliero</h5>
+                <form id="doc-diario-form" class="mb-4" onsubmit="handleGenerateDiario(event)">
+                  <div class="mb-3">
+                    <label class="form-label font-outfit small">Data Giorno *</label>
+                    <input type="date" class="form-control" id="diario-data" required>
+                  </div>
+                  <button type="submit" class="btn btn-outline-primary btn-sm w-100" id="btn-gen-diario">
+                    <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-diario"></span>
+                    Genera Diario Giornaliero
+                  </button>
+                </form>
+
+                <!-- Scheda Segnalazione Form -->
+                <h5 class="font-outfit border-bottom pb-2 pt-2">Genera Scheda Segnalazione</h5>
+                <form id="doc-segnalazione-form" onsubmit="handleGenerateSegnalazione(event)">
+                  <div class="row g-2 mb-3">
+                    <div class="col-md-6 position-relative">
+                      <label class="form-label font-outfit small">Destinatario (CF) *</label>
+                      <input type="text" class="form-control" id="seg-beneficiario" placeholder="Cerca..." required
+                        autocomplete="off" oninput="filterBeneficiaries('seg-beneficiario', 'seg-benef-list')">
+                      <ul id="seg-benef-list" class="autocomplete-list"></ul>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label font-outfit small">Operatore Inviante *</label>
+                      <select class="form-select" id="seg-operatore" required>
+                        <option value="">Seleziona...</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label font-outfit small">Descrizione e Bisogno Rilevato *</label>
+                    <textarea class="form-control" id="seg-descrizione" rows="3" required></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-outline-primary btn-sm w-100" id="btn-gen-seg">
+                    <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-seg"></span>
+                    Genera Scheda di Segnalazione
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Monitoraggio Ufficiale ed Esportazione -->
+          <div class="col-xl-6">
+            <div class="card card-custom mb-4">
+              <div class="card-header card-header-custom">Monitoraggio Ufficiale QSFP</div>
+              <div class="card-body">
+                <p class="small text-muted">Aggiungi una riga al Monitoraggio Ufficiale Accessi Giornalieri
+                  calcolando automaticamente l'età del beneficiario, i dati anagrafici e i dati dell'operatore dal
+                  database.</p>
+                <form id="monitoraggio-form" onsubmit="handleMonitoraggioSubmit(event)">
+                  <div class="mb-3 position-relative">
+                    <label class="form-label font-outfit small">Destinatario *</label>
+                    <input type="text" class="form-control" id="mon-beneficiario" placeholder="Cerca..." required
+                      autocomplete="off" oninput="filterBeneficiaries('mon-beneficiario', 'mon-benef-list')">
+                    <ul id="mon-benef-list" class="autocomplete-list"></ul>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label font-outfit small">Operatore *</label>
+                    <select class="form-select" id="mon-operatore" required>
+                      <option value="">Seleziona...</option>
+                    </select>
+                  </div>
+                  <button type="submit" class="btn btn-outline-success btn-sm w-100" id="btn-gen-mon">
+                    <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-mon"></span>
+                    Aggiungi Riga Monitoraggio Ufficiale
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <div class="card card-custom">
+              <div class="card-header card-header-custom">Documenti Recenti ed Esportati</div>
+              <div class="card-body" id="doc-links-container">
+                <p class="text-muted small text-center m-0">Nessun documento generato in questa sessione. I link
+                  verranno mostrati qui sopra dopo la creazione.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 4: APPUNTAMENTI -->
+      <!-- ========================================================================= -->
+      <div id="tab-appuntamenti" class="tab-pane-custom d-none">
+        <div class="row g-4">
+          <!-- Aggiungi appuntamento form -->
+          <div class="col-xl-4">
+            <div class="card card-custom">
+              <div class="card-header card-header-custom">Registra Nuovo Appuntamento</div>
+              <div class="card-body">
+                <form id="appuntamento-form" onsubmit="handleAppuntamentoSubmit(event)">
+                  <div class="mb-3 position-relative">
+                    <label class="form-label font-outfit small">Beneficiario *</label>
+                    <input type="text" class="form-control" id="app-beneficiario" placeholder="Nome..." required
+                      autocomplete="off" oninput="filterBeneficiaries('app-beneficiario', 'app-benef-list')">
+                    <ul id="app-benef-list" class="autocomplete-list"></ul>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label font-outfit small">Operatore *</label>
+                    <select class="form-select" id="app-operatore" required>
+                      <option value="">Seleziona...</option>
+                    </select>
+                  </div>
+                  <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                      <label class="form-label font-outfit small">Data *</label>
+                      <input type="date" class="form-control" id="app-data" required>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label font-outfit small">Orario *</label>
+                      <input type="time" class="form-control" id="app-ora" required>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label font-outfit small">Note / Dettagli</label>
+                    <textarea class="form-control" id="app-note" rows="3"></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-primary w-100" id="btn-app-submit">
+                    <span class="spinner-border spinner-border-sm me-2 d-none" id="spin-app"></span>
+                    Aggiungi Appuntamento
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Elenco appuntamenti -->
+          <div class="col-xl-8">
+            <div class="card card-custom">
+              <div class="card-header card-header-custom">Elenco Appuntamenti Registrati</div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle m-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Data</th>
+                        <th>Orario</th>
+                        <th>Beneficiario</th>
+                        <th>Operatore</th>
+                        <th>Note</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbl-appuntamenti-body">
+                      <tr>
+                        <td colspan="5" class="text-center text-muted p-4">Caricamento in corso...</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
     </div>
   </main>
@@ -853,7 +888,8 @@
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Codice Fiscale *</label>
                 <input type="text" class="form-control text-uppercase" id="ben-cf" required maxlength="16"
-                  placeholder="Es. RSSMRA85M01H501Q" oninput="validateAndDecodeCF('ben-')" onblur="triggerValidationCF('ben-')">
+                  placeholder="Es. RSSMRA85M01H501Q" oninput="validateAndDecodeCF('ben-')"
+                  onblur="triggerValidationCF('ben-')">
                 <div class="invalid-feedback font-outfit" id="ben-cf-feedback"></div>
               </div>
               <div class="col-md-4">
@@ -866,7 +902,8 @@
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Data di Nascita *</label>
-                <input type="date" class="form-control" id="ben-data-nascita" required onchange="triggerValidationAnnoArrivo('ben-')">
+                <input type="date" class="form-control" id="ben-data-nascita" required
+                  onchange="triggerValidationAnnoArrivo('ben-')">
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Luogo Nascita *</label>
@@ -886,17 +923,23 @@
                   <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center font-outfit px-2"
                     type="button" id="ben-prefisso-btn" data-bs-toggle="dropdown" aria-expanded="false"
                     style="border-color: #dee2e6; min-width: 105px;">
-                    <img id="ben-prefisso-flag-img" src="https://flagcdn.com/24x18/it.png" width="20" height="15" class="me-1 rounded-1 border" alt="IT" onerror="this.style.display='none'; document.getElementById('ben-prefisso-flag-emoji').style.display='inline';">
+                    <img id="ben-prefisso-flag-img" src="https://flagcdn.com/24x18/it.png" width="20" height="15"
+                      class="me-1 rounded-1 border" alt="IT"
+                      onerror="this.style.display='none'; document.getElementById('ben-prefisso-flag-emoji').style.display='inline';">
                     <span id="ben-prefisso-flag-emoji" class="me-1" style="display:none;">🇮🇹</span>
                     <span id="ben-prefisso-code" class="fw-semibold font-outfit text-dark small">+39</span>
                   </button>
-                  <div class="dropdown-menu p-2 shadow-sm country-dropdown-menu" aria-labelledby="ben-prefisso-btn" style="min-width: 280px; max-width: 320px;">
+                  <div class="dropdown-menu p-2 shadow-sm country-dropdown-menu" aria-labelledby="ben-prefisso-btn"
+                    style="min-width: 280px; max-width: 320px;">
                     <div class="input-group input-group-sm mb-2">
-                      <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                      <input type="text" class="form-control form-control-sm border-start-0 font-outfit" id="ben-prefisso-search"
-                             placeholder="Cerca paese o prefisso..." autocomplete="off" oninput="filterCountryList('ben-')">
+                      <span class="input-group-text bg-transparent border-end-0 text-muted"><i
+                          class="bi bi-search"></i></span>
+                      <input type="text" class="form-control form-control-sm border-start-0 font-outfit"
+                        id="ben-prefisso-search" placeholder="Cerca paese o prefisso..." autocomplete="off"
+                        oninput="filterCountryList('ben-')">
                     </div>
-                    <div class="country-list list-group list-group-flush" id="ben-country-list" style="max-height: 220px; overflow-y: auto;">
+                    <div class="country-list list-group list-group-flush" id="ben-country-list"
+                      style="max-height: 220px; overflow-y: auto;">
                     </div>
                   </div>
                   <input type="hidden" id="ben-prefisso-tel" value="+39">
@@ -1020,12 +1063,14 @@
               <div class="col-12" id="nuc-mode-selector-container">
                 <label class="form-label font-outfit small d-block mb-1 fw-bold">Intestatario del Nucleo *</label>
                 <div class="btn-group w-100" role="group">
-                  <input type="radio" class="btn-check" name="nuc-mode" id="nuc-mode-nuovo" value="nuovo" checked onchange="toggleIntestatarioMode()">
+                  <input type="radio" class="btn-check" name="nuc-mode" id="nuc-mode-nuovo" value="nuovo" checked
+                    onchange="toggleIntestatarioMode()">
                   <label class="btn btn-outline-primary btn-sm py-2" for="nuc-mode-nuovo">
                     + Crea Nuovo Beneficiario (Intestatario)
                   </label>
 
-                  <input type="radio" class="btn-check" name="nuc-mode" id="nuc-mode-esistente" value="esistente" onchange="toggleIntestatarioMode()">
+                  <input type="radio" class="btn-check" name="nuc-mode" id="nuc-mode-esistente" value="esistente"
+                    onchange="toggleIntestatarioMode()">
                   <label class="btn btn-outline-secondary btn-sm py-2" for="nuc-mode-esistente">
                     Seleziona Beneficiario Esistente
                   </label>
@@ -1034,25 +1079,30 @@
 
               <!-- Sezione A: Intestatario Esistente (Autocompletamento) -->
               <div class="col-12 position-relative d-none" id="sec-nuc-intestatario-esistente">
-                <label class="form-label font-outfit small">Cerca Intestatario tra i Beneficiari già Registrati *</label>
+                <label class="form-label font-outfit small">Cerca Intestatario tra i Beneficiari già Registrati
+                  *</label>
                 <input type="text" class="form-control" id="nuc-intestatario"
                   placeholder="Digita nome o codice fiscale..." autocomplete="off"
                   oninput="filterBeneficiaries('nuc-intestatario', 'nuc-intest-list')">
                 <ul id="nuc-intest-list" class="autocomplete-list"></ul>
-                <div class="form-text text-xs text-muted">Seleziona la persona dall'elenco per associarla come intestatario del nucleo.</div>
+                <div class="form-text text-xs text-muted">Seleziona la persona dall'elenco per associarla come
+                  intestatario del nucleo.</div>
               </div>
 
               <!-- Sezione B: Nuovo Beneficiario Intestatario -->
               <div class="col-12" id="sec-nuc-nuovo-intestatario">
                 <div class="card bg-light border p-3">
                   <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="font-outfit small text-uppercase text-primary m-0 fw-bold">Anagrafica Nuovo Intestatario</h6>
+                    <h6 class="font-outfit small text-uppercase text-primary m-0 fw-bold">Anagrafica Nuovo Intestatario
+                    </h6>
                     <span class="badge bg-primary text-white">Verrà registrato nei Beneficiari</span>
                   </div>
                   <div class="row g-2">
                     <div class="col-md-4 position-relative">
                       <label class="form-label font-outfit text-xs">Codice Fiscale *</label>
-                      <input type="text" class="form-control form-control-sm text-uppercase" id="nuc-ben-cf" placeholder="Es. RSSMRA85M01H501Q" maxlength="16" oninput="validateAndDecodeCF('nuc-ben-')" onblur="triggerValidationCF('nuc-ben-')">
+                      <input type="text" class="form-control form-control-sm text-uppercase" id="nuc-ben-cf"
+                        placeholder="Es. RSSMRA85M01H501Q" maxlength="16" oninput="validateAndDecodeCF('nuc-ben-')"
+                        onblur="triggerValidationCF('nuc-ben-')">
                       <div class="invalid-feedback font-outfit" id="nuc-ben-cf-feedback"></div>
                       <div class="form-text text-2xs text-muted">Decodifica automatica istantanea</div>
                     </div>
@@ -1062,15 +1112,18 @@
                     </div>
                     <div class="col-md-4">
                       <label class="form-label font-outfit text-xs">Cognome *</label>
-                      <input type="text" class="form-control form-control-sm" id="nuc-ben-cognome" placeholder="Cognome">
+                      <input type="text" class="form-control form-control-sm" id="nuc-ben-cognome"
+                        placeholder="Cognome">
                     </div>
                     <div class="col-md-3">
                       <label class="form-label font-outfit text-xs">Data di Nascita *</label>
-                      <input type="date" class="form-control form-control-sm" id="nuc-ben-data-nascita" onchange="triggerValidationAnnoArrivo('nuc-ben-')">
+                      <input type="date" class="form-control form-control-sm" id="nuc-ben-data-nascita"
+                        onchange="triggerValidationAnnoArrivo('nuc-ben-')">
                     </div>
                     <div class="col-md-3">
                       <label class="form-label font-outfit text-xs">Luogo Nascita *</label>
-                      <input type="text" class="form-control form-control-sm" id="nuc-ben-luogo-nascita" placeholder="Comune o Stato">
+                      <input type="text" class="form-control form-control-sm" id="nuc-ben-luogo-nascita"
+                        placeholder="Comune o Stato">
                     </div>
                     <div class="col-md-2">
                       <label class="form-label font-outfit text-xs">Sesso *</label>
@@ -1082,32 +1135,42 @@
                     <div class="col-md-4">
                       <label class="form-label font-outfit text-xs">Telefono *</label>
                       <div class="input-group input-group-sm">
-                        <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center font-outfit px-2"
+                        <button
+                          class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center font-outfit px-2"
                           type="button" id="nuc-ben-prefisso-btn" data-bs-toggle="dropdown" aria-expanded="false"
                           style="border-color: #dee2e6; min-width: 100px;">
-                          <img id="nuc-ben-prefisso-flag-img" src="https://flagcdn.com/24x18/it.png" width="18" height="13" class="me-1 rounded-1 border" alt="IT" onerror="this.style.display='none'; document.getElementById('nuc-ben-prefisso-flag-emoji').style.display='inline';">
+                          <img id="nuc-ben-prefisso-flag-img" src="https://flagcdn.com/24x18/it.png" width="18"
+                            height="13" class="me-1 rounded-1 border" alt="IT"
+                            onerror="this.style.display='none'; document.getElementById('nuc-ben-prefisso-flag-emoji').style.display='inline';">
                           <span id="nuc-ben-prefisso-flag-emoji" class="me-1" style="display:none;">🇮🇹</span>
                           <span id="nuc-ben-prefisso-code" class="fw-semibold font-outfit text-dark small">+39</span>
                         </button>
-                        <div class="dropdown-menu p-2 shadow-sm country-dropdown-menu" aria-labelledby="nuc-ben-prefisso-btn" style="min-width: 280px; max-width: 320px;">
+                        <div class="dropdown-menu p-2 shadow-sm country-dropdown-menu"
+                          aria-labelledby="nuc-ben-prefisso-btn" style="min-width: 280px; max-width: 320px;">
                           <div class="input-group input-group-sm mb-2">
-                            <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                            <input type="text" class="form-control form-control-sm border-start-0 font-outfit" id="nuc-ben-prefisso-search"
-                                   placeholder="Cerca paese o prefisso..." autocomplete="off" oninput="filterCountryList('nuc-ben-')">
+                            <span class="input-group-text bg-transparent border-end-0 text-muted"><i
+                                class="bi bi-search"></i></span>
+                            <input type="text" class="form-control form-control-sm border-start-0 font-outfit"
+                              id="nuc-ben-prefisso-search" placeholder="Cerca paese o prefisso..." autocomplete="off"
+                              oninput="filterCountryList('nuc-ben-')">
                           </div>
-                          <div class="country-list list-group list-group-flush" id="nuc-ben-country-list" style="max-height: 220px; overflow-y: auto;">
+                          <div class="country-list list-group list-group-flush" id="nuc-ben-country-list"
+                            style="max-height: 220px; overflow-y: auto;">
                           </div>
                         </div>
                         <input type="hidden" id="nuc-ben-prefisso-tel" value="+39">
-                        <input type="text" class="form-control form-control-sm" id="nuc-ben-telefono" placeholder="Es. 333 1234567"
-                          oninput="handlePhoneInput('nuc-ben-')" onblur="handlePhoneInput('nuc-ben-')">
+                        <input type="text" class="form-control form-control-sm" id="nuc-ben-telefono"
+                          placeholder="Es. 333 1234567" oninput="handlePhoneInput('nuc-ben-')"
+                          onblur="handlePhoneInput('nuc-ben-')">
                       </div>
-                      <div class="invalid-feedback font-outfit" id="nuc-ben-telefono-feedback" style="display: none;"></div>
+                      <div class="invalid-feedback font-outfit" id="nuc-ben-telefono-feedback" style="display: none;">
+                      </div>
                     </div>
                     <div class="col-md-4">
                       <label class="form-label font-outfit text-xs">Email</label>
-                      <input type="email" class="form-control form-control-sm" id="nuc-ben-email" placeholder="email@esempio.it"
-                        oninput="triggerValidationEmail('nuc-ben-')" onblur="triggerValidationEmail('nuc-ben-')">
+                      <input type="email" class="form-control form-control-sm" id="nuc-ben-email"
+                        placeholder="email@esempio.it" oninput="triggerValidationEmail('nuc-ben-')"
+                        onblur="triggerValidationEmail('nuc-ben-')">
                       <div class="invalid-feedback font-outfit" id="nuc-ben-email-feedback"></div>
                     </div>
                     <div class="col-md-4">
@@ -1136,8 +1199,9 @@
                     </div>
                     <div class="col-md-4">
                       <label class="form-label font-outfit text-xs">Anno Arrivo in Italia</label>
-                      <input type="number" class="form-control form-control-sm" id="nuc-ben-anno-arrivo" placeholder="Es. 2020" min="1900"
-                        oninput="triggerValidationAnnoArrivo('nuc-ben-')" onblur="triggerValidationAnnoArrivo('nuc-ben-')">
+                      <input type="number" class="form-control form-control-sm" id="nuc-ben-anno-arrivo"
+                        placeholder="Es. 2020" min="1900" oninput="triggerValidationAnnoArrivo('nuc-ben-')"
+                        onblur="triggerValidationAnnoArrivo('nuc-ben-')">
                       <div class="invalid-feedback font-outfit" id="nuc-ben-anno-arrivo-feedback"></div>
                     </div>
 
@@ -1177,7 +1241,8 @@
 
               <!-- Dati Specifici del Nucleo Familiare -->
               <div class="col-12 mt-3 pt-2 border-top">
-                <h6 class="font-outfit small text-uppercase text-secondary m-0 fw-bold">Dimensioni Socio-Abitative del Nucleo</h6>
+                <h6 class="font-outfit small text-uppercase text-secondary m-0 fw-bold">Dimensioni Socio-Abitative del
+                  Nucleo</h6>
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">ISEE del Nucleo</label>
@@ -1185,13 +1250,12 @@
               </div>
               <div class="col-md-6">
                 <label class="form-label font-outfit small">Indirizzo Residenza *</label>
-                <input type="text" class="form-control" id="nuc-residenza"
-                  placeholder="Stato, Comune, CAP, Via, Civico" required>
+                <input type="text" class="form-control" id="nuc-residenza" placeholder="Stato, Comune, CAP, Via, Civico"
+                  required>
               </div>
               <div class="col-md-6">
                 <label class="form-label font-outfit small">Indirizzo Domicilio</label>
-                <input type="text" class="form-control" id="nuc-domicilio"
-                  placeholder="Lascia vuoto se coincide">
+                <input type="text" class="form-control" id="nuc-domicilio" placeholder="Lascia vuoto se coincide">
               </div>
               <div class="col-md-6">
                 <label class="form-label font-outfit small">Tipologia di Richiesta *</label>
@@ -1254,7 +1318,7 @@
     let activeTabId = 'tab-incontri';
 
     // Catalogo unificato Nazioni e prefissi in ordine alfabetico (Domain Model SSOT)
-    const COUNTRIES = [{"name":"Afghanistan","citizenship":"Afghana","iso":"AF","phone":"+93","flag":"🇦🇫"},{"name":"Albania","citizenship":"Albanese","iso":"AL","phone":"+355","flag":"🇦🇱"},{"name":"Algeria","citizenship":"Algerina","iso":"DZ","phone":"+213","flag":"🇩🇿"},{"name":"Andorra","citizenship":"Andorrana","iso":"AD","phone":"+376","flag":"🇦🇩"},{"name":"Angola","citizenship":"Angolana","iso":"AO","phone":"+244","flag":"🇦🇴"},{"name":"Antigua e Barbuda","citizenship":"Antiguana","iso":"AG","phone":"+1268","flag":"🇦🇬"},{"name":"Arabia Saudita","citizenship":"Saudita","iso":"SA","phone":"+966","flag":"🇸🇦"},{"name":"Argentina","citizenship":"Argentina","iso":"AR","phone":"+54","flag":"🇦🇷"},{"name":"Armenia","citizenship":"Armena","iso":"AM","phone":"+374","flag":"🇦🇲"},{"name":"Australia","citizenship":"Australiana","iso":"AU","phone":"+61","flag":"🇦🇺"},{"name":"Austria","citizenship":"Austriaca","iso":"AT","phone":"+43","flag":"🇦🇹"},{"name":"Azerbaigian","citizenship":"Azera","iso":"AZ","phone":"+994","flag":"🇦🇿"},{"name":"Bahamas","citizenship":"Bahamense","iso":"BS","phone":"+1242","flag":"🇧🇸"},{"name":"Bahrein","citizenship":"Bahreinita","iso":"BH","phone":"+973","flag":"🇧🇭"},{"name":"Bangladesh","citizenship":"Bangladese","iso":"BD","phone":"+880","flag":"🇧🇩"},{"name":"Barbados","citizenship":"Barbadiana","iso":"BB","phone":"+1246","flag":"🇧🇧"},{"name":"Belgio","citizenship":"Belga","iso":"BE","phone":"+32","flag":"🇧🇪"},{"name":"Belize","citizenship":"Beliziana","iso":"BZ","phone":"+501","flag":"🇧🇿"},{"name":"Benin","citizenship":"Beninese","iso":"BJ","phone":"+229","flag":"🇧🇯"},{"name":"Bhutan","citizenship":"Bhutanese","iso":"BT","phone":"+975","flag":"🇧🇹"},{"name":"Bielorussia","citizenship":"Bielorussa","iso":"BY","phone":"+375","flag":"🇧🇾"},{"name":"Bolivia","citizenship":"Boliviana","iso":"BO","phone":"+591","flag":"🇧🇴"},{"name":"Bosnia ed Erzegovina","citizenship":"Bosniaca","iso":"BA","phone":"+387","flag":"🇧🇦"},{"name":"Botswana","citizenship":"Botswanese","iso":"BW","phone":"+267","flag":"🇧🇼"},{"name":"Brasile","citizenship":"Brasiliana","iso":"BR","phone":"+55","flag":"🇧🇷"},{"name":"Brunei","citizenship":"Bruneiana","iso":"BN","phone":"+673","flag":"🇧🇳"},{"name":"Bulgaria","citizenship":"Bulgara","iso":"BG","phone":"+359","flag":"🇧🇬"},{"name":"Burkina Faso","citizenship":"Burkinabé","iso":"BF","phone":"+226","flag":"🇧🇫"},{"name":"Burundi","citizenship":"Burundese","iso":"BI","phone":"+257","flag":"🇧🇮"},{"name":"Cambogia","citizenship":"Cambogiana","iso":"KH","phone":"+855","flag":"🇰🇭"},{"name":"Camerun","citizenship":"Camerunense","iso":"CM","phone":"+237","flag":"🇨🇲"},{"name":"Canada","citizenship":"Canadese","iso":"CA","phone":"+1","flag":"🇨🇦"},{"name":"Capo Verde","citizenship":"Capoverdiana","iso":"CV","phone":"+238","flag":"🇨🇻"},{"name":"Ciad","citizenship":"Ciadiana","iso":"TD","phone":"+235","flag":"🇹🇩"},{"name":"Cile","citizenship":"Cilena","iso":"CL","phone":"+56","flag":"🇨🇱"},{"name":"Cina","citizenship":"Cinese","iso":"CN","phone":"+86","flag":"🇨🇳"},{"name":"Cipro","citizenship":"Cipriota","iso":"CY","phone":"+357","flag":"🇨🇾"},{"name":"Colombia","citizenship":"Colombiana","iso":"CO","phone":"+57","flag":"🇨🇴"},{"name":"Comore","citizenship":"Comoriana","iso":"KM","phone":"+269","flag":"🇰🇲"},{"name":"Congo","citizenship":"Congolese","iso":"CG","phone":"+242","flag":"🇨🇬"},{"name":"Corea del Nord","citizenship":"Nordcoreana","iso":"KP","phone":"+850","flag":"🇰🇵"},{"name":"Corea del Sud","citizenship":"Sudcoreana","iso":"KR","phone":"+82","flag":"🇰🇷"},{"name":"Costa d’Avorio","citizenship":"Ivoriana","iso":"CI","phone":"+225","flag":"🇨🇮"},{"name":"Costa Rica","citizenship":"Costaricana","iso":"CR","phone":"+506","flag":"🇨🇷"},{"name":"Croazia","citizenship":"Croata","iso":"HR","phone":"+385","flag":"🇭🇷"},{"name":"Cuba","citizenship":"Cubana","iso":"CU","phone":"+53","flag":"🇨🇺"},{"name":"Danimarca","citizenship":"Danese","iso":"DK","phone":"+45","flag":"🇩🇰"},{"name":"Dominica","citizenship":"Dominicana","iso":"DM","phone":"+1767","flag":"🇩🇲"},{"name":"Ecuador","citizenship":"Ecuadoriana","iso":"EC","phone":"+593","flag":"🇪🇨"},{"name":"Egitto","citizenship":"Egiziana","iso":"EG","phone":"+20","flag":"🇪🇬"},{"name":"El Salvador","citizenship":"Salvadoregna","iso":"SV","phone":"+503","flag":"🇸🇻"},{"name":"Emirati Arabi Uniti","citizenship":"Emiratina","iso":"AE","phone":"+971","flag":"🇦🇪"},{"name":"Eritrea","citizenship":"Eritrea","iso":"ER","phone":"+291","flag":"🇪🇷"},{"name":"Estonia","citizenship":"Estone","iso":"EE","phone":"+372","flag":"🇪🇪"},{"name":"Eswatini","citizenship":"Swatina","iso":"SZ","phone":"+268","flag":"🇸🇿"},{"name":"Etiopia","citizenship":"Etiope","iso":"ET","phone":"+251","flag":"🇪🇹"},{"name":"Figi","citizenship":"Figiana","iso":"FJ","phone":"+679","flag":"🇫🇯"},{"name":"Filippine","citizenship":"Filippina","iso":"PH","phone":"+63","flag":"🇵🇭"},{"name":"Finlandia","citizenship":"Finlandese","iso":"FI","phone":"+358","flag":"🇫🇮"},{"name":"Francia","citizenship":"Francese","iso":"FR","phone":"+33","flag":"🇫🇷"},{"name":"Gabon","citizenship":"Gabonese","iso":"GA","phone":"+241","flag":"🇬🇦"},{"name":"Gambia","citizenship":"Gambiana","iso":"GM","phone":"+220","flag":"🇬🇲"},{"name":"Georgia","citizenship":"Georgiana","iso":"GE","phone":"+995","flag":"🇬🇪"},{"name":"Germania","citizenship":"Tedesca","iso":"DE","phone":"+49","flag":"🇩🇪"},{"name":"Ghana","citizenship":"Ghanese","iso":"GH","phone":"+233","flag":"🇬🇭"},{"name":"Giamaica","citizenship":"Giamaicana","iso":"JM","phone":"+1876","flag":"🇯🇲"},{"name":"Giappone","citizenship":"Giapponese","iso":"JP","phone":"+81","flag":"🇯🇵"},{"name":"Gibuti","citizenship":"Gibutiana","iso":"DJ","phone":"+253","flag":"🇩🇯"},{"name":"Giordania","citizenship":"Giordana","iso":"JO","phone":"+962","flag":"🇯🇴"},{"name":"Grecia","citizenship":"Greca","iso":"GR","phone":"+30","flag":"🇬🇷"},{"name":"Grenada","citizenship":"Grenadina","iso":"GD","phone":"+1473","flag":"🇬🇩"},{"name":"Guatemala","citizenship":"Guatemalteca","iso":"GT","phone":"+502","flag":"🇬🇹"},{"name":"Guinea","citizenship":"Guineana","iso":"GN","phone":"+224","flag":"🇬🇳"},{"name":"Guinea Equatoriale","citizenship":"Equatoguineana","iso":"GQ","phone":"+240","flag":"🇬🇶"},{"name":"Guinea-Bissau","citizenship":"Guineense","iso":"GW","phone":"+245","flag":"🇬🇼"},{"name":"Guyana","citizenship":"Guyanese","iso":"GY","phone":"+592","flag":"🇬🇾"},{"name":"Haiti","citizenship":"Haitiana","iso":"HT","phone":"+509","flag":"🇭🇹"},{"name":"Honduras","citizenship":"Honduregna","iso":"HN","phone":"+504","flag":"🇭🇳"},{"name":"India","citizenship":"Indiana","iso":"IN","phone":"+91","flag":"🇮🇳"},{"name":"Indonesia","citizenship":"Indonesiana","iso":"ID","phone":"+62","flag":"🇮🇩"},{"name":"Iran","citizenship":"Iraniana","iso":"IR","phone":"+98","flag":"🇮🇷"},{"name":"Iraq","citizenship":"Irachena","iso":"IQ","phone":"+964","flag":"🇮🇶"},{"name":"Irlanda","citizenship":"Irlandese","iso":"IE","phone":"+353","flag":"🇮🇪"},{"name":"Islanda","citizenship":"Islandese","iso":"IS","phone":"+354","flag":"🇮🇸"},{"name":"Isole Marshall","citizenship":"Marshallese","iso":"MH","phone":"+692","flag":"🇲🇭"},{"name":"Israele","citizenship":"Israeliana","iso":"IL","phone":"+972","flag":"🇮🇱"},{"name":"Italia","citizenship":"Italiana","iso":"IT","phone":"+39","flag":"🇮🇹"},{"name":"Kazakistan","citizenship":"Kazaka","iso":"KZ","phone":"+7","flag":"🇰🇿"},{"name":"Kenya","citizenship":"Kenyana","iso":"KE","phone":"+254","flag":"🇰🇪"},{"name":"Kirghizistan","citizenship":"Kirghisa","iso":"KG","phone":"+996","flag":"🇰🇬"},{"name":"Kiribati","citizenship":"Kiribatiana","iso":"KI","phone":"+686","flag":"🇰🇮"},{"name":"Kosovo","citizenship":"Kosovara","iso":"XK","phone":"+383","flag":"🇽🇰"},{"name":"Kuwait","citizenship":"Kuwaitiana","iso":"KW","phone":"+965","flag":"🇰🇼"},{"name":"Laos","citizenship":"Laotiana","iso":"LA","phone":"+856","flag":"🇱🇦"},{"name":"Lesotho","citizenship":"Lesothiana","iso":"LS","phone":"+266","flag":"🇱🇸"},{"name":"Lettonia","citizenship":"Lettone","iso":"LV","phone":"+371","flag":"🇱🇻"},{"name":"Libano","citizenship":"Libanese","iso":"LB","phone":"+961","flag":"🇱🇧"},{"name":"Liberia","citizenship":"Liberiana","iso":"LR","phone":"+231","flag":"🇱🇷"},{"name":"Libia","citizenship":"Libica","iso":"LY","phone":"+218","flag":"🇱🇾"},{"name":"Liechtenstein","citizenship":"Liechtensteiniana","iso":"LI","phone":"+423","flag":"🇱🇮"},{"name":"Lituania","citizenship":"Lituana","iso":"LT","phone":"+370","flag":"🇱🇹"},{"name":"Lussemburgo","citizenship":"Lussemburghese","iso":"LU","phone":"+352","flag":"🇱🇺"},{"name":"Macedonia del Nord","citizenship":"Macedone","iso":"MK","phone":"+389","flag":"🇲🇰"},{"name":"Madagascar","citizenship":"Malgascia","iso":"MG","phone":"+261","flag":"🇲🇬"},{"name":"Malawi","citizenship":"Malawiana","iso":"MW","phone":"+265","flag":"🇲🇼"},{"name":"Malaysia","citizenship":"Malese","iso":"MY","phone":"+60","flag":"🇲🇾"},{"name":"Maldive","citizenship":"Maldiviana","iso":"MV","phone":"+960","flag":"🇲🇻"},{"name":"Mali","citizenship":"Maliana","iso":"ML","phone":"+223","flag":"🇲🇱"},{"name":"Malta","citizenship":"Maltese","iso":"MT","phone":"+356","flag":"🇲🇹"},{"name":"Marocco","citizenship":"Marocchina","iso":"MA","phone":"+212","flag":"🇲🇦"},{"name":"Mauritania","citizenship":"Mauritana","iso":"MR","phone":"+222","flag":"🇲🇷"},{"name":"Mauritius","citizenship":"Mauriziana","iso":"MU","phone":"+230","flag":"🇲🇺"},{"name":"Messico","citizenship":"Messicana","iso":"MX","phone":"+52","flag":"🇲🇽"},{"name":"Micronesia","citizenship":"Micronesiana","iso":"FM","phone":"+691","flag":"🇫🇲"},{"name":"Moldavia","citizenship":"Moldava","iso":"MD","phone":"+373","flag":"🇲🇩"},{"name":"Monaco","citizenship":"Monegasca","iso":"MC","phone":"+377","flag":"🇲🇨"},{"name":"Mongolia","citizenship":"Mongola","iso":"MN","phone":"+976","flag":"🇲🇳"},{"name":"Montenegro","citizenship":"Montenegrina","iso":"ME","phone":"+382","flag":"🇲🇪"},{"name":"Mozambico","citizenship":"Mozambicana","iso":"MZ","phone":"+258","flag":"🇲🇿"},{"name":"Myanmar","citizenship":"Birmana","iso":"MM","phone":"+95","flag":"🇲🇲"},{"name":"Namibia","citizenship":"Namibiana","iso":"NA","phone":"+264","flag":"🇳🇦"},{"name":"Nauru","citizenship":"Nauruana","iso":"NR","phone":"+674","flag":"🇳🇷"},{"name":"Nepal","citizenship":"Nepalese","iso":"NP","phone":"+977","flag":"🇳🇵"},{"name":"Nessuno","citizenship":"Apolide","iso":"IT","phone":"+39","flag":"🇮🇹"},{"name":"Nicaragua","citizenship":"Nicaraguense","iso":"NI","phone":"+505","flag":"🇳🇮"},{"name":"Niger","citizenship":"Nigerina","iso":"NE","phone":"+227","flag":"🇳🇪"},{"name":"Nigeria","citizenship":"Nigeriana","iso":"NG","phone":"+234","flag":"🇳🇬"},{"name":"Norvegia","citizenship":"Norvegese","iso":"NO","phone":"+47","flag":"🇳🇴"},{"name":"Nuova Zelanda","citizenship":"Neozelandese","iso":"NZ","phone":"+64","flag":"🇳🇿"},{"name":"Oman","citizenship":"Omanita","iso":"OM","phone":"+968","flag":"🇴🇲"},{"name":"Paesi Bassi","citizenship":"Olandese","iso":"NL","phone":"+31","flag":"🇳🇱"},{"name":"Pakistan","citizenship":"Pakistana","iso":"PK","phone":"+92","flag":"🇵🇰"},{"name":"Palau","citizenship":"Palauana","iso":"PW","phone":"+680","flag":"🇵🇼"},{"name":"Palestina","citizenship":"Palestinese","iso":"PS","phone":"+970","flag":"🇵🇸"},{"name":"Panama","citizenship":"Panamense","iso":"PA","phone":"+507","flag":"🇵🇦"},{"name":"Papua Nuova Guinea","citizenship":"Papua","iso":"PG","phone":"+675","flag":"🇵🇬"},{"name":"Paraguay","citizenship":"Paraguayana","iso":"PY","phone":"+595","flag":"🇵🇾"},{"name":"Perù","citizenship":"Peruviana","iso":"PE","phone":"+51","flag":"🇵🇪"},{"name":"Polonia","citizenship":"Polacca","iso":"PL","phone":"+48","flag":"🇵🇱"},{"name":"Portogallo","citizenship":"Portoghese","iso":"PT","phone":"+351","flag":"🇵🇹"},{"name":"Qatar","citizenship":"Qatarina","iso":"QA","phone":"+974","flag":"🇶🇦"},{"name":"Regno Unito","citizenship":"Britannica","iso":"GB","phone":"+44","flag":"🇬🇧"},{"name":"Repubblica Ceca","citizenship":"Ceca","iso":"CZ","phone":"+420","flag":"🇨🇿"},{"name":"Repubblica Centrafricana","citizenship":"Centrafricana","iso":"CF","phone":"+236","flag":"🇨🇫"},{"name":"Repubblica Dominicana","citizenship":"Dominicana_RD","iso":"DO","phone":"+1809","flag":"🇩🇴"},{"name":"Romania","citizenship":"Romena","iso":"RO","phone":"+40","flag":"🇷🇴"},{"name":"Ruanda","citizenship":"Ruandese","iso":"RW","phone":"+250","flag":"🇷🇼"},{"name":"Russia","citizenship":"Russa","iso":"RU","phone":"+7","flag":"🇷🇺"},{"name":"Saint Kitts e Nevis","citizenship":"Nevisiana","iso":"KN","phone":"+1869","flag":"🇰🇳"},{"name":"Saint Lucia","citizenship":"Luciana","iso":"LC","phone":"+1758","flag":"🇱🇨"},{"name":"Saint Vincent e Grenadine","citizenship":"Vincentina","iso":"VC","phone":"+1784","flag":"🇻🇨"},{"name":"Samoa","citizenship":"Samoana","iso":"WS","phone":"+685","flag":"🇼🇸"},{"name":"San Marino","citizenship":"Sammarinese","iso":"SM","phone":"+378","flag":"🇸🇲"},{"name":"São Tomé e Príncipe","citizenship":"Santomese","iso":"ST","phone":"+239","flag":"🇸🇹"},{"name":"Senegal","citizenship":"Senegalese","iso":"SN","phone":"+221","flag":"🇸🇳"},{"name":"Serbia","citizenship":"Serba","iso":"RS","phone":"+381","flag":"🇷🇸"},{"name":"Seychelles","citizenship":"Seychellese","iso":"SC","phone":"+248","flag":"🇸🇨"},{"name":"Sierra Leone","citizenship":"Sierraleonese","iso":"SL","phone":"+232","flag":"🇸🇱"},{"name":"Singapore","citizenship":"Singaporiana","iso":"SG","phone":"+65","flag":"🇸🇬"},{"name":"Siria","citizenship":"Siriana","iso":"SY","phone":"+963","flag":"🇸🇾"},{"name":"Slovacchia","citizenship":"Slovacca","iso":"SK","phone":"+421","flag":"🇸🇰"},{"name":"Slovenia","citizenship":"Slovena","iso":"SI","phone":"+386","flag":"🇸🇮"},{"name":"Somalia","citizenship":"Somala","iso":"SO","phone":"+252","flag":"🇸🇴"},{"name":"Spagna","citizenship":"Spagnola","iso":"ES","phone":"+34","flag":"🇪🇸"},{"name":"Sri Lanka","citizenship":"Singalese","iso":"LK","phone":"+94","flag":"🇱🇰"},{"name":"Stati Uniti","citizenship":"Statunitense","iso":"US","phone":"+1","flag":"🇺🇸"},{"name":"Sudafrica","citizenship":"Sudafricana","iso":"ZA","phone":"+27","flag":"🇿🇦"},{"name":"Sudan","citizenship":"Sudanese","iso":"SD","phone":"+249","flag":"🇸🇩"},{"name":"Sudan del Sud","citizenship":"Sudsudanese","iso":"SS","phone":"+211","flag":"🇸🇸"},{"name":"Suriname","citizenship":"Surinamese","iso":"SR","phone":"+597","flag":"🇸🇷"},{"name":"Svezia","citizenship":"Svedese","iso":"SE","phone":"+46","flag":"🇸🇪"},{"name":"Svizzera","citizenship":"Svizzera","iso":"CH","phone":"+41","flag":"🇨🇭"},{"name":"Tagikistan","citizenship":"Tagika","iso":"TJ","phone":"+992","flag":"🇹🇯"},{"name":"Tanzania","citizenship":"Tanzaniana","iso":"TZ","phone":"+255","flag":"🇹🇿"},{"name":"Thailandia","citizenship":"Thailandese","iso":"TH","phone":"+66","flag":"🇹🇭"},{"name":"Timor Est","citizenship":"Timorese","iso":"TL","phone":"+670","flag":"🇹🇱"},{"name":"Togo","citizenship":"Togolese","iso":"TG","phone":"+228","flag":"🇹🇬"},{"name":"Tonga","citizenship":"Tongana","iso":"TO","phone":"+676","flag":"🇹🇴"},{"name":"Trinidad e Tobago","citizenship":"Trinidadiana","iso":"TT","phone":"+1868","flag":"🇹🇹"},{"name":"Tunisia","citizenship":"Tunisina","iso":"TN","phone":"+216","flag":"🇹🇳"},{"name":"Turchia","citizenship":"Turca","iso":"TR","phone":"+90","flag":"🇹🇷"},{"name":"Turkmenistan","citizenship":"Turkmena","iso":"TM","phone":"+993","flag":"🇹🇲"},{"name":"Tuvalu","citizenship":"Tuvaluana","iso":"TV","phone":"+688","flag":"🇹🇻"},{"name":"Ucraina","citizenship":"Ucraina","iso":"UA","phone":"+380","flag":"🇺🇦"},{"name":"Uganda","citizenship":"Ugandese","iso":"UG","phone":"+256","flag":"🇺🇬"},{"name":"Ungheria","citizenship":"Ungherese","iso":"HU","phone":"+36","flag":"🇭🇺"},{"name":"Uruguay","citizenship":"Uruguaiana","iso":"UY","phone":"+598","flag":"🇺🇾"},{"name":"Uzbekistan","citizenship":"Uzbeka","iso":"UZ","phone":"+998","flag":"🇺🇿"},{"name":"Vanuatu","citizenship":"Vanuatiana","iso":"VU","phone":"+678","flag":"🇻🇺"},{"name":"Vaticano","citizenship":"Vaticana","iso":"VA","phone":"+39","flag":"🇻🇦"},{"name":"Venezuela","citizenship":"Venezuelana","iso":"VE","phone":"+58","flag":"🇻🇪"},{"name":"Vietnam","citizenship":"Vietnamita","iso":"VN","phone":"+84","flag":"🇻🇳"},{"name":"Yemen","citizenship":"Yemenita","iso":"YE","phone":"+967","flag":"🇾🇪"},{"name":"Zambia","citizenship":"Zambiana","iso":"ZM","phone":"+260","flag":"🇿🇲"},{"name":"Zimbabwe","citizenship":"Zimbabwese","iso":"ZW","phone":"+263","flag":"🇿🇼"}];
+    const COUNTRIES = [{ "name": "Afghanistan", "citizenship": "Afghana", "iso": "AF", "phone": "+93", "flag": "🇦🇫" }, { "name": "Albania", "citizenship": "Albanese", "iso": "AL", "phone": "+355", "flag": "🇦🇱" }, { "name": "Algeria", "citizenship": "Algerina", "iso": "DZ", "phone": "+213", "flag": "🇩🇿" }, { "name": "Andorra", "citizenship": "Andorrana", "iso": "AD", "phone": "+376", "flag": "🇦🇩" }, { "name": "Angola", "citizenship": "Angolana", "iso": "AO", "phone": "+244", "flag": "🇦🇴" }, { "name": "Antigua e Barbuda", "citizenship": "Antiguana", "iso": "AG", "phone": "+1268", "flag": "🇦🇬" }, { "name": "Arabia Saudita", "citizenship": "Saudita", "iso": "SA", "phone": "+966", "flag": "🇸🇦" }, { "name": "Argentina", "citizenship": "Argentina", "iso": "AR", "phone": "+54", "flag": "🇦🇷" }, { "name": "Armenia", "citizenship": "Armena", "iso": "AM", "phone": "+374", "flag": "🇦🇲" }, { "name": "Australia", "citizenship": "Australiana", "iso": "AU", "phone": "+61", "flag": "🇦🇺" }, { "name": "Austria", "citizenship": "Austriaca", "iso": "AT", "phone": "+43", "flag": "🇦🇹" }, { "name": "Azerbaigian", "citizenship": "Azera", "iso": "AZ", "phone": "+994", "flag": "🇦🇿" }, { "name": "Bahamas", "citizenship": "Bahamense", "iso": "BS", "phone": "+1242", "flag": "🇧🇸" }, { "name": "Bahrein", "citizenship": "Bahreinita", "iso": "BH", "phone": "+973", "flag": "🇧🇭" }, { "name": "Bangladesh", "citizenship": "Bangladese", "iso": "BD", "phone": "+880", "flag": "🇧🇩" }, { "name": "Barbados", "citizenship": "Barbadiana", "iso": "BB", "phone": "+1246", "flag": "🇧🇧" }, { "name": "Belgio", "citizenship": "Belga", "iso": "BE", "phone": "+32", "flag": "🇧🇪" }, { "name": "Belize", "citizenship": "Beliziana", "iso": "BZ", "phone": "+501", "flag": "🇧🇿" }, { "name": "Benin", "citizenship": "Beninese", "iso": "BJ", "phone": "+229", "flag": "🇧🇯" }, { "name": "Bhutan", "citizenship": "Bhutanese", "iso": "BT", "phone": "+975", "flag": "🇧🇹" }, { "name": "Bielorussia", "citizenship": "Bielorussa", "iso": "BY", "phone": "+375", "flag": "🇧🇾" }, { "name": "Bolivia", "citizenship": "Boliviana", "iso": "BO", "phone": "+591", "flag": "🇧🇴" }, { "name": "Bosnia ed Erzegovina", "citizenship": "Bosniaca", "iso": "BA", "phone": "+387", "flag": "🇧🇦" }, { "name": "Botswana", "citizenship": "Botswanese", "iso": "BW", "phone": "+267", "flag": "🇧🇼" }, { "name": "Brasile", "citizenship": "Brasiliana", "iso": "BR", "phone": "+55", "flag": "🇧🇷" }, { "name": "Brunei", "citizenship": "Bruneiana", "iso": "BN", "phone": "+673", "flag": "🇧🇳" }, { "name": "Bulgaria", "citizenship": "Bulgara", "iso": "BG", "phone": "+359", "flag": "🇧🇬" }, { "name": "Burkina Faso", "citizenship": "Burkinabé", "iso": "BF", "phone": "+226", "flag": "🇧🇫" }, { "name": "Burundi", "citizenship": "Burundese", "iso": "BI", "phone": "+257", "flag": "🇧🇮" }, { "name": "Cambogia", "citizenship": "Cambogiana", "iso": "KH", "phone": "+855", "flag": "🇰🇭" }, { "name": "Camerun", "citizenship": "Camerunense", "iso": "CM", "phone": "+237", "flag": "🇨🇲" }, { "name": "Canada", "citizenship": "Canadese", "iso": "CA", "phone": "+1", "flag": "🇨🇦" }, { "name": "Capo Verde", "citizenship": "Capoverdiana", "iso": "CV", "phone": "+238", "flag": "🇨🇻" }, { "name": "Ciad", "citizenship": "Ciadiana", "iso": "TD", "phone": "+235", "flag": "🇹🇩" }, { "name": "Cile", "citizenship": "Cilena", "iso": "CL", "phone": "+56", "flag": "🇨🇱" }, { "name": "Cina", "citizenship": "Cinese", "iso": "CN", "phone": "+86", "flag": "🇨🇳" }, { "name": "Cipro", "citizenship": "Cipriota", "iso": "CY", "phone": "+357", "flag": "🇨🇾" }, { "name": "Colombia", "citizenship": "Colombiana", "iso": "CO", "phone": "+57", "flag": "🇨🇴" }, { "name": "Comore", "citizenship": "Comoriana", "iso": "KM", "phone": "+269", "flag": "🇰🇲" }, { "name": "Congo", "citizenship": "Congolese", "iso": "CG", "phone": "+242", "flag": "🇨🇬" }, { "name": "Corea del Nord", "citizenship": "Nordcoreana", "iso": "KP", "phone": "+850", "flag": "🇰🇵" }, { "name": "Corea del Sud", "citizenship": "Sudcoreana", "iso": "KR", "phone": "+82", "flag": "🇰🇷" }, { "name": "Costa d’Avorio", "citizenship": "Ivoriana", "iso": "CI", "phone": "+225", "flag": "🇨🇮" }, { "name": "Costa Rica", "citizenship": "Costaricana", "iso": "CR", "phone": "+506", "flag": "🇨🇷" }, { "name": "Croazia", "citizenship": "Croata", "iso": "HR", "phone": "+385", "flag": "🇭🇷" }, { "name": "Cuba", "citizenship": "Cubana", "iso": "CU", "phone": "+53", "flag": "🇨🇺" }, { "name": "Danimarca", "citizenship": "Danese", "iso": "DK", "phone": "+45", "flag": "🇩🇰" }, { "name": "Dominica", "citizenship": "Dominicana", "iso": "DM", "phone": "+1767", "flag": "🇩🇲" }, { "name": "Ecuador", "citizenship": "Ecuadoriana", "iso": "EC", "phone": "+593", "flag": "🇪🇨" }, { "name": "Egitto", "citizenship": "Egiziana", "iso": "EG", "phone": "+20", "flag": "🇪🇬" }, { "name": "El Salvador", "citizenship": "Salvadoregna", "iso": "SV", "phone": "+503", "flag": "🇸🇻" }, { "name": "Emirati Arabi Uniti", "citizenship": "Emiratina", "iso": "AE", "phone": "+971", "flag": "🇦🇪" }, { "name": "Eritrea", "citizenship": "Eritrea", "iso": "ER", "phone": "+291", "flag": "🇪🇷" }, { "name": "Estonia", "citizenship": "Estone", "iso": "EE", "phone": "+372", "flag": "🇪🇪" }, { "name": "Eswatini", "citizenship": "Swatina", "iso": "SZ", "phone": "+268", "flag": "🇸🇿" }, { "name": "Etiopia", "citizenship": "Etiope", "iso": "ET", "phone": "+251", "flag": "🇪🇹" }, { "name": "Figi", "citizenship": "Figiana", "iso": "FJ", "phone": "+679", "flag": "🇫🇯" }, { "name": "Filippine", "citizenship": "Filippina", "iso": "PH", "phone": "+63", "flag": "🇵🇭" }, { "name": "Finlandia", "citizenship": "Finlandese", "iso": "FI", "phone": "+358", "flag": "🇫🇮" }, { "name": "Francia", "citizenship": "Francese", "iso": "FR", "phone": "+33", "flag": "🇫🇷" }, { "name": "Gabon", "citizenship": "Gabonese", "iso": "GA", "phone": "+241", "flag": "🇬🇦" }, { "name": "Gambia", "citizenship": "Gambiana", "iso": "GM", "phone": "+220", "flag": "🇬🇲" }, { "name": "Georgia", "citizenship": "Georgiana", "iso": "GE", "phone": "+995", "flag": "🇬🇪" }, { "name": "Germania", "citizenship": "Tedesca", "iso": "DE", "phone": "+49", "flag": "🇩🇪" }, { "name": "Ghana", "citizenship": "Ghanese", "iso": "GH", "phone": "+233", "flag": "🇬🇭" }, { "name": "Giamaica", "citizenship": "Giamaicana", "iso": "JM", "phone": "+1876", "flag": "🇯🇲" }, { "name": "Giappone", "citizenship": "Giapponese", "iso": "JP", "phone": "+81", "flag": "🇯🇵" }, { "name": "Gibuti", "citizenship": "Gibutiana", "iso": "DJ", "phone": "+253", "flag": "🇩🇯" }, { "name": "Giordania", "citizenship": "Giordana", "iso": "JO", "phone": "+962", "flag": "🇯🇴" }, { "name": "Grecia", "citizenship": "Greca", "iso": "GR", "phone": "+30", "flag": "🇬🇷" }, { "name": "Grenada", "citizenship": "Grenadina", "iso": "GD", "phone": "+1473", "flag": "🇬🇩" }, { "name": "Guatemala", "citizenship": "Guatemalteca", "iso": "GT", "phone": "+502", "flag": "🇬🇹" }, { "name": "Guinea", "citizenship": "Guineana", "iso": "GN", "phone": "+224", "flag": "🇬🇳" }, { "name": "Guinea Equatoriale", "citizenship": "Equatoguineana", "iso": "GQ", "phone": "+240", "flag": "🇬🇶" }, { "name": "Guinea-Bissau", "citizenship": "Guineense", "iso": "GW", "phone": "+245", "flag": "🇬🇼" }, { "name": "Guyana", "citizenship": "Guyanese", "iso": "GY", "phone": "+592", "flag": "🇬🇾" }, { "name": "Haiti", "citizenship": "Haitiana", "iso": "HT", "phone": "+509", "flag": "🇭🇹" }, { "name": "Honduras", "citizenship": "Honduregna", "iso": "HN", "phone": "+504", "flag": "🇭🇳" }, { "name": "India", "citizenship": "Indiana", "iso": "IN", "phone": "+91", "flag": "🇮🇳" }, { "name": "Indonesia", "citizenship": "Indonesiana", "iso": "ID", "phone": "+62", "flag": "🇮🇩" }, { "name": "Iran", "citizenship": "Iraniana", "iso": "IR", "phone": "+98", "flag": "🇮🇷" }, { "name": "Iraq", "citizenship": "Irachena", "iso": "IQ", "phone": "+964", "flag": "🇮🇶" }, { "name": "Irlanda", "citizenship": "Irlandese", "iso": "IE", "phone": "+353", "flag": "🇮🇪" }, { "name": "Islanda", "citizenship": "Islandese", "iso": "IS", "phone": "+354", "flag": "🇮🇸" }, { "name": "Isole Marshall", "citizenship": "Marshallese", "iso": "MH", "phone": "+692", "flag": "🇲🇭" }, { "name": "Israele", "citizenship": "Israeliana", "iso": "IL", "phone": "+972", "flag": "🇮🇱" }, { "name": "Italia", "citizenship": "Italiana", "iso": "IT", "phone": "+39", "flag": "🇮🇹" }, { "name": "Kazakistan", "citizenship": "Kazaka", "iso": "KZ", "phone": "+7", "flag": "🇰🇿" }, { "name": "Kenya", "citizenship": "Kenyana", "iso": "KE", "phone": "+254", "flag": "🇰🇪" }, { "name": "Kirghizistan", "citizenship": "Kirghisa", "iso": "KG", "phone": "+996", "flag": "🇰🇬" }, { "name": "Kiribati", "citizenship": "Kiribatiana", "iso": "KI", "phone": "+686", "flag": "🇰🇮" }, { "name": "Kosovo", "citizenship": "Kosovara", "iso": "XK", "phone": "+383", "flag": "🇽🇰" }, { "name": "Kuwait", "citizenship": "Kuwaitiana", "iso": "KW", "phone": "+965", "flag": "🇰🇼" }, { "name": "Laos", "citizenship": "Laotiana", "iso": "LA", "phone": "+856", "flag": "🇱🇦" }, { "name": "Lesotho", "citizenship": "Lesothiana", "iso": "LS", "phone": "+266", "flag": "🇱🇸" }, { "name": "Lettonia", "citizenship": "Lettone", "iso": "LV", "phone": "+371", "flag": "🇱🇻" }, { "name": "Libano", "citizenship": "Libanese", "iso": "LB", "phone": "+961", "flag": "🇱🇧" }, { "name": "Liberia", "citizenship": "Liberiana", "iso": "LR", "phone": "+231", "flag": "🇱🇷" }, { "name": "Libia", "citizenship": "Libica", "iso": "LY", "phone": "+218", "flag": "🇱🇾" }, { "name": "Liechtenstein", "citizenship": "Liechtensteiniana", "iso": "LI", "phone": "+423", "flag": "🇱🇮" }, { "name": "Lituania", "citizenship": "Lituana", "iso": "LT", "phone": "+370", "flag": "🇱🇹" }, { "name": "Lussemburgo", "citizenship": "Lussemburghese", "iso": "LU", "phone": "+352", "flag": "🇱🇺" }, { "name": "Macedonia del Nord", "citizenship": "Macedone", "iso": "MK", "phone": "+389", "flag": "🇲🇰" }, { "name": "Madagascar", "citizenship": "Malgascia", "iso": "MG", "phone": "+261", "flag": "🇲🇬" }, { "name": "Malawi", "citizenship": "Malawiana", "iso": "MW", "phone": "+265", "flag": "🇲🇼" }, { "name": "Malaysia", "citizenship": "Malese", "iso": "MY", "phone": "+60", "flag": "🇲🇾" }, { "name": "Maldive", "citizenship": "Maldiviana", "iso": "MV", "phone": "+960", "flag": "🇲🇻" }, { "name": "Mali", "citizenship": "Maliana", "iso": "ML", "phone": "+223", "flag": "🇲🇱" }, { "name": "Malta", "citizenship": "Maltese", "iso": "MT", "phone": "+356", "flag": "🇲🇹" }, { "name": "Marocco", "citizenship": "Marocchina", "iso": "MA", "phone": "+212", "flag": "🇲🇦" }, { "name": "Mauritania", "citizenship": "Mauritana", "iso": "MR", "phone": "+222", "flag": "🇲🇷" }, { "name": "Mauritius", "citizenship": "Mauriziana", "iso": "MU", "phone": "+230", "flag": "🇲🇺" }, { "name": "Messico", "citizenship": "Messicana", "iso": "MX", "phone": "+52", "flag": "🇲🇽" }, { "name": "Micronesia", "citizenship": "Micronesiana", "iso": "FM", "phone": "+691", "flag": "🇫🇲" }, { "name": "Moldavia", "citizenship": "Moldava", "iso": "MD", "phone": "+373", "flag": "🇲🇩" }, { "name": "Monaco", "citizenship": "Monegasca", "iso": "MC", "phone": "+377", "flag": "🇲🇨" }, { "name": "Mongolia", "citizenship": "Mongola", "iso": "MN", "phone": "+976", "flag": "🇲🇳" }, { "name": "Montenegro", "citizenship": "Montenegrina", "iso": "ME", "phone": "+382", "flag": "🇲🇪" }, { "name": "Mozambico", "citizenship": "Mozambicana", "iso": "MZ", "phone": "+258", "flag": "🇲🇿" }, { "name": "Myanmar", "citizenship": "Birmana", "iso": "MM", "phone": "+95", "flag": "🇲🇲" }, { "name": "Namibia", "citizenship": "Namibiana", "iso": "NA", "phone": "+264", "flag": "🇳🇦" }, { "name": "Nauru", "citizenship": "Nauruana", "iso": "NR", "phone": "+674", "flag": "🇳🇷" }, { "name": "Nepal", "citizenship": "Nepalese", "iso": "NP", "phone": "+977", "flag": "🇳🇵" }, { "name": "Nessuno", "citizenship": "Apolide", "iso": "IT", "phone": "+39", "flag": "🇮🇹" }, { "name": "Nicaragua", "citizenship": "Nicaraguense", "iso": "NI", "phone": "+505", "flag": "🇳🇮" }, { "name": "Niger", "citizenship": "Nigerina", "iso": "NE", "phone": "+227", "flag": "🇳🇪" }, { "name": "Nigeria", "citizenship": "Nigeriana", "iso": "NG", "phone": "+234", "flag": "🇳🇬" }, { "name": "Norvegia", "citizenship": "Norvegese", "iso": "NO", "phone": "+47", "flag": "🇳🇴" }, { "name": "Nuova Zelanda", "citizenship": "Neozelandese", "iso": "NZ", "phone": "+64", "flag": "🇳🇿" }, { "name": "Oman", "citizenship": "Omanita", "iso": "OM", "phone": "+968", "flag": "🇴🇲" }, { "name": "Paesi Bassi", "citizenship": "Olandese", "iso": "NL", "phone": "+31", "flag": "🇳🇱" }, { "name": "Pakistan", "citizenship": "Pakistana", "iso": "PK", "phone": "+92", "flag": "🇵🇰" }, { "name": "Palau", "citizenship": "Palauana", "iso": "PW", "phone": "+680", "flag": "🇵🇼" }, { "name": "Palestina", "citizenship": "Palestinese", "iso": "PS", "phone": "+970", "flag": "🇵🇸" }, { "name": "Panama", "citizenship": "Panamense", "iso": "PA", "phone": "+507", "flag": "🇵🇦" }, { "name": "Papua Nuova Guinea", "citizenship": "Papua", "iso": "PG", "phone": "+675", "flag": "🇵🇬" }, { "name": "Paraguay", "citizenship": "Paraguayana", "iso": "PY", "phone": "+595", "flag": "🇵🇾" }, { "name": "Perù", "citizenship": "Peruviana", "iso": "PE", "phone": "+51", "flag": "🇵🇪" }, { "name": "Polonia", "citizenship": "Polacca", "iso": "PL", "phone": "+48", "flag": "🇵🇱" }, { "name": "Portogallo", "citizenship": "Portoghese", "iso": "PT", "phone": "+351", "flag": "🇵🇹" }, { "name": "Qatar", "citizenship": "Qatarina", "iso": "QA", "phone": "+974", "flag": "🇶🇦" }, { "name": "Regno Unito", "citizenship": "Britannica", "iso": "GB", "phone": "+44", "flag": "🇬🇧" }, { "name": "Repubblica Ceca", "citizenship": "Ceca", "iso": "CZ", "phone": "+420", "flag": "🇨🇿" }, { "name": "Repubblica Centrafricana", "citizenship": "Centrafricana", "iso": "CF", "phone": "+236", "flag": "🇨🇫" }, { "name": "Repubblica Dominicana", "citizenship": "Dominicana_RD", "iso": "DO", "phone": "+1809", "flag": "🇩🇴" }, { "name": "Romania", "citizenship": "Romena", "iso": "RO", "phone": "+40", "flag": "🇷🇴" }, { "name": "Ruanda", "citizenship": "Ruandese", "iso": "RW", "phone": "+250", "flag": "🇷🇼" }, { "name": "Russia", "citizenship": "Russa", "iso": "RU", "phone": "+7", "flag": "🇷🇺" }, { "name": "Saint Kitts e Nevis", "citizenship": "Nevisiana", "iso": "KN", "phone": "+1869", "flag": "🇰🇳" }, { "name": "Saint Lucia", "citizenship": "Luciana", "iso": "LC", "phone": "+1758", "flag": "🇱🇨" }, { "name": "Saint Vincent e Grenadine", "citizenship": "Vincentina", "iso": "VC", "phone": "+1784", "flag": "🇻🇨" }, { "name": "Samoa", "citizenship": "Samoana", "iso": "WS", "phone": "+685", "flag": "🇼🇸" }, { "name": "San Marino", "citizenship": "Sammarinese", "iso": "SM", "phone": "+378", "flag": "🇸🇲" }, { "name": "São Tomé e Príncipe", "citizenship": "Santomese", "iso": "ST", "phone": "+239", "flag": "🇸🇹" }, { "name": "Senegal", "citizenship": "Senegalese", "iso": "SN", "phone": "+221", "flag": "🇸🇳" }, { "name": "Serbia", "citizenship": "Serba", "iso": "RS", "phone": "+381", "flag": "🇷🇸" }, { "name": "Seychelles", "citizenship": "Seychellese", "iso": "SC", "phone": "+248", "flag": "🇸🇨" }, { "name": "Sierra Leone", "citizenship": "Sierraleonese", "iso": "SL", "phone": "+232", "flag": "🇸🇱" }, { "name": "Singapore", "citizenship": "Singaporiana", "iso": "SG", "phone": "+65", "flag": "🇸🇬" }, { "name": "Siria", "citizenship": "Siriana", "iso": "SY", "phone": "+963", "flag": "🇸🇾" }, { "name": "Slovacchia", "citizenship": "Slovacca", "iso": "SK", "phone": "+421", "flag": "🇸🇰" }, { "name": "Slovenia", "citizenship": "Slovena", "iso": "SI", "phone": "+386", "flag": "🇸🇮" }, { "name": "Somalia", "citizenship": "Somala", "iso": "SO", "phone": "+252", "flag": "🇸🇴" }, { "name": "Spagna", "citizenship": "Spagnola", "iso": "ES", "phone": "+34", "flag": "🇪🇸" }, { "name": "Sri Lanka", "citizenship": "Singalese", "iso": "LK", "phone": "+94", "flag": "🇱🇰" }, { "name": "Stati Uniti", "citizenship": "Statunitense", "iso": "US", "phone": "+1", "flag": "🇺🇸" }, { "name": "Sudafrica", "citizenship": "Sudafricana", "iso": "ZA", "phone": "+27", "flag": "🇿🇦" }, { "name": "Sudan", "citizenship": "Sudanese", "iso": "SD", "phone": "+249", "flag": "🇸🇩" }, { "name": "Sudan del Sud", "citizenship": "Sudsudanese", "iso": "SS", "phone": "+211", "flag": "🇸🇸" }, { "name": "Suriname", "citizenship": "Surinamese", "iso": "SR", "phone": "+597", "flag": "🇸🇷" }, { "name": "Svezia", "citizenship": "Svedese", "iso": "SE", "phone": "+46", "flag": "🇸🇪" }, { "name": "Svizzera", "citizenship": "Svizzera", "iso": "CH", "phone": "+41", "flag": "🇨🇭" }, { "name": "Tagikistan", "citizenship": "Tagika", "iso": "TJ", "phone": "+992", "flag": "🇹🇯" }, { "name": "Tanzania", "citizenship": "Tanzaniana", "iso": "TZ", "phone": "+255", "flag": "🇹🇿" }, { "name": "Thailandia", "citizenship": "Thailandese", "iso": "TH", "phone": "+66", "flag": "🇹🇭" }, { "name": "Timor Est", "citizenship": "Timorese", "iso": "TL", "phone": "+670", "flag": "🇹🇱" }, { "name": "Togo", "citizenship": "Togolese", "iso": "TG", "phone": "+228", "flag": "🇹🇬" }, { "name": "Tonga", "citizenship": "Tongana", "iso": "TO", "phone": "+676", "flag": "🇹🇴" }, { "name": "Trinidad e Tobago", "citizenship": "Trinidadiana", "iso": "TT", "phone": "+1868", "flag": "🇹🇹" }, { "name": "Tunisia", "citizenship": "Tunisina", "iso": "TN", "phone": "+216", "flag": "🇹🇳" }, { "name": "Turchia", "citizenship": "Turca", "iso": "TR", "phone": "+90", "flag": "🇹🇷" }, { "name": "Turkmenistan", "citizenship": "Turkmena", "iso": "TM", "phone": "+993", "flag": "🇹🇲" }, { "name": "Tuvalu", "citizenship": "Tuvaluana", "iso": "TV", "phone": "+688", "flag": "🇹🇻" }, { "name": "Ucraina", "citizenship": "Ucraina", "iso": "UA", "phone": "+380", "flag": "🇺🇦" }, { "name": "Uganda", "citizenship": "Ugandese", "iso": "UG", "phone": "+256", "flag": "🇺🇬" }, { "name": "Ungheria", "citizenship": "Ungherese", "iso": "HU", "phone": "+36", "flag": "🇭🇺" }, { "name": "Uruguay", "citizenship": "Uruguaiana", "iso": "UY", "phone": "+598", "flag": "🇺🇾" }, { "name": "Uzbekistan", "citizenship": "Uzbeka", "iso": "UZ", "phone": "+998", "flag": "🇺🇿" }, { "name": "Vanuatu", "citizenship": "Vanuatiana", "iso": "VU", "phone": "+678", "flag": "🇻🇺" }, { "name": "Vaticano", "citizenship": "Vaticana", "iso": "VA", "phone": "+39", "flag": "🇻🇦" }, { "name": "Venezuela", "citizenship": "Venezuelana", "iso": "VE", "phone": "+58", "flag": "🇻🇪" }, { "name": "Vietnam", "citizenship": "Vietnamita", "iso": "VN", "phone": "+84", "flag": "🇻🇳" }, { "name": "Yemen", "citizenship": "Yemenita", "iso": "YE", "phone": "+967", "flag": "🇾🇪" }, { "name": "Zambia", "citizenship": "Zambiana", "iso": "ZM", "phone": "+260", "flag": "🇿🇲" }, { "name": "Zimbabwe", "citizenship": "Zimbabwese", "iso": "ZW", "phone": "+263", "flag": "🇿🇼" }];
 
     // Inizializzazione pagina
     window.onload = function () {
@@ -1419,7 +1483,7 @@
       let found = false;
       for (let i = 0; i < selectEl.options.length; i++) {
         if (selectEl.options[i].value.trim().toLowerCase() === valStr.toLowerCase() ||
-            selectEl.options[i].textContent.trim().toLowerCase() === valStr.toLowerCase()) {
+          selectEl.options[i].textContent.trim().toLowerCase() === valStr.toLowerCase()) {
           selectEl.selectedIndex = i;
           found = true;
           break;
@@ -1448,8 +1512,8 @@
       for (let i = 0; i < list.length; i++) {
         const c = list[i];
         if (c.name.toLowerCase() === lower ||
-            c.citizenship.toLowerCase() === lower ||
-            c.iso.toLowerCase() === lower) {
+          c.citizenship.toLowerCase() === lower ||
+          c.iso.toLowerCase() === lower) {
           return c;
         }
       }
