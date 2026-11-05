@@ -167,6 +167,15 @@
       height: 1rem;
       border-width: 0.15em;
     }
+
+    .text-xs { font-size: 0.78rem; }
+    .text-2xs { font-size: 0.70rem; }
+
+    .invalid-feedback {
+      font-size: 0.76rem;
+      font-weight: 500;
+      margin-top: 3px;
+    }
   </style>
 </head>
 
@@ -619,8 +628,9 @@
             <div class="row g-3">
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Codice Fiscale *</label>
-                <input type="text" class="form-control" id="ben-cf" required maxlength="16"
-                  style="text-transform: uppercase;" oninput="validateAndDecodeCF('ben-')">
+                <input type="text" class="form-control text-uppercase" id="ben-cf" required maxlength="16"
+                  placeholder="Es. RSSMRA85M01H501Q" oninput="validateAndDecodeCF('ben-')" onblur="triggerValidationCF('ben-')">
+                <div class="invalid-feedback font-outfit" id="ben-cf-feedback"></div>
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Nome *</label>
@@ -632,7 +642,7 @@
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Data di Nascita *</label>
-                <input type="date" class="form-control" id="ben-data-nascita" required>
+                <input type="date" class="form-control" id="ben-data-nascita" required onchange="triggerValidationAnnoArrivo('ben-')">
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Luogo Nascita *</label>
@@ -648,11 +658,15 @@
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Telefono *</label>
-                <input type="text" class="form-control" id="ben-telefono" required>
+                <input type="text" class="form-control" id="ben-telefono" required placeholder="Es. 3331234567"
+                  oninput="triggerValidationTelefono('ben-')" onblur="triggerValidationTelefono('ben-')">
+                <div class="invalid-feedback font-outfit" id="ben-telefono-feedback"></div>
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Email</label>
-                <input type="email" class="form-control" id="ben-email">
+                <input type="email" class="form-control" id="ben-email" placeholder="email@esempio.it"
+                  oninput="triggerValidationEmail('ben-')" onblur="triggerValidationEmail('ben-')">
+                <div class="invalid-feedback font-outfit" id="ben-email-feedback"></div>
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Cittadinanza *</label>
@@ -690,7 +704,9 @@
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Anno Arrivo Italia</label>
-                <input type="number" class="form-control" id="ben-anno-arrivo" placeholder="2024">
+                <input type="number" class="form-control" id="ben-anno-arrivo" placeholder="Es. 2020" min="1900"
+                  oninput="triggerValidationAnnoArrivo('ben-')" onblur="triggerValidationAnnoArrivo('ben-')">
+                <div class="invalid-feedback font-outfit" id="ben-anno-arrivo-feedback"></div>
               </div>
               <div class="col-md-6">
                 <label class="form-label font-outfit small">Stato Lavorativo</label>
@@ -807,7 +823,8 @@
                   <div class="row g-2">
                     <div class="col-md-4 position-relative">
                       <label class="form-label font-outfit text-xs">Codice Fiscale *</label>
-                      <input type="text" class="form-control form-control-sm text-uppercase" id="nuc-ben-cf" placeholder="Es. RSSMRA85M01H501Z" maxlength="16" oninput="validateAndDecodeCF('nuc-ben-')">
+                      <input type="text" class="form-control form-control-sm text-uppercase" id="nuc-ben-cf" placeholder="Es. RSSMRA85M01H501Q" maxlength="16" oninput="validateAndDecodeCF('nuc-ben-')" onblur="triggerValidationCF('nuc-ben-')">
+                      <div class="invalid-feedback font-outfit" id="nuc-ben-cf-feedback"></div>
                       <div class="form-text text-2xs text-muted">Decodifica automatica istantanea</div>
                     </div>
                     <div class="col-md-4">
@@ -820,7 +837,7 @@
                     </div>
                     <div class="col-md-3">
                       <label class="form-label font-outfit text-xs">Data di Nascita *</label>
-                      <input type="date" class="form-control form-control-sm" id="nuc-ben-data-nascita">
+                      <input type="date" class="form-control form-control-sm" id="nuc-ben-data-nascita" onchange="triggerValidationAnnoArrivo('nuc-ben-')">
                     </div>
                     <div class="col-md-3">
                       <label class="form-label font-outfit text-xs">Luogo Nascita *</label>
@@ -835,11 +852,15 @@
                     </div>
                     <div class="col-md-4">
                       <label class="form-label font-outfit text-xs">Telefono *</label>
-                      <input type="text" class="form-control form-control-sm" id="nuc-ben-telefono" placeholder="Cellulare">
+                      <input type="text" class="form-control form-control-sm" id="nuc-ben-telefono" placeholder="Es. 3331234567"
+                        oninput="triggerValidationTelefono('nuc-ben-')" onblur="triggerValidationTelefono('nuc-ben-')">
+                      <div class="invalid-feedback font-outfit" id="nuc-ben-telefono-feedback"></div>
                     </div>
                     <div class="col-md-4">
                       <label class="form-label font-outfit text-xs">Email</label>
-                      <input type="email" class="form-control form-control-sm" id="nuc-ben-email" placeholder="email@esempio.it">
+                      <input type="email" class="form-control form-control-sm" id="nuc-ben-email" placeholder="email@esempio.it"
+                        oninput="triggerValidationEmail('nuc-ben-')" onblur="triggerValidationEmail('nuc-ben-')">
+                      <div class="invalid-feedback font-outfit" id="nuc-ben-email-feedback"></div>
                     </div>
                     <div class="col-md-4">
                       <label class="form-label font-outfit text-xs">Cittadinanza *</label>
@@ -867,7 +888,9 @@
                     </div>
                     <div class="col-md-4">
                       <label class="form-label font-outfit text-xs">Anno Arrivo in Italia</label>
-                      <input type="number" class="form-control form-control-sm" id="nuc-ben-anno-arrivo" placeholder="Es. 2020">
+                      <input type="number" class="form-control form-control-sm" id="nuc-ben-anno-arrivo" placeholder="Es. 2020" min="1900"
+                        oninput="triggerValidationAnnoArrivo('nuc-ben-')" onblur="triggerValidationAnnoArrivo('nuc-ben-')">
+                      <div class="invalid-feedback font-outfit" id="nuc-ben-anno-arrivo-feedback"></div>
                     </div>
 
                     <!-- Documenti Personali -->
@@ -1614,6 +1637,7 @@
      */
     function openAddNucleoModal() {
       document.getElementById('nucleo-form').reset();
+      resetFormValidationUI('nuc-ben-');
       document.getElementById('nuc-id').value = '';
       document.getElementById('nuc-richiesta').value = '';
       document.getElementById('nuc-abitazione').value = '';
@@ -1679,6 +1703,256 @@
       new bootstrap.Modal(document.getElementById('modal-nucleo')).show();
     }
 
+    // =========================================================================
+    // MODULO VALIDAZIONE FRONTEND (CF, TELEFONO, EMAIL, ANNO ARRIVO)
+    // =========================================================================
+
+    /**
+     * Valida la struttura formale e il carattere di controllo (CIN) del Codice Fiscale.
+     * Supporta caratteri di omocodia standard.
+     * @param {string} cf
+     * @return {{ valid: boolean; message: string }}
+     */
+    function validateCodiceFiscale(cf) {
+      if (!cf || typeof cf !== 'string') {
+        return { valid: false, message: "Il Codice Fiscale è obbligatorio." };
+      }
+      const val = cf.trim().toUpperCase();
+      if (val.length !== 16) {
+        return { valid: false, message: "Il Codice Fiscale deve contenere esattamente 16 caratteri." };
+      }
+      const regex = /^[A-Z]{6}[0-9LMNPQRSTUV]{2}[A-EHLMPRST]{1}[0-9LMNPQRSTUV]{2}[A-Z]{1}[0-9LMNPQRSTUV]{3}[A-Z]{1}$/;
+      if (!regex.test(val)) {
+        return { valid: false, message: "Formato Codice Fiscale non valido (combinazione lettere/numeri errata)." };
+      }
+
+      const mappaDispari = {
+        'A': 1, 'B': 0, 'C': 5, 'D': 7, 'E': 9, 'F': 13, 'G': 15, 'H': 17, 'I': 19, 'J': 21,
+        'K': 2, 'L': 4, 'M': 18, 'N': 20, 'O': 11, 'P': 3, 'Q': 6, 'R': 8, 'S': 12, 'T': 14,
+        'U': 16, 'V': 10, 'W': 22, 'X': 25, 'Y': 24, 'Z': 23,
+        '0': 1, '1': 0, '2': 5, '3': 7, '4': 9, '5': 13, '6': 15, '7': 17, '8': 19, '9': 21
+      };
+      const mappaPari = {
+        'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5, 'G': 6, 'H': 7, 'I': 8, 'J': 9,
+        'K': 10, 'L': 11, 'M': 12, 'N': 13, 'O': 14, 'P': 15, 'Q': 16, 'R': 17, 'S': 18, 'T': 19,
+        'U': 20, 'V': 21, 'W': 22, 'X': 23, 'Y': 24, 'Z': 25,
+        '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9
+      };
+
+      let somma = 0;
+      for (let i = 0; i < 15; i++) {
+        const ch = val.charAt(i);
+        const p = (i % 2 === 0) ? mappaDispari[ch] : mappaPari[ch];
+        if (p === undefined) return { valid: false, message: "Carattere non consentito nel Codice Fiscale." };
+        somma += p;
+      }
+      const cin = String.fromCharCode(65 + (somma % 26));
+      if (cin !== val.charAt(15)) {
+        return { valid: false, message: "Carattere di controllo CIN errato (atteso '" + cin + "', presente '" + val.charAt(15) + "')." };
+      }
+      return { valid: true, message: "" };
+    }
+
+    /**
+     * Valida il numero di telefono.
+     * @param {string} telefono
+     * @param {boolean} [required=true]
+     * @return {{ valid: boolean; message: string }}
+     */
+    function validateTelefono(telefono, required = true) {
+      const val = (telefono || '').trim();
+      if (!val) {
+        if (required) return { valid: false, message: "Il numero di telefono è obbligatorio." };
+        return { valid: true, message: "" };
+      }
+      const phoneCharsRegex = /^(\+?[0-9\s\-\.\(\)]{6,25})$/;
+      if (!phoneCharsRegex.test(val)) {
+        return { valid: false, message: "Il telefono contiene caratteri non validi (ammessi solo cifre, +, spazi, trattini)." };
+      }
+      const digitsOnly = val.replace(/\D/g, '');
+      if (digitsOnly.length < 6 || digitsOnly.length > 15) {
+        return { valid: false, message: "Numero di telefono non valido (" + digitsOnly.length + " cifre; consentite tra 6 e 15 cifre)." };
+      }
+      return { valid: true, message: "" };
+    }
+
+    /**
+     * Valida l'indirizzo email (se fornito).
+     * @param {string} email
+     * @return {{ valid: boolean; message: string }}
+     */
+    function validateEmail(email) {
+      const val = (email || '').trim();
+      if (!val) return { valid: true, message: "" };
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(val)) {
+        return { valid: false, message: "Formato email non valido (es. nome@dominio.it)." };
+      }
+      return { valid: true, message: "" };
+    }
+
+    /**
+     * Valida l'anno di arrivo in Italia (se inserito).
+     * Deve essere un intero a 4 cifre compreso tra 1900 e l'anno corrente,
+     * e non deve essere anteriore all'anno di nascita.
+     * @param {string|number} anno
+     * @param {string|null} [dataNascita]
+     * @return {{ valid: boolean; message: string }}
+     */
+    function validateAnnoArrivo(anno, dataNascita = null) {
+      if (anno === null || anno === undefined || String(anno).trim() === '') {
+        return { valid: true, message: "" };
+      }
+      const num = parseInt(anno, 10);
+      const currentYear = new Date().getFullYear();
+      if (isNaN(num) || num < 1900 || num > currentYear) {
+        return { valid: false, message: "L'anno di arrivo deve essere compreso tra il 1900 e il " + currentYear + "." };
+      }
+
+      if (dataNascita) {
+        let birthYear = null;
+        if (typeof dataNascita === 'string' && dataNascita.length >= 4) {
+          birthYear = parseInt(dataNascita.substring(0, 4), 10);
+        }
+        if (birthYear && !isNaN(birthYear) && num < birthYear) {
+          return { valid: false, message: "L'anno di arrivo (" + num + ") non può precedere l'anno di nascita (" + birthYear + ")." };
+        }
+      }
+      return { valid: true, message: "" };
+    }
+
+    /**
+     * Applica le classi Bootstrap is-invalid o is-valid all'input e aggiorna il testo di errore.
+     * @param {string} inputId
+     * @param {string} feedbackId
+     * @param {{ valid: boolean; message: string }} result
+     */
+    function applyValidationUI(inputId, feedbackId, result) {
+      const input = document.getElementById(inputId);
+      const feedback = document.getElementById(feedbackId);
+      if (!input) return;
+
+      if (result.valid) {
+        input.classList.remove('is-invalid');
+        if (input.value.trim() !== '') {
+          input.classList.add('is-valid');
+        } else {
+          input.classList.remove('is-valid');
+        }
+        if (feedback) feedback.textContent = '';
+      } else {
+        input.classList.remove('is-valid');
+        input.classList.add('is-invalid');
+        if (feedback) feedback.textContent = result.message;
+      }
+    }
+
+    function triggerValidationCF(prefix = 'ben-') {
+      const input = document.getElementById(prefix + 'cf');
+      if (!input) return;
+      const res = validateCodiceFiscale(input.value);
+      applyValidationUI(prefix + 'cf', prefix + 'cf-feedback', res);
+    }
+
+    function triggerValidationTelefono(prefix = 'ben-') {
+      const input = document.getElementById(prefix + 'telefono');
+      if (!input) return;
+      const isRequired = input.hasAttribute('required');
+      const res = validateTelefono(input.value, isRequired);
+      applyValidationUI(prefix + 'telefono', prefix + 'telefono-feedback', res);
+    }
+
+    function triggerValidationEmail(prefix = 'ben-') {
+      const input = document.getElementById(prefix + 'email');
+      if (!input) return;
+      const res = validateEmail(input.value);
+      applyValidationUI(prefix + 'email', prefix + 'email-feedback', res);
+    }
+
+    function triggerValidationAnnoArrivo(prefix = 'ben-') {
+      const input = document.getElementById(prefix + 'anno-arrivo');
+      const dateEl = document.getElementById(prefix + 'data-nascita');
+      if (!input) return;
+      const res = validateAnnoArrivo(input.value, dateEl ? dateEl.value : null);
+      applyValidationUI(prefix + 'anno-arrivo', prefix + 'anno-arrivo-feedback', res);
+    }
+
+    /**
+     * Esegue la validazione cumulativa prima dell'invio dei dati del beneficiario.
+     * @param {string} prefix - 'ben-' o 'nuc-ben-'
+     * @return {boolean}
+     */
+    function validateBeneficiaryForm(prefix = 'ben-') {
+      let isFormValid = true;
+      let firstInvalidEl = null;
+
+      // 1. CF
+      const cfInput = document.getElementById(prefix + 'cf');
+      if (cfInput) {
+        const cfRes = validateCodiceFiscale(cfInput.value);
+        applyValidationUI(prefix + 'cf', prefix + 'cf-feedback', cfRes);
+        if (!cfRes.valid) {
+          isFormValid = false;
+          if (!firstInvalidEl) firstInvalidEl = cfInput;
+        }
+      }
+
+      // 2. Telefono
+      const telInput = document.getElementById(prefix + 'telefono');
+      if (telInput) {
+        const isRequired = telInput.hasAttribute('required');
+        const telRes = validateTelefono(telInput.value, isRequired);
+        applyValidationUI(prefix + 'telefono', prefix + 'telefono-feedback', telRes);
+        if (!telRes.valid) {
+          isFormValid = false;
+          if (!firstInvalidEl) firstInvalidEl = telInput;
+        }
+      }
+
+      // 3. Email
+      const emailInput = document.getElementById(prefix + 'email');
+      if (emailInput) {
+        const emailRes = validateEmail(emailInput.value);
+        applyValidationUI(prefix + 'email', prefix + 'email-feedback', emailRes);
+        if (!emailRes.valid) {
+          isFormValid = false;
+          if (!firstInvalidEl) firstInvalidEl = emailInput;
+        }
+      }
+
+      // 4. Anno Arrivo
+      const annoInput = document.getElementById(prefix + 'anno-arrivo');
+      const dateInput = document.getElementById(prefix + 'data-nascita');
+      if (annoInput) {
+        const annoRes = validateAnnoArrivo(annoInput.value, dateInput ? dateInput.value : null);
+        applyValidationUI(prefix + 'anno-arrivo', prefix + 'anno-arrivo-feedback', annoRes);
+        if (!annoRes.valid) {
+          isFormValid = false;
+          if (!firstInvalidEl) firstInvalidEl = annoInput;
+        }
+      }
+
+      if (!isFormValid && firstInvalidEl) {
+        firstInvalidEl.focus();
+        showToast("Verificare i campi evidenziati in rosso prima di procedere.", "error");
+      }
+
+      return isFormValid;
+    }
+
+    /**
+     * Resetta le classi di validazione e i messaggi di feedback per un dato prefisso form.
+     * @param {string} prefix
+     */
+    function resetFormValidationUI(prefix = 'ben-') {
+      ['cf', 'telefono', 'email', 'anno-arrivo'].forEach(field => {
+        const input = document.getElementById(prefix + field);
+        if (input) input.classList.remove('is-invalid', 'is-valid');
+        const feedback = document.getElementById(prefix + field + '-feedback');
+        if (feedback) feedback.textContent = '';
+      });
+    }
+
     /**
      * Gestisce la sottomissione del modulo nucleo (creazione o modifica).
      * Invia i dati unificati a submitNucleoCompleto, garantendo atomicità.
@@ -1686,12 +1960,19 @@
      */
     function handleNucleoSubmit(e) {
       e.preventDefault();
+      const isNuovoIntestatario = document.getElementById('nuc-mode-nuovo') ? document.getElementById('nuc-mode-nuovo').checked : false;
+
+      // Se in modalità nuovo intestatario, valida rigorosamente i campi anagrafici
+      if (isNuovoIntestatario) {
+        if (!validateBeneficiaryForm('nuc-ben-')) {
+          return;
+        }
+      }
+
       const submitBtn = document.getElementById('btn-nuc-submit');
       const spin = document.getElementById('spin-nucleo');
       submitBtn.disabled = true;
       if (spin) spin.classList.remove('d-none');
-
-      const isNuovoIntestatario = document.getElementById('nuc-mode-nuovo') ? document.getElementById('nuc-mode-nuovo').checked : false;
 
       const payload = {
         isNuovoIntestatario: isNuovoIntestatario,
@@ -1769,6 +2050,7 @@
     // Gestione Membro (Modal)
     function openAddMemberModal(nucleoId) {
       document.getElementById('modal-ben-form').reset();
+      resetFormValidationUI('ben-');
       document.getElementById('ben-id-nucleo').value = nucleoId;
       document.getElementById('ben-is-update').value = 'false';
       document.getElementById('ben-cf').disabled = false;
@@ -1793,6 +2075,7 @@
       }
 
       document.getElementById('modal-ben-form').reset();
+      resetFormValidationUI('ben-');
       document.getElementById('ben-is-update').value = 'true';
       document.getElementById('ben-id-nucleo').value = ben.idNucleo || '';
 
@@ -1833,6 +2116,9 @@
 
     function handleModalBenSubmit(e) {
       e.preventDefault();
+      if (!validateBeneficiaryForm('ben-')) {
+        return;
+      }
       const submitBtn = document.getElementById('btn-modal-ben-submit');
       submitBtn.disabled = true;
 
@@ -1906,26 +2192,55 @@
       const cfInput = document.getElementById(prefix + 'cf');
       if (!cfInput) return;
       const cf = cfInput.value.toUpperCase().trim();
-      if (cf.length === 16) {
-        cfInput.disabled = true;
-        google.script.run
-          .withSuccessHandler(function (res) {
-            cfInput.disabled = false;
-            if (res.success) {
-              const dateEl = document.getElementById(prefix + 'data-nascita');
-              const luogoEl = document.getElementById(prefix + 'luogo-nascita');
-              const sessoEl = document.getElementById(prefix + 'sesso');
-              if (dateEl && res.dataNascita) dateEl.value = res.dataNascita;
-              if (luogoEl && res.luogoNascita) luogoEl.value = res.luogoNascita;
-              if (sessoEl && res.sesso) sessoEl.value = res.sesso;
-              showToast("Codice Fiscale decodificato!", "success");
-            }
-          })
-          .withFailureHandler(function () {
-            cfInput.disabled = false;
-          })
-          .decodeCF(cf);
+      const feedbackId = prefix + 'cf-feedback';
+
+      if (cf.length === 0) {
+        cfInput.classList.remove('is-invalid', 'is-valid');
+        const feedback = document.getElementById(feedbackId);
+        if (feedback) feedback.textContent = '';
+        return;
       }
+
+      if (cf.length < 16) {
+        cfInput.classList.remove('is-valid');
+        // Rimuove lo stato di errore mentre l'utente sta digitando
+        cfInput.classList.remove('is-invalid');
+        const feedback = document.getElementById(feedbackId);
+        if (feedback) feedback.textContent = '';
+        return;
+      }
+
+      // Con 16 caratteri eseguiamo la validazione formale + calcolo CIN
+      const check = validateCodiceFiscale(cf);
+      applyValidationUI(prefix + 'cf', feedbackId, check);
+
+      if (!check.valid) {
+        showToast("Codice Fiscale non valido: " + check.message, "error");
+        return;
+      }
+
+      // Se valido, avvia la decodifica su server (Belfiore, Data, Sesso)
+      cfInput.disabled = true;
+      google.script.run
+        .withSuccessHandler(function (res) {
+          cfInput.disabled = false;
+          if (res.success) {
+            const dateEl = document.getElementById(prefix + 'data-nascita');
+            const luogoEl = document.getElementById(prefix + 'luogo-nascita');
+            const sessoEl = document.getElementById(prefix + 'sesso');
+            if (dateEl && res.dataNascita) {
+              dateEl.value = res.dataNascita;
+              triggerValidationAnnoArrivo(prefix);
+            }
+            if (luogoEl && res.luogoNascita) luogoEl.value = res.luogoNascita;
+            if (sessoEl && res.sesso) sessoEl.value = res.sesso;
+            showToast("Codice Fiscale valido e decodificato!", "success");
+          }
+        })
+        .withFailureHandler(function () {
+          cfInput.disabled = false;
+        })
+        .decodeCF(cf);
     }
 
     // =========================================================================
