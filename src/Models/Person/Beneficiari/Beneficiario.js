@@ -57,14 +57,17 @@ class Beneficiario extends Person {
     this.rapportoIntestatario = data.rapportoIntestatario || "";
     this.statoCivile = data.statoCivile || "";
     this.annoArrivo = data.annoArrivo !== undefined && data.annoArrivo !== null ? Number(data.annoArrivo) : null;
+    this.idCartella = data.idCartella || "";
+    this.firma = data.firma || data.documents?.firma || "";
 
     /** @type {PersonDocuments} */
     this.documents = {
       cartaIdentita: data.documents?.cartaIdentita || data.cartaIdentita || "Non posseduto",
-      passaporto: !!(data.documents?.passaporto !== undefined ? data.documents.passaporto : data.passaporto),
-      patente: !!(data.documents?.patente !== undefined ? data.documents.patente : data.patente),
-      permessoSoggiorno: !!(data.documents?.permessoSoggiorno !== undefined ? data.documents.permessoSoggiorno : data.permessoSoggiorno),
-      tesseraSanitaria: !!(data.documents?.tesseraSanitaria !== undefined ? data.documents.tesseraSanitaria : data.tesseraSanitaria)
+      passaporto: data.documents?.passaporto !== undefined ? data.documents.passaporto : (data.passaporto || false),
+      patente: data.documents?.patente !== undefined ? data.documents.patente : (data.patente || false),
+      permessoSoggiorno: data.documents?.permessoSoggiorno !== undefined ? data.documents.permessoSoggiorno : (data.permessoSoggiorno || false),
+      tesseraSanitaria: data.documents?.tesseraSanitaria !== undefined ? data.documents.tesseraSanitaria : (data.tesseraSanitaria || false),
+      firma: this.firma
     };
   }
 
@@ -109,6 +112,22 @@ class Beneficiario extends Person {
       return s === "true" || s === "si" || s === "sì" || s === "1" || s === "x" || s === "v" || s === "checked";
     };
 
+    const toDocVal = (...keys) => {
+      const v = getCell(...keys);
+      if (v === null || v === undefined || v === "") return false;
+      if (typeof v === "boolean") return v;
+      if (typeof v === "number") return v === 1;
+      const s = String(v).trim();
+      const lower = s.toLowerCase();
+      if (lower === "true" || lower === "si" || lower === "sì" || lower === "1" || lower === "x" || lower === "v" || lower === "checked") {
+        return true;
+      }
+      if (lower === "false" || lower === "no" || lower === "0") {
+        return false;
+      }
+      return s; // Contiene ID file Drive
+    };
+
     const toNum = (...keys) => {
       const v = getCell(...keys);
       if (v === null || v === undefined || v === "") return null;
@@ -137,10 +156,12 @@ class Beneficiario extends Person {
     const assistenteSocialeVal = getStr("assistenteSociale", "in carico ai servizi", "in carico", "servizi");
     const rapportoIntestatarioVal = getStr("rapportoIntestatario", "rapporto con intestatario del nucleo familiare", "rapporto intestatario", "rapporto");
     const cartaIdentitaVal = getStr("cartaIdentita", "carta identità", "carta d'identità", "ci") || "Non posseduto";
-    const passaportoVal = toBool("passaporto");
-    const patenteVal = toBool("patente");
-    const permessoSoggiornoVal = toBool("permessoSoggiorno", "permesso di soggiorno", "permesso soggiorno");
-    const tesseraSanitariaVal = toBool("tesseraSanitaria", "tessera sanitaria");
+    const passaportoVal = toDocVal("passaporto");
+    const patenteVal = toDocVal("patente");
+    const permessoSoggiornoVal = toDocVal("permessoSoggiorno", "permesso di soggiorno", "permesso soggiorno");
+    const tesseraSanitariaVal = toDocVal("tesseraSanitaria", "tessera sanitaria");
+    const firmaVal = getStr("firma", "id firma", "firma id", "firma autografa");
+    const idCartellaVal = getStr("idCartella", "id cartella drive", "id cartella", "cartella drive", "cartella");
     const statoCivileVal = getStr("statoCivile", "stato civile");
     const annoArrivoVal = toNum("annoArrivo", "anno arrivo in italia", "anno arrivo", "arrivo italia");
     const idNucleoVal = getStr("idNucleo", "nucleo familiare", "id nucleo", "nucleo");
@@ -164,6 +185,8 @@ class Beneficiario extends Person {
       phone: telefonoVal || null,
       citizenship: cittadinanzaVal || null,
       idNucleo: idNucleoVal,
+      idCartella: idCartellaVal,
+      firma: firmaVal,
       statoLavorativo: statoLavorativoVal,
       titoloStudio: titoloStudioVal,
       residenza: residenzaVal,
@@ -177,7 +200,8 @@ class Beneficiario extends Person {
         passaporto: passaportoVal,
         patente: patenteVal,
         permessoSoggiorno: permessoSoggiornoVal,
-        tesseraSanitaria: tesseraSanitariaVal
+        tesseraSanitaria: tesseraSanitariaVal,
+        firma: firmaVal
       }
     });
   }

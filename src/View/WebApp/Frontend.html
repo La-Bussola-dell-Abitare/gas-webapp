@@ -1035,6 +1035,36 @@
                     <option value="elettronica">Elettronica</option>
                   </select>
                 </div>
+
+                <!-- Fascicolo Digitale e Firma Autografa -->
+                <div class="mt-4 pt-3 border-top" id="ben-drive-section">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="font-outfit m-0">📁 Fascicolo Google Drive</h6>
+                    <button type="button" class="btn btn-xs btn-outline-info" id="btn-modal-open-folder" onclick="handleModalOpenBeneficiaryFolder(this)">
+                      Apri Cartella Personale
+                    </button>
+                  </div>
+                  
+                  <div class="card bg-light p-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <strong class="small">Firma Autografa:</strong>
+                        <span id="ben-firma-status-badge" class="badge bg-secondary ms-1">Non acquisita</span>
+                      </div>
+                      <button type="button" class="btn btn-xs btn-outline-primary" id="btn-modal-ben-firma" onclick="handleModalOpenSignature()">
+                        ✍️ Acquisisci / Aggiorna
+                      </button>
+                    </div>
+                    <div id="ben-firma-preview-container" class="mt-2 text-center d-none">
+                      <div class="border rounded bg-white p-2 d-inline-block">
+                        <img id="ben-firma-img" src="" alt="Firma Beneficiario" style="max-height: 50px; max-width: 100%; object-fit: contain;">
+                      </div>
+                      <div class="mt-1">
+                        <a id="ben-firma-link" href="#" target="_blank" class="text-xs text-primary">Visualizza file firma su Google Drive</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             <div class="modal-footer px-0 pb-0 mt-4">
@@ -1302,6 +1332,73 @@
     </div>
   </div>
 
+  <!-- Modal Acquisizione Firma Autografa -->
+  <div class="modal fade" id="modal-signature" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-light">
+          <div>
+            <h5 class="modal-title font-outfit m-0">✍️ Acquisizione Firma Autografa</h5>
+            <div class="text-xs text-muted" id="signature-beneficiary-info">Beneficiario: -</div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-3">
+          <!-- Avviso se intestatario del nucleo -->
+          <div id="signature-intestatario-alert" class="alert alert-warning py-2 px-3 small d-none">
+            <i class="bi bi-info-circle-fill text-warning me-1"></i>
+            <strong>Nota importante:</strong> L'intestatario del nucleo è il firmatario designato per il <em>Diario Giornaliero</em> e il <em>Foglio Firme Intervento Individuale</em>.
+          </div>
+
+          <!-- Anteprima firma esistente se presente -->
+          <div id="signature-existing-preview" class="border rounded p-2 text-center mb-3 bg-light d-none">
+            <div class="text-xs text-muted mb-1">Firma attualmente archiviata:</div>
+            <div class="p-2 bg-white rounded border d-inline-block">
+              <img id="signature-existing-img" src="" alt="Firma Beneficiario" style="max-height: 70px; max-width: 100%; object-fit: contain;">
+            </div>
+            <div class="mt-2">
+              <a id="signature-drive-link" href="#" target="_blank" class="btn btn-xs btn-outline-primary py-0 px-2">Visualizza file su Google Drive</a>
+            </div>
+          </div>
+
+          <!-- Canvas Signature Pad -->
+          <label class="form-label font-outfit small d-flex justify-content-between align-items-center mb-1">
+            <span>Disegna la firma (con <strong>mouse</strong>, <strong>touch</strong> o <strong>penna</strong>):</span>
+            <span class="text-muted text-xs">Formato PNG trasparente</span>
+          </label>
+          <div class="signature-pad-wrapper position-relative border rounded bg-white shadow-sm" style="height: 220px; touch-action: none; cursor: crosshair;">
+            <canvas id="signature-canvas" style="width: 100%; height: 100%; display: block;"></canvas>
+            <div class="position-absolute bottom-0 start-0 w-100 text-center pb-2 text-muted opacity-50 small" style="pointer-events: none; border-top: 1px dashed #cbd5e1; margin-bottom: 30px;">
+              linea base di firma
+            </div>
+          </div>
+
+          <!-- Controlli Canvas e Upload file -->
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearSignatureCanvas()">
+              <i class="bi bi-eraser me-1"></i>Cancella / Pulisci
+            </button>
+            <div>
+              <input type="file" id="signature-file-input" accept="image/png,image/jpeg" class="d-none" onchange="handleSignatureFileUpload(event)">
+              <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('signature-file-input').click()">
+                <i class="bi bi-upload me-1"></i>Carica da Immagine
+              </button>
+            </div>
+          </div>
+
+          <div id="signature-save-feedback" class="mt-2 text-center text-xs"></div>
+        </div>
+        <div class="modal-footer bg-light py-2">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Chiudi</button>
+          <button type="button" class="btn btn-success btn-sm font-outfit px-3" id="btn-save-signature" onclick="saveSignatureToServer()">
+            <span class="spinner-border spinner-border-sm me-1 d-none" id="spin-signature"></span>
+            <span id="btn-save-signature-text">💾 Salva Firma nel Drive</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="toast-container-custom" id="toast-container"></div>
 
   <!-- Bootstrap and Client Scripts -->
@@ -1325,6 +1422,7 @@
     window.onload = function () {
       try {
         initNavigation();
+        setupSignaturePad();
       } catch (e) {
         console.warn('Init navigation error:', e);
       }
@@ -2360,6 +2458,43 @@
           });
         }).length;
 
+        // Calcolo stato firma intestatario nucleo
+        const intestatarioMember = members.find(m => isMemberIntestatario(m, n));
+        const intestatarioHasSig = intestatarioMember && Boolean(intestatarioMember.firma);
+        const intestatarioCF = intestatarioMember ? (intestatarioMember.cf || '') : (n.intestatario ? (n.intestatario.match(/\b([A-Za-z0-9]{16})\b/)?.[1] || '') : '');
+        let intestatarioSignatureBanner = '';
+        if (intestatarioCF) {
+          if (intestatarioHasSig) {
+            intestatarioSignatureBanner = `
+              <div class="alert alert-success d-flex justify-content-between align-items-center py-1 px-2 mb-2 small">
+                <div>
+                  <i class="bi bi-check-circle-fill text-success me-1"></i>
+                  <strong>Firma Intestatario:</strong> <span class="text-success fw-semibold">Archiviata su Drive</span>
+                </div>
+                <div>
+                  <button class="btn btn-xs btn-outline-success py-0 px-2" onclick="openSignatureModal('${intestatarioCF}')">
+                    ✍️ Vedi / Aggiorna
+                  </button>
+                </div>
+              </div>
+            `;
+          } else {
+            intestatarioSignatureBanner = `
+              <div class="alert alert-warning d-flex justify-content-between align-items-center py-1 px-2 mb-2 small">
+                <div>
+                  <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+                  <strong>Firma Intestatario:</strong> <span class="text-danger fw-semibold">Mancante</span> (richiesta per Diario e Foglio Firme)
+                </div>
+                <div>
+                  <button class="btn btn-xs btn-warning py-0 px-2 fw-semibold" onclick="openSignatureModal('${intestatarioCF}')">
+                    ✍️ Acquisisci Firma Intestatario
+                  </button>
+                </div>
+              </div>
+            `;
+          }
+        }
+
         const card = document.createElement('div');
         card.className = 'card card-custom mb-3';
 
@@ -2376,6 +2511,8 @@
                 <div class="mt-1">${badge}</div>
               </div>
               <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-info py-0 px-2 btn-xs" onclick="openBeneficiarioDriveFolder('${m.cf}', this)" title="Apri Cartella Drive Personale">📁 Cartella</button>
+                <button class="btn ${m.firma ? 'btn-outline-success' : 'btn-outline-warning'} py-0 px-2 btn-xs" onclick="openSignatureModal('${m.cf}')" title="Firma Autografa">${m.firma ? '✍️ Firma' : '✍️ +Firma'}</button>
                 <button class="btn btn-outline-secondary py-0 px-2 btn-xs" onclick="openEditMemberModal('${m.cf}')">Modifica</button>
                 <button class="btn btn-outline-danger py-0 px-2 btn-xs" onclick="handleRemoveMember('${m.cf}')">Rimuovi</button>
               </div>
@@ -2390,11 +2527,13 @@
               <div class="text-xs text-muted m-0">Intestatario CF: ${n.intestatario}</div>
             </div>
             <div>
+              <button class="btn btn-outline-success btn-xs py-0 px-2 me-1" onclick="openNucleoDriveFolder('${n.id}', this)" title="Apri Cartella Google Drive del Nucleo">📁 Cartella Nucleo</button>
               <button class="btn btn-outline-primary btn-xs py-0 px-2 me-1" onclick="openAddMemberModal('${n.id}')">+ Aggiungi Persona</button>
               <button class="btn btn-outline-secondary btn-xs py-0 px-2" onclick="editNucleoUI('${encodeURIComponent(JSON.stringify(n))}')">Modifica Nucleo</button>
             </div>
           </div>
           <div class="card-body">
+            ${intestatarioSignatureBanner}
             <div class="row small mb-3">
               <div class="col-md-4"><strong>ISEE:</strong> €${n.isee || 'Non specificato'}</div>
               <div class="col-md-8"><strong>Residenza:</strong> ${n.residenza}</div>
@@ -2962,6 +3101,25 @@
       document.getElementById('ben-doc-tessera').checked = !!ben.tesseraSanitaria;
       document.getElementById('ben-doc-carta').value = ben.cartaIdentita || 'Non posseduto';
 
+      // Aggiornamento stato firma e fascicolo Drive
+      const firmaBadge = document.getElementById('ben-firma-status-badge');
+      const firmaPreview = document.getElementById('ben-firma-preview-container');
+      const firmaLink = document.getElementById('ben-firma-link');
+      const firmaImg = document.getElementById('ben-firma-img');
+      if (firmaBadge) {
+        if (ben.firma) {
+          firmaBadge.className = 'badge bg-success ms-1';
+          firmaBadge.textContent = 'Archiviata';
+          if (firmaPreview) firmaPreview.classList.remove('d-none');
+          if (firmaLink) firmaLink.href = 'https://drive.google.com/file/d/' + ben.firma + '/view';
+          if (firmaImg) firmaImg.src = 'https://drive.google.com/thumbnail?id=' + ben.firma + '&sz=w300';
+        } else {
+          firmaBadge.className = 'badge bg-warning text-dark ms-1';
+          firmaBadge.textContent = 'Non acquisita';
+          if (firmaPreview) firmaPreview.classList.add('d-none');
+        }
+      }
+
       document.getElementById('modal-ben-title').textContent = `Modifica Membro: ${ben.nome} ${ben.cognome}`;
       new bootstrap.Modal(document.getElementById('modal-beneficiario')).show();
     }
@@ -3356,7 +3514,282 @@
 
     // Inizializzazione immediata prefissi all'avvio dello script
     try { initPhonePrefixDropdowns(); } catch (e) { console.warn('Init phone prefix early:', e); }
-  </script>
+  
+    // =========================================================================
+    // GOOGLE DRIVE & SIGNATURE PAD CONTROLLERS
+    // =========================================================================
+    let signatureCanvas = null;
+    let signatureCtx = null;
+    let isDrawingSignature = false;
+    let hasSignatureDrawn = false;
+    let currentSignatureCF = '';
+
+    function setupSignaturePad() {
+      signatureCanvas = document.getElementById('signature-canvas');
+      if (!signatureCanvas) return;
+      signatureCtx = signatureCanvas.getContext('2d');
+
+      function resizeCanvas() {
+        if (!signatureCanvas) return;
+        const rect = signatureCanvas.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+        const dpr = window.devicePixelRatio || 1;
+        signatureCanvas.width = rect.width * dpr;
+        signatureCanvas.height = rect.height * dpr;
+        signatureCtx.scale(dpr, dpr);
+        signatureCtx.strokeStyle = '#0f172a';
+        signatureCtx.lineWidth = 2.5;
+        signatureCtx.lineCap = 'round';
+        signatureCtx.lineJoin = 'round';
+      }
+
+      const modalEl = document.getElementById('modal-signature');
+      if (modalEl) {
+        modalEl.addEventListener('shown.bs.modal', function () {
+          resizeCanvas();
+          if (!hasSignatureDrawn) {
+            clearSignatureCanvas();
+          }
+        });
+      }
+
+      function getPointerPos(e) {
+        const rect = signatureCanvas.getBoundingClientRect();
+        return {
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top
+        };
+      }
+
+      signatureCanvas.addEventListener('pointerdown', function (e) {
+        signatureCanvas.setPointerCapture(e.pointerId);
+        isDrawingSignature = true;
+        hasSignatureDrawn = true;
+        const pos = getPointerPos(e);
+        signatureCtx.beginPath();
+        signatureCtx.moveTo(pos.x, pos.y);
+      });
+
+      signatureCanvas.addEventListener('pointermove', function (e) {
+        if (!isDrawingSignature) return;
+        const pos = getPointerPos(e);
+        signatureCtx.lineTo(pos.x, pos.y);
+        signatureCtx.stroke();
+      });
+
+      function endDraw(e) {
+        if (!isDrawingSignature) return;
+        isDrawingSignature = false;
+        try { signatureCanvas.releasePointerCapture(e.pointerId); } catch (err) { }
+      }
+
+      signatureCanvas.addEventListener('pointerup', endDraw);
+      signatureCanvas.addEventListener('pointercancel', endDraw);
+    }
+
+    function openSignatureModal(cf) {
+      if (!cf) return;
+      currentSignatureCF = cf.toUpperCase().trim();
+      const ben = dbBeneficiaries.find(b => (b.cf || '').toUpperCase().trim() === currentSignatureCF);
+      const infoEl = document.getElementById('signature-beneficiary-info');
+      if (infoEl) {
+        const displayName = ben ? `${ben.nome || ben.name || ''} ${ben.cognome || ben.surname || ''}`.trim() : currentSignatureCF;
+        infoEl.textContent = `Beneficiario: ${displayName} (${currentSignatureCF})`;
+      }
+
+      // Verifica se è intestatario di qualche nucleo
+      const isIntest = (dbNuclei || []).some(n => {
+        if (ben && isMemberIntestatario(ben, n)) return true;
+        const raw = (n.intestatario || '').toUpperCase();
+        return raw.includes(currentSignatureCF);
+      });
+      const alertEl = document.getElementById('signature-intestatario-alert');
+      if (alertEl) {
+        if (isIntest) alertEl.classList.remove('d-none');
+        else alertEl.classList.add('d-none');
+      }
+
+      // Preview esistente se c'è firma
+      const previewEl = document.getElementById('signature-existing-preview');
+      const linkEl = document.getElementById('signature-drive-link');
+      const imgEl = document.getElementById('signature-existing-img');
+      if (previewEl && ben && ben.firma) {
+        previewEl.classList.remove('d-none');
+        if (linkEl) linkEl.href = 'https://drive.google.com/file/d/' + ben.firma + '/view';
+        if (imgEl) imgEl.src = 'https://drive.google.com/thumbnail?id=' + ben.firma + '&sz=w300';
+      } else if (previewEl) {
+        previewEl.classList.add('d-none');
+      }
+
+      clearSignatureCanvas();
+      const feedbackEl = document.getElementById('signature-save-feedback');
+      if (feedbackEl) feedbackEl.innerHTML = '';
+
+      const modalEl = document.getElementById('modal-signature');
+      if (modalEl) {
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+      }
+    }
+
+    function clearSignatureCanvas() {
+      if (!signatureCanvas || !signatureCtx) return;
+      signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+      hasSignatureDrawn = false;
+    }
+
+    function handleSignatureFileUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = new Image();
+        img.onload = function () {
+          if (!signatureCanvas || !signatureCtx) return;
+          clearSignatureCanvas();
+          const rect = signatureCanvas.getBoundingClientRect();
+          const scale = Math.min((rect.width - 20) / img.width, (rect.height - 20) / img.height);
+          const drawW = img.width * scale;
+          const drawH = img.height * scale;
+          const drawX = (rect.width - drawW) / 2;
+          const drawY = (rect.height - drawH) / 2;
+          signatureCtx.drawImage(img, drawX, drawY, drawW, drawH);
+          hasSignatureDrawn = true;
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveSignatureToServer() {
+      if (!currentSignatureCF) return;
+      if (!hasSignatureDrawn) {
+        alert('Traccia prima la firma o carica un file immagine.');
+        return;
+      }
+
+      const btn = document.getElementById('btn-save-signature');
+      const spin = document.getElementById('spin-signature');
+      const text = document.getElementById('btn-save-signature-text');
+      if (btn) btn.disabled = true;
+      if (spin) spin.classList.remove('d-none');
+      if (text) text.textContent = 'Salvataggio nel Drive...';
+
+      const base64Data = signatureCanvas.toDataURL('image/png');
+
+      google.script.run
+        .withSuccessHandler(function (res) {
+          if (btn) btn.disabled = false;
+          if (spin) spin.classList.add('d-none');
+          if (text) text.textContent = '💾 Salva Firma nel Drive';
+
+          if (res && res.success) {
+            const ben = dbBeneficiaries.find(b => (b.cf || '').toUpperCase().trim() === currentSignatureCF);
+            if (ben) {
+              ben.firma = res.fileId;
+            }
+            showToast(res.message || 'Firma salvata con successo!', 'success');
+            const modalEl = document.getElementById('modal-signature');
+            if (modalEl) {
+              bootstrap.Modal.getInstance(modalEl)?.hide();
+            }
+            renderNucleiList();
+          } else {
+            alert('Errore salvataggio firma: ' + (res?.message || 'Errore sconosciuto'));
+          }
+        })
+        .withFailureHandler(function (err) {
+          if (btn) btn.disabled = false;
+          if (spin) spin.classList.add('d-none');
+          if (text) text.textContent = '💾 Salva Firma nel Drive';
+          alert('Errore di comunicazione: ' + (err?.message || String(err)));
+        })
+        .saveBeneficiarySignature(currentSignatureCF, base64Data);
+    }
+
+    function handleModalOpenSignature() {
+      const cf = document.getElementById('ben-cf')?.value;
+      if (cf) openSignatureModal(cf);
+    }
+
+    function handleModalOpenBeneficiaryFolder(btnEl) {
+      const cf = document.getElementById('ben-cf')?.value;
+      if (cf) openBeneficiarioDriveFolder(cf, btnEl);
+    }
+
+    function openNucleoDriveFolder(nucleoId, btnEl) {
+      const n = (dbNuclei || []).find(x => String(x.id).trim() === String(nucleoId).trim());
+      if (n && n.idCartella) {
+        window.open('https://drive.google.com/drive/folders/' + n.idCartella, '_blank');
+        return;
+      }
+
+      const originalText = btnEl ? btnEl.innerHTML : '';
+      if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Apertura...';
+      }
+
+      const intestatario = n ? n.intestatario : '';
+      google.script.run
+        .withSuccessHandler(function (res) {
+          if (btnEl) {
+            btnEl.disabled = false;
+            btnEl.innerHTML = originalText;
+          }
+          if (res && res.success && res.data) {
+            if (n) n.idCartella = res.data.id;
+            window.open(res.data.url, '_blank');
+          } else {
+            showToast('Errore cartella: ' + (res?.message || 'Cartella non trovata'), 'danger');
+          }
+        })
+        .withFailureHandler(function (err) {
+          if (btnEl) {
+            btnEl.disabled = false;
+            btnEl.innerHTML = originalText;
+          }
+          showToast('Errore Google Drive: ' + (err?.message || String(err)), 'danger');
+        })
+        .getNucleoDriveFolder(nucleoId, intestatario);
+    }
+
+    function openBeneficiarioDriveFolder(cf, btnEl) {
+      const cleanCF = (cf || '').toUpperCase().trim();
+      const b = (dbBeneficiaries || []).find(x => (x.cf || '').toUpperCase().trim() === cleanCF);
+      if (b && b.idCartella) {
+        window.open('https://drive.google.com/drive/folders/' + b.idCartella, '_blank');
+        return;
+      }
+
+      const originalText = btnEl ? btnEl.innerHTML : '';
+      if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Apertura...';
+      }
+
+      google.script.run
+        .withSuccessHandler(function (res) {
+          if (btnEl) {
+            btnEl.disabled = false;
+            btnEl.innerHTML = originalText;
+          }
+          if (res && res.success && res.data) {
+            if (b) b.idCartella = res.data.id;
+            window.open(res.data.url, '_blank');
+          } else {
+            showToast('Errore cartella personale: ' + (res?.message || 'Cartella non creata'), 'danger');
+          }
+        })
+        .withFailureHandler(function (err) {
+          if (btnEl) {
+            btnEl.disabled = false;
+            btnEl.innerHTML = originalText;
+          }
+          showToast('Errore Google Drive: ' + (err?.message || String(err)), 'danger');
+        })
+        .getBeneficiarioDriveFolder(cleanCF);
+    }
+</script>
 </body>
 
 </html>

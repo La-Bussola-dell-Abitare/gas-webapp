@@ -178,19 +178,26 @@ class BeneficiarioRepository {
         }
         if (idx.passaporto >= 0) {
             const val = data.documents?.passaporto !== undefined ? data.documents.passaporto : data.passaporto;
-            sheet.getRange(newRowIdx, idx.passaporto + 1).setValue(val ? true : false);
+            sheet.getRange(newRowIdx, idx.passaporto + 1).setValue(typeof val === "string" && val.trim() ? val.trim() : (val ? true : false));
         }
         if (idx.patente >= 0) {
             const val = data.documents?.patente !== undefined ? data.documents.patente : data.patente;
-            sheet.getRange(newRowIdx, idx.patente + 1).setValue(val ? true : false);
+            sheet.getRange(newRowIdx, idx.patente + 1).setValue(typeof val === "string" && val.trim() ? val.trim() : (val ? true : false));
         }
         if (idx.permessoSoggiorno >= 0) {
             const val = data.documents?.permessoSoggiorno !== undefined ? data.documents.permessoSoggiorno : data.permessoSoggiorno;
-            sheet.getRange(newRowIdx, idx.permessoSoggiorno + 1).setValue(val ? true : false);
+            sheet.getRange(newRowIdx, idx.permessoSoggiorno + 1).setValue(typeof val === "string" && val.trim() ? val.trim() : (val ? true : false));
         }
         if (idx.tesseraSanitaria >= 0) {
             const val = data.documents?.tesseraSanitaria !== undefined ? data.documents.tesseraSanitaria : data.tesseraSanitaria;
-            sheet.getRange(newRowIdx, idx.tesseraSanitaria + 1).setValue(val ? true : false);
+            sheet.getRange(newRowIdx, idx.tesseraSanitaria + 1).setValue(typeof val === "string" && val.trim() ? val.trim() : (val ? true : false));
+        }
+        if (idx.firma >= 0 && (data.firma !== undefined || data.documents?.firma !== undefined)) {
+            const val = data.firma !== undefined ? data.firma : data.documents.firma;
+            sheet.getRange(newRowIdx, idx.firma + 1).setValue(val || "");
+        }
+        if (idx.idCartella >= 0 && data.idCartella !== undefined) {
+            sheet.getRange(newRowIdx, idx.idCartella + 1).setValue(data.idCartella || "");
         }
         if (idx.statoCivile >= 0) sheet.getRange(newRowIdx, idx.statoCivile + 1).setValue(data.statoCivile || "");
         if (idx.annoArrivo >= 0) {
@@ -250,7 +257,56 @@ class BeneficiarioRepository {
             statoCivile: findHeaderIndex(headers, ["stato civile"]),
             annoArrivo: findHeaderIndex(headers, ["anno arrivo in italia", "anno arrivo", "arrivo italia"]),
             dataInserimento: findHeaderIndex(headers, ["data inserimento", "data di inserimento", "inserimento"]),
+            firma: findHeaderIndex(headers, ["firma", "id firma", "firma id", "firma autografa"]),
+            idCartella: findHeaderIndex(headers, ["id cartella drive", "id cartella", "cartella drive", "cartella", "id_cartella"]),
             idNucleo: findHeaderIndex(headers, ["nucleo familiare", "id nucleo", "nucleo", "id_nucleo", "id nucleo familiare", "id_nucleo_familiare", "famiglia", "id famiglia", "codice nucleo", "scheda nucleo", "nucleo id"])
         };
+    }
+
+    /**
+     * Aggiorna in modo mirato gli identificativi Drive (ID cartella, ID firma o ID documenti) per un beneficiario cercato per CF.
+     * Crea le colonne nel foglio se non ancora esistenti.
+     * @param {string} cf - Codice Fiscale del beneficiario.
+     * @param {Record<string, any>} updates - Mappa dei campi da aggiornare (es. { idCartella, firma, patente, ... }).
+     * @return {boolean} true se aggiornato con successo.
+     */
+    static updateDriveInfo(cf, updates) {
+        if (!cf) return false;
+        const targetCF = cf.toUpperCase().trim();
+        const ss = SpreadsheetApp.getActiveSpreadsheet();
+        let sheet = ss.getSheetByName(typeof WA_SHEET_BENEFICIARI !== 'undefined' ? WA_SHEET_BENEFICIARI : 'Beneficiari')
+            || ss.getSheetByName('Beneficiari') || ss.getSheetByName('Beneficiario');
+        if (!sheet) return false;
+
+        const data = sheet.getDataRange().getValues();
+        if (data.length <= 1) return false;
+
+        const headers = data[0].map(h => h.toString().trim().toLowerCase());
+        const idx = BeneficiarioRepository._getColIndexes(headers);
+        if (idx.cf < 0) return false;
+
+        let rowIdx = -1;
+        for (let i = 1; i < data.length; i++) {
+            const rowCF = safeString(data[i][idx.cf]).toUpperCase().trim();
+            if (rowCF === targetCF) {
+                rowIdx = i + 1; // 1-based index
+                break;
+            }
+        }
+        if (rowIdx < 0) return false;
+
+        for (const [key, val] of Object.entries(updates)) {
+            let colIdx = idx[key];
+            if (colIdx < 0) {
+                // Assicura l'esistenza della colonna nel foglio
+                let headerName = key;
+                if (key === "idCartella") headerName = "ID Cartella Drive";
+                else if (key === "firma") headerName = "Firma";
+                colIdx = ensureHeaderIndex(sheet, headerName);
+                idx[key] = colIdx;
+            }
+            sheet.getRange(rowIdx, colIdx + 1).setValue(val || "");
+        }
+        return true;
     }
 }

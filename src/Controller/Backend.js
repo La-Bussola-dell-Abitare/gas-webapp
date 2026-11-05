@@ -139,6 +139,8 @@ function getBeneficiariObjects() {
         permessoSoggiorno: b.documents?.permessoSoggiorno || false,
         tesseraSanitaria: b.documents?.tesseraSanitaria || false,
         cartaIdentita: b.documents?.cartaIdentita || "Non posseduto",
+        firma: b.firma || b.documents?.firma || "",
+        idCartella: b.idCartella || "",
         sesso: sesso
       };
     });
@@ -352,7 +354,8 @@ function getNucleiObjects() {
       orientamentoFollowUp: n.orientamentoFollowUp,
       tipologiaAbitazione: n.tipologiaAbitazione,
       assistenteSociale: n.assistenteSociale,
-      medicoDiBase: n.medicoDiBase
+      medicoDiBase: n.medicoDiBase,
+      idCartella: String(n.idCartella || "").trim()
     }));
   } catch (err) {
     Logger.log("Errore getNucleiObjects: " + (err instanceof Error ? err.message : String(err)));
@@ -763,4 +766,84 @@ function decodeCF(cf) {
     Logger.log("Errore decodifica CF via Web App: " + (err instanceof Error ? err.message : String(err)));
   }
   return { success: false };
+}
+
+// =========================================================================
+// API RPC PER GOOGLE DRIVE E ACQUISIZIONE FIRMA
+// =========================================================================
+
+/**
+ * Recupera o crea la cartella Google Drive per il Nucleo Familiare specificato.
+ * @param {string|number} nucleoId - ID del nucleo.
+ * @param {string} [intestatarioNome=""] - Nome dell'intestatario per la cartella.
+ * @return {{ success: boolean; data?: { id: string; url: string; name: string }; message?: string }}
+ */
+function getNucleoDriveFolder(nucleoId, intestatarioNome = "") {
+  try {
+    const info = DriveManager.getOrCreateNucleoFolder(nucleoId, intestatarioNome);
+    return { success: true, data: info };
+  } catch (err) {
+    Logger.log("Errore getNucleoDriveFolder: " + (err instanceof Error ? err.message : String(err)));
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Recupera o crea la cartella Google Drive per il Beneficiario specificato (tramite CF).
+ * @param {string} cf - Codice Fiscale del beneficiario.
+ * @return {{ success: boolean; data?: { id: string; url: string; name: string }; message?: string }}
+ */
+function getBeneficiarioDriveFolder(cf) {
+  try {
+    const info = DriveManager.getOrCreateBeneficiarioFolder(cf);
+    return { success: true, data: info };
+  } catch (err) {
+    Logger.log("Errore getBeneficiarioDriveFolder: " + (err instanceof Error ? err.message : String(err)));
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Salva la firma autografa del beneficiario nella sua sottocartella personale Drive.
+ * @param {string} cf - Codice Fiscale del beneficiario firmatario.
+ * @param {string} base64Data - Immagine in Base64 (PNG trasparente).
+ * @return {{ success: boolean; fileId?: string; fileUrl?: string; message: string }}
+ */
+function saveBeneficiarySignature(cf, base64Data) {
+  try {
+    return DriveManager.saveBeneficiarySignature(cf, base64Data);
+  } catch (err) {
+    Logger.log("Errore saveBeneficiarySignature: " + (err instanceof Error ? err.message : String(err)));
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Esegue la scansione on-demand dei documenti nella cartella del beneficiario.
+ * @param {string} cf - Codice Fiscale del beneficiario.
+ * @return {{ success: boolean; data?: any; message?: string }}
+ */
+function scanBeneficiarioDocuments(cf) {
+  try {
+    const res = DriveManager.scanBeneficiarioDocuments(cf);
+    return { success: true, data: res };
+  } catch (err) {
+    Logger.log("Errore scanBeneficiarioDocuments: " + (err instanceof Error ? err.message : String(err)));
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Esegue la scansione on-demand dei documenti nella cartella del nucleo familiare.
+ * @param {string|number} nucleoId - ID del nucleo familiare.
+ * @return {{ success: boolean; data?: any; message?: string }}
+ */
+function scanNucleoDocuments(nucleoId) {
+  try {
+    const res = DriveManager.scanNucleoDocuments(nucleoId);
+    return { success: true, data: res };
+  } catch (err) {
+    Logger.log("Errore scanNucleoDocuments: " + (err instanceof Error ? err.message : String(err)));
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
 }

@@ -28,6 +28,7 @@ class NucleoFamiliare {
     this.tipologiaAbitazione = getSheetVal(row, idx, "tipologia abitazione", "");
     this.assistenteSociale = getSheetVal(row, idx, "assistente sociale", "No");
     this.medicoDiBase = getSheetVal(row, idx, "medico di base", "No");
+    this.idCartella = getSheetVal(row, idx, "idCartella", "");
   }
 
   /**
@@ -159,6 +160,7 @@ class NucleoFamiliare {
     if (idx.tipologiaAbitazione >= 0) sheet.getRange(newRowIdx, idx.tipologiaAbitazione + 1).setValue(data.tipologiaAbitazione ? data.tipologiaAbitazione.trim() : "");
     if (idx.assistenteSociale >= 0) sheet.getRange(newRowIdx, idx.assistenteSociale + 1).setValue(data.assistenteSociale ? data.assistenteSociale.trim() : "No");
     if (idx.medicoDiBase >= 0) sheet.getRange(newRowIdx, idx.medicoDiBase + 1).setValue(data.medicoDiBase ? data.medicoDiBase.trim() : "No");
+    if (idx.idCartella >= 0 && data.idCartella !== undefined) sheet.getRange(newRowIdx, idx.idCartella + 1).setValue(data.idCartella ? data.idCartella.trim() : "");
 
     if (idx.dataInserimento >= 0 && !isUpdate) {
       sheet.getRange(newRowIdx, idx.dataInserimento + 1).setValue(new Date());
@@ -225,7 +227,51 @@ class NucleoFamiliare {
       tipologiaAbitazione: findHeaderIndex(headers, ["tipologia abitazione", "abitazione"]),
       assistenteSociale: findHeaderIndex(headers, ["assistente sociale", "assistente"]),
       medicoDiBase: findHeaderIndex(headers, ["medico di base", "medico"]),
+      idCartella: findHeaderIndex(headers, ["id cartella drive", "id cartella", "cartella drive", "cartella", "id_cartella"]),
       dataInserimento: findHeaderIndex(headers, ["data inserimento", "data di inserimento", "inserimento"])
     };
+  }
+
+  /**
+   * Aggiorna in modo mirato gli identificativi Drive per un nucleo familiare cercato per ID.
+   * Crea le colonne nel foglio se non ancora esistenti.
+   * @param {string|number} id - Identificativo del nucleo familiare.
+   * @param {Record<string, any>} updates - Mappa dei campi da aggiornare (es. { idCartella: "..." }).
+   * @return {boolean} true se aggiornato con successo.
+   */
+  static updateDriveInfo(id, updates) {
+    if (!id) return false;
+    const targetId = String(id).trim();
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName("Nuclei Familiari") || ss.getSheetByName("Nucleo Familiare") || ss.getSheetByName("Nuclei");
+    if (!sheet) return false;
+
+    const data = sheet.getDataRange().getValues();
+    if (data.length <= 1) return false;
+
+    const headers = data[0].map(h => h.toString().trim().toLowerCase());
+    const idx = NucleoFamiliare._getColIndexes(headers);
+    if (idx.id < 0) return false;
+
+    let rowIdx = -1;
+    for (let i = 1; i < data.length; i++) {
+      if (safeString(data[i][idx.id]).trim() === targetId) {
+        rowIdx = i + 1;
+        break;
+      }
+    }
+    if (rowIdx < 0) return false;
+
+    for (const [key, val] of Object.entries(updates)) {
+      let colIdx = idx[key];
+      if (colIdx < 0) {
+        let headerName = key;
+        if (key === "idCartella") headerName = "ID Cartella Drive";
+        colIdx = ensureHeaderIndex(sheet, headerName);
+        idx[key] = colIdx;
+      }
+      sheet.getRange(rowIdx, colIdx + 1).setValue(val || "");
+    }
+    return true;
   }
 }

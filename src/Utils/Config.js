@@ -52,6 +52,20 @@ const CONFIG = Object.freeze({
   ID_TEMPLATESCHEDASEGNALAZIONE: "1d8lSB1b40QGmZ5yC7ILh7fljzUHuqpllZnDjA0URnx0",
   /** @type {string} ID della cartella Drive in cui vengono salvate le schede di segnalazione */
   FOLDER_SCHEDASEGNALAZIONE_ID: "1RJ_GC2VpCN8tBwsa48jV6sWo6szrqYRs",
+  /** @type {string} ID della cartella radice Drive contenente le cartelle dei nuclei/beneficiari */
+  FOLDER_BENEFICIARI_ROOT_ID: "1cBAWWPnRZNhj1xubIM89inMehvB-sFiE",
+
+  /**
+   * Getter lazy per la cartella radice Drive dei beneficiari/nuclei.
+   * @return {GoogleAppsScript.Drive.Folder}
+   */
+  get FOLDER_BENEFICIARI_ROOT() {
+    if (!this._folderBeneficiariRoot) {
+      Logger.log("Chiamata a DriveApp in corso (FOLDER_BENEFICIARI_ROOT)...");
+      this._folderBeneficiariRoot = DriveApp.getFolderById(this.FOLDER_BENEFICIARI_ROOT_ID);
+    }
+    return this._folderBeneficiariRoot;
+  },
 
   /**
    * Getter lazy per il file template del Diario Giornaliero.

@@ -95,3 +95,22 @@ function getSheetVal(row, idx, key, fallback = "") {
   const index = idx[key];
   return (index >= 0 && index < row.length) ? safeString(row[index]) : fallback;
 }
+
+/**
+ * Assicura che una colonna esista nell'intestazione del foglio (riga 1). Se non esiste, la aggiunge in fondo.
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet - Il foglio di lavoro.
+ * @param {string} headerName - Nome dell'intestazione da creare se mancante.
+ * @param {string[]} [searchKeys] - Varianti di nome con cui cercare l'intestazione esistente.
+ * @return {number} Indice 0-based della colonna nel foglio.
+ */
+function ensureHeaderIndex(sheet, headerName, searchKeys) {
+  const lastCol = Math.max(sheet.getLastColumn(), 1);
+  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  const keys = searchKeys && searchKeys.length > 0 ? searchKeys : [headerName];
+  const foundIdx = findHeaderIndex(headers, keys);
+  if (foundIdx >= 0) return foundIdx;
+
+  const newColIdx = lastCol + 1;
+  sheet.getRange(1, newColIdx).setValue(headerName);
+  return newColIdx - 1;
+}
