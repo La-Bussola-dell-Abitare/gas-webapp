@@ -85,11 +85,15 @@ function getOperatoreByName(nome) {
  */
 function getBeneficiariObjects() {
   try {
-    return Beneficiario.getAll().map(b => ({
+    return BeneficiarioRepository.getAll().map(b => ({
       name: b.name,
       surname: b.surname,
+      nome: b.nome,
+      cognome: b.cognome,
       cf: b.cf,
-      dataNascita: b.dataNascita,
+      dataNascita: b.dataNascita instanceof Date 
+        ? Utilities.formatDate(b.dataNascita, Session.getScriptTimeZone() || "Europe/Rome", "yyyy-MM-dd") 
+        : (b.dataNascita ? String(b.dataNascita).split("T")[0] : ""),
       luogoNascita: b.luogoNascita,
       email: b.email,
       phone: b.phone,
@@ -108,7 +112,8 @@ function getBeneficiariObjects() {
       patente: b.documents?.patente || false,
       permessoSoggiorno: b.documents?.permessoSoggiorno || false,
       tesseraSanitaria: b.documents?.tesseraSanitaria || false,
-      cartaIdentita: b.documents?.cartaIdentita || "Non posseduto"
+      cartaIdentita: b.documents?.cartaIdentita || "Non posseduto",
+      sesso: (b.cf && typeof CodiceFiscale !== "undefined") ? CodiceFiscale.getSesso(b.cf) : "M"
     }));
   } catch (err) {
     Logger.log("Errore getBeneficiariObjects: " + (err instanceof Error ? err.message : String(err)));
@@ -162,7 +167,7 @@ function getOperatorsList() {
  */
 function submitBeneficiary(data) {
   try {
-    return Beneficiario.add(data);
+    return BeneficiarioRepository.add(data);
   } catch (error) {
     return { success: false, message: error instanceof Error ? error.message : String(error) };
   }
@@ -175,7 +180,7 @@ function submitBeneficiary(data) {
  */
 function removeBeneficiary(cf) {
   try {
-    return Beneficiario.remove(cf);
+    return BeneficiarioRepository.removeByCF(cf);
   } catch (error) {
     return { success: false, message: error instanceof Error ? error.message : String(error) };
   }

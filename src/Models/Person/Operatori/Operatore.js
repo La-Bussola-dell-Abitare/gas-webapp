@@ -46,22 +46,43 @@ class Operatore extends Person {
   static fromRow(row, idx) {
     const nomeVal = getSheetVal(row, idx, "nome", "");
     const cognomeVal = getSheetVal(row, idx, "cognome", "");
-    const cfVal = getSheetVal(row, idx, "codice fiscale", "");
-    const dataNascitaVal = getSheetVal(row, idx, "data di nascita", null);
-    const luogoNascitaVal = getSheetVal(row, idx, "luogo di nascita", "");
+    const cfVal = (getSheetVal(row, idx, "cf", "") || getSheetVal(row, idx, "codice fiscale", "")).trim().toUpperCase();
+    const dataNascitaVal = (idx.dataNascita !== undefined && idx.dataNascita >= 0 && idx.dataNascita < row.length)
+      ? row[idx.dataNascita]
+      : getSheetVal(row, idx, "data di nascita", null);
+    const luogoNascitaVal = getSheetVal(row, idx, "luogoNascita", "") || getSheetVal(row, idx, "luogo di nascita", "");
     const firmaVal = getSheetVal(row, idx, "firma", "");
 
     const operatoreVal = getSheetVal(row, idx, "operatore", "");
     const qualificaVal = getSheetVal(row, idx, "qualifica", "");
     const ruoloVal = getSheetVal(row, idx, "ruolo", "");
 
-    const birthPlaceCity = new City(luogoNascitaVal);
-    const resolvedCitizenship = birthPlaceCity.country === "Italia" ? Citizenship.Italiana : Citizenship.Apolide;
+    let birthPlaceCity = luogoNascitaVal;
+    let resolvedCitizenship = typeof Citizenship !== "undefined" && Citizenship.Italiana ? Citizenship.Italiana : "Italiana";
+    if (luogoNascitaVal) {
+      try {
+        birthPlaceCity = new City(luogoNascitaVal);
+        resolvedCitizenship = birthPlaceCity.country === "Italia"
+          ? (typeof Citizenship !== "undefined" ? Citizenship.Italiana : "Italiana")
+          : (typeof Citizenship !== "undefined" ? Citizenship.Apolide : "Apolide");
+      } catch (e) {
+        birthPlaceCity = luogoNascitaVal;
+      }
+    }
+
+    let taxCodeObj = null;
+    if (cfVal) {
+      try {
+        taxCodeObj = new CodiceFiscale(cfVal);
+      } catch (e) {
+        taxCodeObj = { originale: cfVal, normalizzato: cfVal };
+      }
+    }
 
     return new Operatore({
       name: nomeVal,
       surname: cognomeVal,
-      taxCode: new CodiceFiscale(cfVal),
+      taxCode: taxCodeObj,
       birthDate: dataNascitaVal,
       birthPlace: birthPlaceCity,
       citizenship: resolvedCitizenship,

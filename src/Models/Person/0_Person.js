@@ -30,15 +30,15 @@ class Person {
    * @param {PersonData} data - I dati anagrafici iniziali della persona.
    */
   constructor(data) {
-    this.name = data.name;
-    this.surname = data.surname;
-    this.birthDate = data.birthDate;
-    this.birthPlace = data.birthPlace;
-    this.taxCode = data.taxCode;
+    this.name = data.name || data.nome || "";
+    this.surname = data.surname || data.cognome || "";
+    this.birthDate = data.birthDate || data.dataNascita || null;
+    this.birthPlace = data.birthPlace || data.luogoNascita || "";
+    this.taxCode = data.taxCode || (data.cf ? (typeof CodiceFiscale !== "undefined" && CodiceFiscale.isValid(data.cf) ? new CodiceFiscale(data.cf) : { originale: data.cf, normalizzato: data.cf }) : null);
     this.email = data.email || null;
-    this.phone = data.phone || null;
-    this.citizenship = data.citizenship || null;
-    this.signatureFileId = data.signatureFileId || null;
+    this.phone = data.phone || data.telefono || null;
+    this.citizenship = data.citizenship || data.cittadinanza || null;
+    this.signatureFileId = data.signatureFileId || data.firma || null;
   }
 
   // =========================================================================
@@ -73,7 +73,10 @@ class Person {
    * Restituisce il codice fiscale in formato stringa.
    * @return {string} Il codice fiscale originale o stringa vuota.
    */
-  get cf() { return this.taxCode ? this.taxCode.originale : ""; }
+  get cf() {
+    if (!this.taxCode) return "";
+    return this.taxCode instanceof CodiceFiscale ? this.taxCode.originale : (this.taxCode.originale || String(this.taxCode));
+  }
 
   /**
    * Restituisce la data di nascita.

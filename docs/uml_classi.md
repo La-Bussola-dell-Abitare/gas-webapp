@@ -49,6 +49,9 @@ classDiagram
         +get permessoSoggiorno() boolean
         +get tesseraSanitaria() boolean
         +fromRow(row, idx)$ Beneficiario
+        +getAll()$ Beneficiario[]
+        +add(data)$ Object
+        +removeByCF(cf)$ Object
     }
 
     class Operatore {

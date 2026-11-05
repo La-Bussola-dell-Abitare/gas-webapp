@@ -1453,7 +1453,7 @@
       }
       document.getElementById('ben-data-nascita').value = formattedDate;
       document.getElementById('ben-luogo-nascita').value = ben.luogoNascita;
-      document.getElementById('ben-sesso').value = ben.taxCode ? CodiceFiscale.getSesso(ben.cf) : 'M';
+      document.getElementById('ben-sesso').value = ben.sesso || 'M';
       document.getElementById('ben-telefono').value = ben.telefono || '';
       document.getElementById('ben-email').value = ben.email || '';
       setSelectValue(document.getElementById('ben-cittadinanza'), ben.cittadinanza || 'Italiana');

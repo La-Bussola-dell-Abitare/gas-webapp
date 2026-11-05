@@ -240,7 +240,7 @@ Per consentire una comprensione approfondita e formale dell'architettura softwar
 | **Riga Monitoraggio Ufficiale** | Inserimento riga nel foglio ministeriale con calcolo età e dati operatore/beneficiario | [`Backend.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Controller/Backend.js#L348-L428) | ✅ Implementata |
 | **Gestione Appuntamenti (Base)** | Registrazione e visualizzazione appuntamenti su foglio dedicato | [`Backend.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Controller/Backend.js#L290-L341) | ✅ Implementata |
 | **Integrazione Membri nei Nuclei** | Modal aggiunta/modifica componente nel nucleo nel frontend | [`Frontend.html`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/Frontend.html) • [Specifiche](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Person/Beneficiari/Istruzioni.md) | 🟡 In corso |
-| **CRUD Beneficiari nel Backend** | Collegamento tra maschera componenti e salvataggio sul foglio | [`Backend.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Controller/Backend.js), [`Beneficiario.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Repository/Beneficiario.js) | 🟡 In corso *(bloccato da bug)* |
+| **CRUD Beneficiari nel Backend** | Collegamento tra maschera componenti e salvataggio sul foglio | [`Backend.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Controller/Backend.js), [`Beneficiario.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Repository/Beneficiario.js) | ✅ Implementata |
 | **Geocodifica e CAP automatici** | Autocompletamento e normalizzazione indirizzi con API Nominatim e comuni | [`0_City.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Places/0_City.js), [`Address.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Places/Address.js) | 🟡 In corso |
 | **Creazione Cartella Drive Beneficiario** | Creazione automatica cartella `ID progressivo + Nome + Cognome` su Google Drive | [Piano Automazione](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/automazione.md) | ⏳ Da implementare |
 | **Popolamento Righe Foglio Firme** | Inserimento automatico righe con orari, firme e totale ore nei Google Doc | [Piano Automazione](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/automazione.md) | ⏳ Da implementare |
@@ -255,24 +255,19 @@ Per consentire una comprensione approfondita e formale dell'architettura softwar
 
 Analisi dettagliata delle anomalie riscontrate durante la scansione del codice:
 
-### 🔴 Criticità 1: Disallineamento Controller ↔ Repository per `Beneficiario`
+### 🟢 Criticità 1 (Risolta): Disallineamento Controller ↔ Repository per `Beneficiario`
 Nel controller [`src/Controller/Backend.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Controller/Backend.js):
-- Riga 57: `Beneficiario.getAll().map(...)`
-- Riga 134: `Beneficiario.add(data)`
-- Riga 147: `Beneficiario.remove(cf)`
-
-**Il Problema:** I metodi statici `getAll()`, `add()` e `removeByCF()` sono definiti nella classe [`BeneficiarioRepository`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Repository/Beneficiario.js), mentre la classe [`Beneficiario`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Person/Beneficiari/Beneficiario.js) è una semplice classe di modello priva di questi metodi.  
-**Conseguenza:** All'apertura della Web App, `getBeneficiariObjects()` va in eccezione (`Beneficiario.getAll is not a function`), viene intercettata dal `try/catch` e restituisce un array vuoto `[]`. Nessun beneficiario viene visualizzato nei nuclei e la registrazione/eliminazione di beneficiari fallisce.
+- `getBeneficiariObjects()` delega a [`BeneficiarioRepository.getAll()`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Repository/Beneficiario.js#L17)
+- `submitBeneficiary(data)` delega a [`BeneficiarioRepository.add(data)`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Repository/Beneficiario.js#L83)
+- `removeBeneficiary(cf)` delega a [`BeneficiarioRepository.removeByCF(cf)`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Repository/Beneficiario.js#L46)
+- Inoltre, per conformità sia al Repository Pattern che al modello Active Record, la classe [`Beneficiario`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Person/Beneficiari/Beneficiario.js) include i metodi statici facade `getAll()`, `add(data)`, `remove(cf)` e `removeByCF(cf)`.
 
 ---
 
-### 🔴 Criticità 2: Metodo Factory `Beneficiario.fromRow()` Mancante
-In [`src/Repository/Beneficiario.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Repository/Beneficiario.js#L27):
-```javascript
-list.push(Beneficiario.fromRow(row, idx));
-```
-A differenza di [`Operatore.fromRow(row, idx)`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Person/Operatori/Operatore.js#L33-L60) che è correttamente implementato, `Beneficiario.fromRow` **non esiste** nel modello `Beneficiario.js`. Qualsiasi chiamata a `BeneficiarioRepository.getAll()` genera un'eccezione di runtime.
-
+### 🟢 Criticità 2 (Risolta): Metodo Factory `Beneficiario.fromRow()` Implementato
+In [`src/Models/Person/Beneficiari/Beneficiario.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Person/Beneficiari/Beneficiario.js):
+- Implementato [`Beneficiario.fromRow(row, idx)`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Person/Beneficiari/Beneficiario.js#L84-L180) che estrae in modo sicuro e resiliente tutti i campi anagrafici, sociali e l'oggetto `documents` (carta d'identità, passaporto, patente, permesso di soggiorno, tessera sanitaria) mappando dinamicamente gli indici del foglio e gestendo le conversioni di tipo (Date, booleani, interi).
+- Idratazione in [`BeneficiarioRepository.getAll()`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Repository/Beneficiario.js#L35) pienamente operativa senza alcun rischio di eccezioni runtime.
 ---
 
 ### 🔴 Criticità 3: Variabili non definite e bug in `FoglioFirmeRepository`
