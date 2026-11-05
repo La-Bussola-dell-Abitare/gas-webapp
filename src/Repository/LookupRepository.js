@@ -15,7 +15,7 @@ class LookupRepository {
      * @type {string}
      */
     static get CACHE_KEY() {
-        return "LOOKUP_VALUES_V1";
+        return "LOOKUP_VALUES_V2";
     }
 
     /**
@@ -113,7 +113,11 @@ class LookupRepository {
             const cached = cache.get(LookupRepository.CACHE_KEY);
             if (cached) {
                 try {
-                    return JSON.parse(cached);
+                    const parsed = JSON.parse(cached);
+                    if (parsed && parsed.prefissiTelefonici && Object.keys(parsed.prefissiTelefonici).length > 0) {
+                        return parsed;
+                    }
+                    Logger.log("LookupRepository - Cache priva di prefissi telefonici, rigenerazione.");
                 } catch (e) {
                     Logger.log("LookupRepository - Cache parsing error, rilettura dal foglio.");
                 }
