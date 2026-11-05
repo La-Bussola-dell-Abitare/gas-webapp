@@ -237,19 +237,39 @@ function submitMeetingUpdate(originalKey, data) {
  */
 function getMeetingsList() {
   try {
-    return IncontroRepository.getAll().map(m => ({
-      beneficiario: m.beneficiario,
-      operatore: m.operatore,
-      data: m.data,
-      oraInizio: m.oraInizio,
-      oraFine: m.oraFine,
-      attivita: m.attivita,
-      descrizione: m.descrizione,
-      segnalazione: m.segnalazione,
-      statoElaborazione: m.statoElaborazione,
-      erroriValidazione: m.erroriValidazione,
-      tipoIncontro: m.tipoIncontro
-    }));
+    return IncontroRepository.getAll().map(m => {
+      let formattedDate = "";
+      if (m.data instanceof Date) {
+        if (!isNaN(m.data.getTime())) {
+          try {
+            const tz = (typeof Session !== "undefined" && Session.getScriptTimeZone && Session.getScriptTimeZone()) || "Europe/Rome";
+            formattedDate = Utilities.formatDate(m.data, tz, "yyyy-MM-dd");
+          } catch (e) {
+            const y = m.data.getFullYear();
+            const mo = String(m.data.getMonth() + 1).padStart(2, "0");
+            const d = String(m.data.getDate()).padStart(2, "0");
+            formattedDate = `${y}-${mo}-${d}`;
+          }
+        }
+      } else if (m.data !== null && m.data !== undefined) {
+        const s = String(m.data).trim();
+        formattedDate = s.includes("T") ? s.split("T")[0] : s;
+      }
+
+      return {
+        beneficiario: m.beneficiario,
+        operatore: m.operatore,
+        data: formattedDate || m.data,
+        oraInizio: m.oraInizio,
+        oraFine: m.oraFine,
+        attivita: m.attivita,
+        descrizione: m.descrizione,
+        segnalazione: m.segnalazione,
+        statoElaborazione: m.statoElaborazione,
+        erroriValidazione: m.erroriValidazione,
+        tipoIncontro: m.tipoIncontro
+      };
+    });
   } catch (err) {
     Logger.log("Errore getMeetingsList: " + (err instanceof Error ? err.message : String(err)));
     return [];

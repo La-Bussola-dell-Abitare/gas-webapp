@@ -88,15 +88,15 @@
     }
 
     .header-logo-badge {
-      background: #ffffff;
+      background: transparent;
       border-radius: 12px;
       width: 44px;
       height: 44px;
-      padding: 4px;
+      padding: 2px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+      box-shadow: none;
       flex-shrink: 0;
     }
 
@@ -1320,14 +1320,24 @@
 
     // Inizializzazione pagina
     window.onload = function () {
-      // Inizializza subito i dropdown prefissi telefonici
-      initPhonePrefixDropdowns();
+      try {
+        initPhonePrefixDropdowns();
+      } catch (e) {
+        console.warn('Init phone prefix in window.onload:', e);
+      }
 
-      // Imposta data odierna
-      document.getElementById('inc-data').value = new Date().toISOString().split('T')[0];
-      document.getElementById('app-data').value = new Date().toISOString().split('T')[0];
-      document.getElementById('diario-data').value = new Date().toISOString().split('T')[0];
-      document.getElementById('firme-mese').value = new Date().toISOString().substring(0, 7);
+      try {
+        const incDataEl = document.getElementById('inc-data');
+        if (incDataEl) incDataEl.value = new Date().toISOString().split('T')[0];
+        const appDataEl = document.getElementById('app-data');
+        if (appDataEl) appDataEl.value = new Date().toISOString().split('T')[0];
+        const diarioDataEl = document.getElementById('diario-data');
+        if (diarioDataEl) diarioDataEl.value = new Date().toISOString().split('T')[0];
+        const firmeMeseEl = document.getElementById('firme-mese');
+        if (firmeMeseEl) firmeMeseEl.value = new Date().toISOString().substring(0, 7);
+      } catch (e) {
+        console.warn('Errore impostazione date predefinite:', e);
+      }
 
       reloadData();
     };
@@ -1339,7 +1349,25 @@
       const failHandler = function (err) {
         console.error("Errore caricamento dati:", err);
         showToast("Autorizzazione richiesta: avvia un test nell'editor Apps Script per concedere i permessi.", "warning");
+        const meetTbody = document.getElementById('tbl-incontri-body');
+        if (meetTbody && meetTbody.innerHTML.includes('Caricamento in corso')) {
+          meetTbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted p-4">Nessun dato caricato (errore connessione o autorizzazione).</td></tr>';
+        }
+        const nucleiContainer = document.getElementById('nuclei-cards-container');
+        if (nucleiContainer && nucleiContainer.innerHTML.includes('Caricamento in corso')) {
+          nucleiContainer.innerHTML = '<p class="text-center text-muted p-3">Nessun dato caricato (errore connessione o autorizzazione).</p>';
+        }
+        const appTbody = document.getElementById('tbl-appuntamenti-body');
+        if (appTbody && appTbody.innerHTML.includes('Caricamento in corso')) {
+          appTbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted p-4">Nessun dato caricato (errore connessione o autorizzazione).</td></tr>';
+        }
       };
+
+      if (typeof google === 'undefined' || !google.script || !google.script.run) {
+        console.warn("Ambiente di test locale: google.script.run non disponibile.");
+        failHandler(new Error("google.script.run non disponibile in ambiente locale."));
+        return;
+      }
 
       // Carica Valori Ammessi e Dropdown dai Named Ranges
       google.script.run
@@ -1355,7 +1383,7 @@
       // Carica Operatori
       google.script.run
         .withSuccessHandler(function (list) {
-          dbOperators = list;
+          dbOperators = list || [];
           populateOperatorsDropdowns();
         })
         .withFailureHandler(failHandler)
@@ -1364,7 +1392,7 @@
       // Carica Incontri
       google.script.run
         .withSuccessHandler(function (list) {
-          dbMeetings = list;
+          dbMeetings = list || [];
           renderMeetingsTable();
           renderNucleiList();
         })
@@ -1374,7 +1402,7 @@
       // Carica Nuclei
       google.script.run
         .withSuccessHandler(function (list) {
-          dbNuclei = list;
+          dbNuclei = list || [];
           renderNucleiList();
         })
         .withFailureHandler(failHandler)
@@ -1383,7 +1411,7 @@
       // Carica Beneficiari
       google.script.run
         .withSuccessHandler(function (list) {
-          dbBeneficiaries = list;
+          dbBeneficiaries = list || [];
           renderNucleiList();
           showToast("Sincronizzazione dati completata!", "success");
         })
@@ -1621,19 +1649,15 @@
      * @param {string} flag - Emoji bandiera
      * @param {Event} [event]
      */
-    function selectCountryPrefix(prefix, code, name, iso, flag, event) {
-      if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-
-      // 1. Aggiorna input nascosto (usato da form e validazioni)
+    /**
+     * Aggiorna gli elementi UI relativi al prefisso (input nascosto, etichetta e bandiera).
+     */
+    function updatePhonePrefixDisplay(prefix, code, iso, flag) {
       const hiddenInput = document.getElementById(prefix + 'prefisso-tel');
       if (hiddenInput) {
         hiddenInput.value = code;
       }
 
-      // 2. Aggiorna visualizzazione del pulsante trigger
       const codeSpan = document.getElementById(prefix + 'prefisso-code');
       if (codeSpan) codeSpan.textContent = code;
 
@@ -1649,26 +1673,51 @@
         flagEmoji.textContent = flag;
         flagEmoji.style.display = 'inline';
       }
+    }
 
-      // 3. Chiudi dropdown
+    /**
+     * Gestisce la selezione di una nazione/prefisso da parte dell'utente.
+     * @param {string} prefix - 'ben-' oppure 'nuc-ben-'
+     * @param {string} code - Prefisso internazionale (es. "+39")
+     * @param {string} name - Nome nazione (es. "Italia")
+     * @param {string} iso - Codice ISO (es. "IT")
+     * @param {string} flag - Emoji bandiera
+     * @param {Event} [event]
+     */
+    function selectCountryPrefix(prefix, code, name, iso, flag, event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      updatePhonePrefixDisplay(prefix, code, iso, flag);
+
+      // Chiudi dropdown in sicurezza se aperto
       const btn = document.getElementById(prefix + 'prefisso-btn');
       if (btn && typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
-        const dd = bootstrap.Dropdown.getInstance(btn) || new bootstrap.Dropdown(btn);
-        dd.hide();
+        try {
+          const dd = bootstrap.Dropdown.getInstance(btn);
+          if (dd) dd.hide();
+        } catch (e) {
+          console.warn('Chiusura dropdown prefisso non riuscita:', e);
+        }
       }
 
-      // 4. Focus su numero locale
+      // Focus su numero locale
       const telInput = document.getElementById(prefix + 'telefono');
       if (telInput) {
-        telInput.focus();
+        try { telInput.focus(); } catch (e) {}
       }
 
-      // 5. Rivalida il telefono
-      triggerValidationTelefono(prefix);
+      // Rivalida il telefono solo se l'utente ha già digitato qualcosa
+      if (telInput && telInput.value.trim() !== '') {
+        triggerValidationTelefono(prefix);
+      }
     }
 
     /**
      * Imposta programmaticamente il prefisso telefonico (es. apertura modal o edit beneficiario).
+     * Non altera il focus e non applica validazioni premature su campi intonsi.
      * @param {HTMLElement|string} targetEl
      * @param {string} code - Prefisso internazionale (es. "+39")
      * @param {string} [countryName] - Nome nazione opzionale (es. "Italia")
@@ -1697,11 +1746,10 @@
       }
 
       const finalCode = record ? record.phone : targetCode;
-      const finalName = record ? record.name : (countryName || "");
       const finalIso = record ? record.iso : "it";
       const finalFlag = record ? record.flag : "🇮🇹";
 
-      selectCountryPrefix(prefix, finalCode, finalName, finalIso, finalFlag);
+      updatePhonePrefixDisplay(prefix, finalCode, finalIso, finalFlag);
     }
 
     /**
@@ -1766,6 +1814,28 @@
       if (!pref.startsWith("+")) pref = "+" + pref;
 
       return `${pref} ${num}`;
+    }
+
+    /**
+     * Converte in modo sicuro una data (istanza Date, stringa ISO o timestamp)
+     * nel formato YYYY-MM-DD per campi input date e visualizzazione tabelle.
+     * @param {Date|string|number} val
+     * @return {string}
+     */
+    function formatIsoDate(val) {
+      if (!val) return '';
+      if (val instanceof Date) {
+        if (isNaN(val.getTime())) return '';
+        const y = val.getFullYear();
+        const m = String(val.getMonth() + 1).padStart(2, '0');
+        const d = String(val.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+      if (typeof val === 'string') {
+        const s = val.trim();
+        return s.includes('T') ? s.split('T')[0] : s;
+      }
+      return String(val).trim();
     }
 
     /**
@@ -1834,7 +1904,7 @@
     function showTab(tabId) {
       activeTabId = tabId;
       document.querySelectorAll('.app-header .nav-link, .nav-link').forEach(link => link.classList.remove('active'));
-      document.querySelectorAll('.tab-pane-custom').forEach(pane => pane.classList.add('none-class', 'd-none'));
+      document.querySelectorAll('.tab-pane-custom').forEach(pane => pane.classList.add('d-none'));
 
       // Trova link menu
       const matchMenu = {
@@ -1844,14 +1914,25 @@
         'tab-appuntamenti': 'menu-appuntamenti'
       };
 
-      document.getElementById(matchMenu[tabId]).classList.add('active');
-      const pane = document.getElementById(tabId);
-      pane.classList.remove('d-none', 'none-class');
+      const menuId = matchMenu[tabId];
+      if (menuId) {
+        const menuEl = document.getElementById(menuId);
+        if (menuEl) menuEl.classList.add('active');
+      }
 
-      if (tabId === 'tab-nuclei') {
-        renderNucleiList();
-      } else if (tabId === 'tab-incontri') {
-        renderMeetingsTable();
+      const pane = document.getElementById(tabId);
+      if (pane) {
+        pane.classList.remove('d-none');
+      }
+
+      try {
+        if (tabId === 'tab-nuclei') {
+          renderNucleiList();
+        } else if (tabId === 'tab-incontri') {
+          renderMeetingsTable();
+        }
+      } catch (err) {
+        console.error("Errore durante il rendering del tab " + tabId + ":", err);
       }
     }
 
@@ -1940,11 +2021,7 @@
         const tr = document.createElement('tr');
         const levelBadge = m.tipoIncontro === 'assistente' ? '<span class="badge bg-warning text-dark">Secondo Livello</span>' : '<span class="badge bg-primary">Primo Livello</span>';
 
-        // Pulisce e formatta data se ISO
-        let dispData = m.data;
-        if (m.data && m.data.indexOf('T') > 0) {
-          dispData = m.data.split('T')[0];
-        }
+        const dispData = formatIsoDate(m.data);
 
         tr.innerHTML = `
           <td>${dispData}</td>
@@ -1975,10 +2052,7 @@
       document.getElementById('inc-operatore').value = m.operatore;
       document.getElementById('inc-tipo').value = m.tipoIncontro;
 
-      let formattedDate = m.data;
-      if (m.data && m.data.indexOf('T') > 0) {
-        formattedDate = m.data.split('T')[0];
-      }
+      const formattedDate = formatIsoDate(m.data);
       document.getElementById('inc-data').value = formattedDate;
       document.getElementById('inc-ora-inizio').value = m.oraInizio;
       document.getElementById('inc-ora-fine').value = m.oraFine;
@@ -2731,10 +2805,7 @@
       document.getElementById('ben-nome').value = ben.nome;
       document.getElementById('ben-cognome').value = ben.cognome;
 
-      let formattedDate = ben.dataNascita;
-      if (ben.dataNascita && ben.dataNascita.indexOf('T') > 0) {
-        formattedDate = ben.dataNascita.split('T')[0];
-      }
+      const formattedDate = formatIsoDate(ben.dataNascita);
       document.getElementById('ben-data-nascita').value = formattedDate;
       document.getElementById('ben-luogo-nascita').value = ben.luogoNascita;
       document.getElementById('ben-sesso').value = ben.sesso || 'M';
