@@ -5,6 +5,8 @@
   <base target="_top">
   <!-- Bootstrap 5 CSS via CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Flag Icons CSS via CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.5.0/css/flag-icons.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -922,7 +924,7 @@
                   <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center font-outfit px-2"
                     type="button" id="ben-prefisso-btn" data-bs-toggle="dropdown" aria-expanded="false"
                     style="border-color: #dee2e6; min-width: 105px;">
-                    <span id="ben-prefisso-flag-emoji" class="me-1" style="font-size: 1.15rem; line-height: 1;">🇮🇹</span>
+                    <span id="ben-prefisso-flag" class="fi fi-it me-2 rounded-1 border flex-shrink-0"></span>
                     <span id="ben-prefisso-code" class="fw-semibold font-outfit text-dark small">+39</span>
                   </button>
                   <div class="dropdown-menu p-2 shadow-sm country-dropdown-menu" aria-labelledby="ben-prefisso-btn"
@@ -1135,7 +1137,7 @@
                           class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center font-outfit px-2"
                           type="button" id="nuc-ben-prefisso-btn" data-bs-toggle="dropdown" aria-expanded="false"
                           style="border-color: #dee2e6; min-width: 100px;">
-                          <span id="nuc-ben-prefisso-flag-emoji" class="me-1" style="font-size: 1.15rem; line-height: 1;">🇮🇹</span>
+                          <span id="nuc-ben-prefisso-flag" class="fi fi-it me-2 rounded-1 border flex-shrink-0"></span>
                           <span id="nuc-ben-prefisso-code" class="fw-semibold font-outfit text-dark small">+39</span>
                         </button>
                         <div class="dropdown-menu p-2 shadow-sm country-dropdown-menu"
@@ -1699,10 +1701,8 @@
         };
 
         const flagSpan = document.createElement('span');
-        flagSpan.className = 'me-2 flex-shrink-0';
-        flagSpan.style.fontSize = '1.15rem';
-        flagSpan.style.lineHeight = '1';
-        flagSpan.textContent = c.flag;
+        const isoCode = (c.iso || 'it').toLowerCase();
+        flagSpan.className = `fi fi-${isoCode} me-2 rounded-1 border flex-shrink-0`;
 
         const nameSpan = document.createElement('span');
         nameSpan.className = 'flex-grow-1 text-truncate font-outfit small text-dark';
@@ -1767,7 +1767,7 @@
      * @param {Event} [event]
      */
     /**
-     * Aggiorna gli elementi UI relativi al prefisso (input nascosto, etichetta e bandiera).
+     * Aggiorna gli elementi UI relativi al prefisso (input nascosto, etichetta e bandiera vettoriale).
      */
     function updatePhonePrefixDisplay(prefix, code, iso, flag) {
       const hiddenInput = document.getElementById(prefix + 'prefisso-tel');
@@ -1778,14 +1778,10 @@
       const codeSpan = document.getElementById(prefix + 'prefisso-code');
       if (codeSpan) codeSpan.textContent = code;
 
-      const flagEmoji = document.getElementById(prefix + 'prefisso-flag-emoji');
-      if (flagEmoji) {
-        flagEmoji.textContent = flag || "🇮🇹";
-        flagEmoji.style.display = 'inline';
-      }
-      const flagImg = document.getElementById(prefix + 'prefisso-flag-img');
-      if (flagImg) {
-        flagImg.style.display = 'none';
+      const isoCode = (iso ? String(iso).trim().toLowerCase() : 'it');
+      const flagEl = document.getElementById(prefix + 'prefisso-flag');
+      if (flagEl) {
+        flagEl.className = `fi fi-${isoCode} me-2 rounded-1 border flex-shrink-0`;
       }
     }
 
