@@ -1758,13 +1758,20 @@
         if (required) return { valid: false, message: "Il numero di telefono è obbligatorio." };
         return { valid: true, message: "" };
       }
-      const phoneCharsRegex = /^(\+?[0-9\s\-\.\(\)]{6,25})$/;
-      if (!phoneCharsRegex.test(val)) {
+      const validCharsRegex = /^\+?[0-9\s\-\.\(\)]*$/;
+      if (!validCharsRegex.test(val)) {
         return { valid: false, message: "Il telefono contiene caratteri non validi (ammessi solo cifre, +, spazi, trattini)." };
       }
       const digitsOnly = val.replace(/\D/g, '');
-      if (digitsOnly.length < 6 || digitsOnly.length > 15) {
-        return { valid: false, message: "Numero di telefono non valido (" + digitsOnly.length + " cifre; consentite tra 6 e 15 cifre)." };
+      if (digitsOnly.length === 0) {
+        return { valid: false, message: "Inserisci le cifre del numero di telefono." };
+      }
+      if (digitsOnly.length < 6) {
+        const cifreStr = digitsOnly.length === 1 ? "1 cifra" : digitsOnly.length + " cifre";
+        return { valid: false, message: "Numero di telefono troppo corto (" + cifreStr + "; minimo 6 cifre)." };
+      }
+      if (digitsOnly.length > 15) {
+        return { valid: false, message: "Numero di telefono troppo lungo (" + digitsOnly.length + " cifre; massimo 15 cifre)." };
       }
       return { valid: true, message: "" };
     }
