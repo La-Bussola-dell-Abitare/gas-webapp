@@ -657,7 +657,7 @@
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Cittadinanza *</label>
                 <select class="form-select" id="ben-cittadinanza" required>
-                  <option value="Italiana">Italiana</option>
+                  <option value="Italia">Italia</option>
                 </select>
               </div>
               <div class="col-md-6">
@@ -844,7 +844,7 @@
                     <div class="col-md-4">
                       <label class="form-label font-outfit text-xs">Cittadinanza *</label>
                       <select class="form-select form-select-sm" id="nuc-ben-cittadinanza">
-                        <option value="Italiana">Italiana</option>
+                        <option value="Italia">Italia</option>
                       </select>
                     </div>
                     <div class="col-md-4">
@@ -1625,7 +1625,7 @@
       if (radioNuovo) radioNuovo.checked = true;
       toggleIntestatarioMode();
 
-      setSelectValue(document.getElementById('nuc-ben-cittadinanza'), 'Italiana');
+      setSelectValue(document.getElementById('nuc-ben-cittadinanza'), 'Italia');
       setSelectValue(document.getElementById('nuc-ben-sesso'), 'M');
       setSelectValue(document.getElementById('nuc-ben-doc-carta'), 'Non posseduto');
 
@@ -1773,7 +1773,7 @@
       document.getElementById('ben-is-update').value = 'false';
       document.getElementById('ben-cf').disabled = false;
       document.getElementById('modal-ben-title').textContent = `Aggiungi Membro al Nucleo #${nucleoId}`;
-      setSelectValue(document.getElementById('ben-cittadinanza'), 'Italiana');
+      setSelectValue(document.getElementById('ben-cittadinanza'), 'Italia');
 
       // Auto-compila residenza con quella del nucleo
       const nucleoObj = dbNuclei.find(n => String(n.id).trim() === String(nucleoId).trim());
@@ -1810,7 +1810,7 @@
       document.getElementById('ben-sesso').value = ben.sesso || 'M';
       document.getElementById('ben-telefono').value = ben.telefono || '';
       document.getElementById('ben-email').value = ben.email || '';
-      setSelectValue(document.getElementById('ben-cittadinanza'), ben.cittadinanza || 'Italiana');
+      setSelectValue(document.getElementById('ben-cittadinanza'), ben.cittadinanza || 'Italia');
       document.getElementById('ben-residenza').value = ben.residenza || '';
       document.getElementById('ben-domicilio').value = ben.domicilio || '';
       setSelectValue(document.getElementById('ben-stato-civile'), ben.statoCivile || 'singolo');

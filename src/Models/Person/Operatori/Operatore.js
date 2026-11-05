@@ -58,12 +58,12 @@ class Operatore extends Person {
     const ruoloVal = getSheetVal(row, idx, "ruolo", "");
 
     let birthPlaceCity = luogoNascitaVal;
-    let resolvedCitizenship = typeof Citizenship !== "undefined" && Citizenship.Italiana ? Citizenship.Italiana : "Italiana";
+    let resolvedCitizenship = typeof Citizenship !== "undefined" && Citizenship.Italiana ? Citizenship.Italiana : "Italia";
     if (luogoNascitaVal) {
       try {
         birthPlaceCity = new City(luogoNascitaVal);
         resolvedCitizenship = birthPlaceCity.country === "Italia"
-          ? (typeof Citizenship !== "undefined" ? Citizenship.Italiana : "Italiana")
+          ? (typeof Citizenship !== "undefined" ? Citizenship.Italiana : "Italia")
           : (typeof Citizenship !== "undefined" ? Citizenship.Apolide : "Apolide");
       } catch (e) {
         birthPlaceCity = luogoNascitaVal;

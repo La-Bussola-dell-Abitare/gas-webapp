@@ -337,7 +337,7 @@ function submitNucleoCompleto(payload) {
         sesso: intestData.sesso || "M",
         telefono: intestData.telefono || "",
         email: intestData.email || "",
-        cittadinanza: intestData.cittadinanza || "Italiana",
+        cittadinanza: intestData.cittadinanza || "Italia",
         residenza: nucData.residenza || intestData.residenza || "",
         domicilio: nucData.domicilio || intestData.domicilio || nucData.residenza || "",
         statoCivile: intestData.statoCivile || "",

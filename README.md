@@ -339,7 +339,7 @@ I file [`src/Service/Document/Diariogiornaliero.js`](file:///d:/Lorenzo/Public/#
        phone: getSheetVal(row, idx, "telefono", ""),
        statoLavorativo: getSheetVal(row, idx, "statoLavorativo", ""),
        titoloStudio: getSheetVal(row, idx, "titoloStudio", ""),
-       cittadinanza: getSheetVal(row, idx, "cittadinanza", "Italiana"),
+       cittadinanza: getSheetVal(row, idx, "cittadinanza", "Italia"),
        residenza: getSheetVal(row, idx, "residenza", ""),
        domicilio: getSheetVal(row, idx, "domicilio", ""),
        assistenteSociale: getSheetVal(row, idx, "assistenteSociale", ""),
