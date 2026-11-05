@@ -44,9 +44,21 @@ class DriveManager {
     }
 
     // 2. Ricerca tollerante all'interno della cartella radice Beneficiari
-    const rootFolder = CONFIG.FOLDER_BENEFICIARI_ROOT;
+    let rootFolder = null;
+    try {
+      rootFolder = CONFIG.FOLDER_BENEFICIARI_ROOT;
+    } catch (e) {
+      Logger.log("Avviso accesso CONFIG.FOLDER_BENEFICIARI_ROOT: " + e.message);
+    }
+    if (!rootFolder && typeof CONFIG !== 'undefined' && CONFIG.FOLDER_BENEFICIARI_ROOT_ID) {
+      try {
+        rootFolder = DriveApp.getFolderById(CONFIG.FOLDER_BENEFICIARI_ROOT_ID);
+      } catch (rootErr) {
+        Logger.log("Errore DriveApp.getFolderById root: " + rootErr.message);
+      }
+    }
     if (!rootFolder) {
-      throw new Error("Cartella radice beneficiari non configurata in CONFIG.FOLDER_BENEFICIARI_ROOT.");
+      throw new Error("Cartella radice beneficiari non accessibile su Google Drive (ID: " + (CONFIG.FOLDER_BENEFICIARI_ROOT_ID || 'non specificato') + ").");
     }
 
     // Regex tollerante: inizia per <id> seguito da spazio o trattino o fine stringa

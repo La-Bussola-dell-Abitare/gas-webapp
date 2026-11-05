@@ -7,6 +7,12 @@
  */
 
 /**
+ * Cache interna per le istanze Drive (evita scritture su oggetti congelati con Object.freeze).
+ * @private
+ */
+const _CONFIG_DRIVE_CACHE = {};
+
+/**
  * Oggetto di configurazione immutabile dell'applicazione.
  * @readonly
  */
@@ -26,11 +32,11 @@ const CONFIG = Object.freeze({
      * @return {GoogleAppsScript.Drive.Folder}
      */
     get FOLDER() {
-      if (!this._folder) {
+      if (!_CONFIG_DRIVE_CACHE.fogliFirmeFolder) {
         Logger.log("Chiamata a DriveApp in corso (FOGLIFIRME.FOLDER)...");
-        this._folder = DriveApp.getFolderById(this.FOLDER_ID);
+        _CONFIG_DRIVE_CACHE.fogliFirmeFolder = DriveApp.getFolderById(this.FOLDER_ID);
       }
-      return this._folder;
+      return _CONFIG_DRIVE_CACHE.fogliFirmeFolder;
     },
 
     /**
@@ -38,11 +44,11 @@ const CONFIG = Object.freeze({
      * @return {GoogleAppsScript.Drive.File}
      */
     get TEMPLATE() {
-      if (!this._template) {
+      if (!_CONFIG_DRIVE_CACHE.fogliFirmeTemplate) {
         Logger.log("Chiamata a DriveApp in corso (FOGLIFIRME.TEMPLATE)...");
-        this._template = DriveApp.getFileById(this.TEMPLATE_ID);
+        _CONFIG_DRIVE_CACHE.fogliFirmeTemplate = DriveApp.getFileById(this.TEMPLATE_ID);
       }
-      return this._template;
+      return _CONFIG_DRIVE_CACHE.fogliFirmeTemplate;
     }
   }),
 
@@ -60,11 +66,11 @@ const CONFIG = Object.freeze({
    * @return {GoogleAppsScript.Drive.Folder}
    */
   get FOLDER_BENEFICIARI_ROOT() {
-    if (!this._folderBeneficiariRoot) {
+    if (!_CONFIG_DRIVE_CACHE.folderBeneficiariRoot) {
       Logger.log("Chiamata a DriveApp in corso (FOLDER_BENEFICIARI_ROOT)...");
-      this._folderBeneficiariRoot = DriveApp.getFolderById(this.FOLDER_BENEFICIARI_ROOT_ID);
+      _CONFIG_DRIVE_CACHE.folderBeneficiariRoot = DriveApp.getFolderById(this.FOLDER_BENEFICIARI_ROOT_ID);
     }
-    return this._folderBeneficiariRoot;
+    return _CONFIG_DRIVE_CACHE.folderBeneficiariRoot;
   },
 
   /**
@@ -72,11 +78,11 @@ const CONFIG = Object.freeze({
    * @return {GoogleAppsScript.Drive.File|null}
    */
   get TEMPLATEDIARIOGIORNALIERO() {
-    if (!this._templateDiario && this.ID_TEMPLATEDIARIOGIORNALIERO) {
+    if (!_CONFIG_DRIVE_CACHE.templateDiario && this.ID_TEMPLATEDIARIOGIORNALIERO) {
       Logger.log("Chiamata a DriveApp in corso (TEMPLATEDIARIOGIORNALIERO)...");
-      this._templateDiario = DriveApp.getFileById(this.ID_TEMPLATEDIARIOGIORNALIERO);
+      _CONFIG_DRIVE_CACHE.templateDiario = DriveApp.getFileById(this.ID_TEMPLATEDIARIOGIORNALIERO);
     }
-    return this._templateDiario || null;
+    return _CONFIG_DRIVE_CACHE.templateDiario || null;
   },
 
   /**
@@ -84,11 +90,11 @@ const CONFIG = Object.freeze({
    * @return {GoogleAppsScript.Drive.File}
    */
   get TEMPLATESCHEDASEGNALAZIONE() {
-    if (!this._templateSegnalazione) {
+    if (!_CONFIG_DRIVE_CACHE.templateSegnalazione) {
       Logger.log("Chiamata a DriveApp in corso (TEMPLATESCHEDASEGNALAZIONE)...");
-      this._templateSegnalazione = DriveApp.getFileById(this.ID_TEMPLATESCHEDASEGNALAZIONE);
+      _CONFIG_DRIVE_CACHE.templateSegnalazione = DriveApp.getFileById(this.ID_TEMPLATESCHEDASEGNALAZIONE);
     }
-    return this._templateSegnalazione;
+    return _CONFIG_DRIVE_CACHE.templateSegnalazione;
   },
 
 });
