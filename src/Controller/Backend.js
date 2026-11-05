@@ -104,6 +104,15 @@ function getBeneficiariObjects() {
         formattedDate = s.includes("T") ? s.split("T")[0] : s;
       }
 
+      let sesso = "M";
+      try {
+        if (b.cf && typeof CodiceFiscale !== "undefined" && typeof CodiceFiscale.isValid === "function" && CodiceFiscale.isValid(b.cf)) {
+          sesso = CodiceFiscale.getSesso(b.cf);
+        }
+      } catch (cfErr) {
+        sesso = "M";
+      }
+
       return {
         name: b.name,
         surname: b.surname,
@@ -130,7 +139,7 @@ function getBeneficiariObjects() {
         permessoSoggiorno: b.documents?.permessoSoggiorno || false,
         tesseraSanitaria: b.documents?.tesseraSanitaria || false,
         cartaIdentita: b.documents?.cartaIdentita || "Non posseduto",
-        sesso: (b.cf && typeof CodiceFiscale !== "undefined") ? CodiceFiscale.getSesso(b.cf) : "M"
+        sesso: sesso
       };
     });
   } catch (err) {
@@ -259,7 +268,7 @@ function getMeetingsList() {
       return {
         beneficiario: m.beneficiario,
         operatore: m.operatore,
-        data: formattedDate || m.data,
+        data: formattedDate || (m.data ? String(m.data).trim() : ""),
         oraInizio: m.oraInizio,
         oraFine: m.oraFine,
         attivita: m.attivita,
@@ -273,6 +282,55 @@ function getMeetingsList() {
   } catch (err) {
     Logger.log("Errore getMeetingsList: " + (err instanceof Error ? err.message : String(err)));
     return [];
+  }
+}
+
+/**
+ * Recupera atomicamente tutti i dati iniziali per la Web App in una singola esecuzione server-side.
+ * Elimina la concorrenza di 6 chiamate RPC parallele, azzera i conflitti di lock su SpreadsheetApp
+ * e garantisce il caricamento fluido della dashboard.
+ * 
+ * @param {boolean} [forceRefresh=false] - Se true invalida la cache dei Named Ranges
+ * @return {{
+ *   success: boolean;
+ *   lookups: Record<string, any>;
+ *   operators: string[];
+ *   meetings: Record<string, any>[];
+ *   nuclei: Record<string, any>[];
+ *   beneficiaries: Record<string, any>[];
+ *   appointments: Record<string, any>[];
+ * }}
+ */
+function getInitialAppData(forceRefresh) {
+  try {
+    const lookups = getFormLookups(forceRefresh);
+    const operators = getOperatorsList();
+    const meetings = getMeetingsList();
+    const nuclei = getNucleiObjects();
+    const beneficiaries = getBeneficiariObjects();
+    const appointments = getAppointmentsList();
+
+    return {
+      success: true,
+      lookups: lookups || {},
+      operators: operators || [],
+      meetings: meetings || [],
+      nuclei: nuclei || [],
+      beneficiaries: beneficiaries || [],
+      appointments: appointments || []
+    };
+  } catch (err) {
+    Logger.log("Errore getInitialAppData: " + (err instanceof Error ? err.message : String(err)));
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+      lookups: (typeof LookupRepository !== "undefined" && typeof LookupRepository.getDefaults === "function") ? LookupRepository.getDefaults() : {},
+      operators: [],
+      meetings: [],
+      nuclei: [],
+      beneficiaries: [],
+      appointments: []
+    };
   }
 }
 

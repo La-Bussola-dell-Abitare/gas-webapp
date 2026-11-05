@@ -88,7 +88,8 @@
     }
 
     .header-logo-badge {
-      background: transparent;
+      background: transparent !important;
+      border: none !important;
       border-radius: 12px;
       width: 44px;
       height: 44px;
@@ -96,7 +97,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      box-shadow: none;
+      box-shadow: none !important;
       flex-shrink: 0;
     }
 
@@ -921,10 +922,7 @@
                   <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center font-outfit px-2"
                     type="button" id="ben-prefisso-btn" data-bs-toggle="dropdown" aria-expanded="false"
                     style="border-color: #dee2e6; min-width: 105px;">
-                    <img id="ben-prefisso-flag-img" src="https://flagcdn.com/24x18/it.png" width="20" height="15"
-                      class="me-1 rounded-1 border" alt="IT"
-                      onerror="this.style.display='none'; document.getElementById('ben-prefisso-flag-emoji').style.display='inline';">
-                    <span id="ben-prefisso-flag-emoji" class="me-1" style="display:none;">🇮🇹</span>
+                    <span id="ben-prefisso-flag-emoji" class="me-1" style="font-size: 1.15rem; line-height: 1;">🇮🇹</span>
                     <span id="ben-prefisso-code" class="fw-semibold font-outfit text-dark small">+39</span>
                   </button>
                   <div class="dropdown-menu p-2 shadow-sm country-dropdown-menu" aria-labelledby="ben-prefisso-btn"
@@ -1137,10 +1135,7 @@
                           class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center font-outfit px-2"
                           type="button" id="nuc-ben-prefisso-btn" data-bs-toggle="dropdown" aria-expanded="false"
                           style="border-color: #dee2e6; min-width: 100px;">
-                          <img id="nuc-ben-prefisso-flag-img" src="https://flagcdn.com/24x18/it.png" width="18"
-                            height="13" class="me-1 rounded-1 border" alt="IT"
-                            onerror="this.style.display='none'; document.getElementById('nuc-ben-prefisso-flag-emoji').style.display='inline';">
-                          <span id="nuc-ben-prefisso-flag-emoji" class="me-1" style="display:none;">🇮🇹</span>
+                          <span id="nuc-ben-prefisso-flag-emoji" class="me-1" style="font-size: 1.15rem; line-height: 1;">🇮🇹</span>
                           <span id="nuc-ben-prefisso-code" class="fw-semibold font-outfit text-dark small">+39</span>
                         </button>
                         <div class="dropdown-menu p-2 shadow-sm country-dropdown-menu"
@@ -1313,6 +1308,8 @@
     let dbMeetings = [];      // oggetti Incontro
     let dbOperators = [];     // stringhe operatori completi
     let dbLookups = {};       // liste di valori dai Named Ranges
+    let dbAppointments = [];  // oggetti Appuntamento
+    let isDataLoading = false; // Flag stato caricamento dati
     let activeTabId = 'tab-incontri';
 
     // Catalogo unificato Nazioni e prefissi in ordine alfabetico (Domain Model SSOT)
@@ -1320,6 +1317,12 @@
 
     // Inizializzazione pagina
     window.onload = function () {
+      try {
+        initNavigation();
+      } catch (e) {
+        console.warn('Init navigation error:', e);
+      }
+
       try {
         initPhonePrefixDropdowns();
       } catch (e) {
@@ -1342,111 +1345,236 @@
       reloadData();
     };
 
+    /**
+     * Associa listener espliciti ai link di navigazione tab dell'header
+     * garantendo il cambio di scheda affidabile anche in iframe Apps Script.
+     */
+    function initNavigation() {
+      const tabs = [
+        { id: 'menu-incontri', target: 'tab-incontri' },
+        { id: 'menu-nuclei', target: 'tab-nuclei' },
+        { id: 'menu-documenti', target: 'tab-documenti' },
+        { id: 'menu-appuntamenti', target: 'tab-appuntamenti' }
+      ];
+      tabs.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (el) {
+          el.onclick = function (e) {
+            e.preventDefault();
+            showTab(item.target);
+          };
+        }
+      });
+    }
+
     // Ricarica tutti i dati in asincrono
     function reloadData(forceRefresh = false) {
+      isDataLoading = true;
       showToast("Caricamento dati in corso...", "info");
+
+      // Aggiorna subito le viste con indicatori di caricamento reattivi
+      renderMeetingsTable();
+      renderNucleiList();
+      renderAppointmentsTable();
 
       const failHandler = function (err) {
         console.error("Errore caricamento dati:", err);
-        showToast("Autorizzazione richiesta: avvia un test nell'editor Apps Script per concedere i permessi.", "warning");
-        const meetTbody = document.getElementById('tbl-incontri-body');
-        if (meetTbody && meetTbody.innerHTML.includes('Caricamento in corso')) {
-          meetTbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted p-4">Nessun dato caricato (errore connessione o autorizzazione).</td></tr>';
-        }
-        const nucleiContainer = document.getElementById('nuclei-cards-container');
-        if (nucleiContainer && nucleiContainer.innerHTML.includes('Caricamento in corso')) {
-          nucleiContainer.innerHTML = '<p class="text-center text-muted p-3">Nessun dato caricato (errore connessione o autorizzazione).</p>';
-        }
-        const appTbody = document.getElementById('tbl-appuntamenti-body');
-        if (appTbody && appTbody.innerHTML.includes('Caricamento in corso')) {
-          appTbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted p-4">Nessun dato caricato (errore connessione o autorizzazione).</td></tr>';
-        }
+        isDataLoading = false;
+        showToast("Impossibile caricare i dati dal server. Verifica la connessione.", "warning");
+        renderMeetingsTable();
+        renderNucleiList();
+        renderAppointmentsTable();
       };
 
       if (typeof google === 'undefined' || !google.script || !google.script.run) {
         console.warn("Ambiente di test locale: google.script.run non disponibile.");
-        failHandler(new Error("google.script.run non disponibile in ambiente locale."));
+        isDataLoading = false;
+        renderMeetingsTable();
+        renderNucleiList();
+        renderAppointmentsTable();
         return;
       }
 
-      // Carica Valori Ammessi e Dropdown dai Named Ranges
+      // 1. Tenta prima la chiamata unificata getInitialAppData (1 solo roundtrip atomico)
+      try {
+        google.script.run
+          .withSuccessHandler(function (res) {
+            if (res && res.success) {
+              dbLookups = res.lookups || {};
+              dbOperators = res.operators || [];
+              dbMeetings = res.meetings || [];
+              dbNuclei = res.nuclei || [];
+              dbBeneficiaries = res.beneficiaries || [];
+              dbAppointments = res.appointments || [];
+
+              try { populateAllLookups(dbLookups); } catch (e) { console.warn("Lookup err:", e); }
+              try { populateOperatorsDropdowns(); } catch (e) { console.warn("Operators err:", e); }
+
+              isDataLoading = false;
+              renderMeetingsTable();
+              renderNucleiList();
+              renderAppointmentsTable();
+              showToast("Sincronizzazione dati completata!", "success");
+            } else {
+              console.warn("getInitialAppData ha riscontrato anomalie, eseguo fallback multi-rpc:", res ? res.error : "Unknown");
+              fallbackMultiRpcReload(forceRefresh);
+            }
+          })
+          .withFailureHandler(function (err) {
+            console.warn("getInitialAppData non disponibile o fallita, eseguo fallback multi-rpc:", err);
+            fallbackMultiRpcReload(forceRefresh);
+          })
+          .getInitialAppData(forceRefresh);
+      } catch (e) {
+        console.warn("Eccezione durante getInitialAppData, eseguo fallback multi-rpc:", e);
+        fallbackMultiRpcReload(forceRefresh);
+      }
+    }
+
+    /**
+     * Fallback resiliente con chiamate RPC individuali.
+     */
+    function fallbackMultiRpcReload(forceRefresh = false) {
+      let pendingCalls = 6;
+      const decrementPending = function () {
+        pendingCalls--;
+        if (pendingCalls <= 0) {
+          isDataLoading = false;
+          renderMeetingsTable();
+          renderNucleiList();
+          renderAppointmentsTable();
+          showToast("Sincronizzazione dati completata!", "success");
+        }
+      };
+
+      // Lookups
       google.script.run
         .withSuccessHandler(function (lookups) {
           dbLookups = lookups || {};
-          populateAllLookups(dbLookups);
+          try { populateAllLookups(dbLookups); } catch (e) {}
+          decrementPending();
         })
         .withFailureHandler(function (err) {
-          console.error("Errore caricamento lookups:", err);
+          console.error("Errore lookups:", err);
+          decrementPending();
         })
         .getFormLookups(forceRefresh);
 
-      // Carica Operatori
+      // Operatori
       google.script.run
         .withSuccessHandler(function (list) {
           dbOperators = list || [];
-          populateOperatorsDropdowns();
+          try { populateOperatorsDropdowns(); } catch (e) {}
+          decrementPending();
         })
-        .withFailureHandler(failHandler)
+        .withFailureHandler(function (err) {
+          console.error("Errore operatori:", err);
+          decrementPending();
+        })
         .getOperatorsList();
 
-      // Carica Incontri
+      // Incontri
       google.script.run
         .withSuccessHandler(function (list) {
           dbMeetings = list || [];
           renderMeetingsTable();
-          renderNucleiList();
+          decrementPending();
         })
-        .withFailureHandler(failHandler)
+        .withFailureHandler(function (err) {
+          console.error("Errore incontri:", err);
+          decrementPending();
+        })
         .getMeetingsList();
 
-      // Carica Nuclei
+      // Nuclei
       google.script.run
         .withSuccessHandler(function (list) {
           dbNuclei = list || [];
           renderNucleiList();
+          decrementPending();
         })
-        .withFailureHandler(failHandler)
+        .withFailureHandler(function (err) {
+          console.error("Errore nuclei:", err);
+          decrementPending();
+        })
         .getNucleiObjects();
 
-      // Carica Beneficiari
+      // Beneficiari
       google.script.run
         .withSuccessHandler(function (list) {
           dbBeneficiaries = list || [];
           renderNucleiList();
-          showToast("Sincronizzazione dati completata!", "success");
+          decrementPending();
         })
-        .withFailureHandler(failHandler)
+        .withFailureHandler(function (err) {
+          console.error("Errore beneficiari:", err);
+          decrementPending();
+        })
         .getBeneficiariObjects();
 
-      // Carica Appuntamenti
-      loadAppointments();
-    }
-
-    function loadAppointments() {
+      // Appuntamenti
       google.script.run
         .withSuccessHandler(function (list) {
-          const tbody = document.getElementById('tbl-appuntamenti-body');
-          tbody.innerHTML = '';
-          if (list.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted p-3">Nessun appuntamento registrato</td></tr>';
-            return;
-          }
-          list.forEach(function (app) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${app.data}</td>
-              <td>${app.ora}</td>
-              <td>${app.beneficiario}</td>
-              <td>${app.operatore}</td>
-              <td>${app.note}</td>
-            `;
-            tbody.appendChild(tr);
-          });
+          dbAppointments = list || [];
+          renderAppointmentsTable();
+          decrementPending();
         })
         .withFailureHandler(function (err) {
           console.error("Errore appuntamenti:", err);
+          decrementPending();
         })
         .getAppointmentsList();
+    }
+
+    /**
+     * Ricarica e renderizza gli appuntamenti registrati.
+     */
+    function loadAppointments() {
+      if (typeof google === 'undefined' || !google.script || !google.script.run) {
+        renderAppointmentsTable();
+        return;
+      }
+      google.script.run
+        .withSuccessHandler(function (list) {
+          dbAppointments = list || [];
+          renderAppointmentsTable();
+        })
+        .withFailureHandler(function (err) {
+          console.error("Errore caricamento appuntamenti:", err);
+          renderAppointmentsTable();
+        })
+        .getAppointmentsList();
+    }
+
+    /**
+     * Esegue il rendering della tabella appuntamenti.
+     */
+    function renderAppointmentsTable() {
+      const tbody = document.getElementById('tbl-appuntamenti-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (!dbAppointments || dbAppointments.length === 0) {
+        if (isDataLoading) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted p-4"><span class="spinner-border spinner-border-sm me-2"></span>Caricamento appuntamenti in corso...</td></tr>';
+        } else {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted p-4">Nessun appuntamento registrato</td></tr>';
+        }
+        return;
+      }
+
+      dbAppointments.forEach(function (app) {
+        const tr = document.createElement('tr');
+        const dispData = (typeof formatIsoDate === 'function') ? formatIsoDate(app.data) : (app.data || '');
+        tr.innerHTML = `
+          <td>${dispData}</td>
+          <td>${app.ora || ''}</td>
+          <td><strong>${app.beneficiario || ''}</strong></td>
+          <td>${app.operatore || ''}</td>
+          <td>${app.note || ''}</td>
+        `;
+        tbody.appendChild(tr);
+      });
     }
 
     // Popola dropdown operatori
@@ -1570,20 +1698,10 @@
           selectCountryPrefix(prefix, c.phone, c.name, c.iso, c.flag, e);
         };
 
-        const flagImg = document.createElement('img');
-        flagImg.src = 'https://flagcdn.com/24x18/' + c.iso.toLowerCase() + '.png';
-        flagImg.width = 20;
-        flagImg.height = 15;
-        flagImg.className = 'me-2 rounded-1 border';
-        flagImg.alt = c.iso;
-        flagImg.onerror = function () {
-          this.style.display = 'none';
-          if (this.nextElementSibling) this.nextElementSibling.style.display = 'inline';
-        };
-
         const flagSpan = document.createElement('span');
-        flagSpan.className = 'me-2 flag-emoji-fallback';
-        flagSpan.style.display = 'none';
+        flagSpan.className = 'me-2 flex-shrink-0';
+        flagSpan.style.fontSize = '1.15rem';
+        flagSpan.style.lineHeight = '1';
         flagSpan.textContent = c.flag;
 
         const nameSpan = document.createElement('span');
@@ -1591,10 +1709,9 @@
         nameSpan.textContent = c.name;
 
         const codeSpan = document.createElement('span');
-        codeSpan.className = 'badge bg-light text-secondary font-monospace ms-2 border';
+        codeSpan.className = 'badge bg-light text-secondary font-monospace ms-2 border flex-shrink-0';
         codeSpan.textContent = c.phone;
 
-        item.appendChild(flagImg);
         item.appendChild(flagSpan);
         item.appendChild(nameSpan);
         item.appendChild(codeSpan);
@@ -1661,17 +1778,14 @@
       const codeSpan = document.getElementById(prefix + 'prefisso-code');
       if (codeSpan) codeSpan.textContent = code;
 
-      const flagImg = document.getElementById(prefix + 'prefisso-flag-img');
       const flagEmoji = document.getElementById(prefix + 'prefisso-flag-emoji');
-      if (flagImg && iso) {
-        flagImg.src = 'https://flagcdn.com/24x18/' + iso.toLowerCase() + '.png';
-        flagImg.alt = iso.toUpperCase();
-        flagImg.style.display = 'inline';
-        if (flagEmoji) flagEmoji.style.display = 'none';
-      } else if (flagEmoji && flag) {
-        if (flagImg) flagImg.style.display = 'none';
-        flagEmoji.textContent = flag;
+      if (flagEmoji) {
+        flagEmoji.textContent = flag || "🇮🇹";
         flagEmoji.style.display = 'inline';
+      }
+      const flagImg = document.getElementById(prefix + 'prefisso-flag-img');
+      if (flagImg) {
+        flagImg.style.display = 'none';
       }
     }
 
@@ -1930,11 +2044,14 @@
           renderNucleiList();
         } else if (tabId === 'tab-incontri') {
           renderMeetingsTable();
+        } else if (tabId === 'tab-appuntamenti') {
+          renderAppointmentsTable();
         }
       } catch (err) {
         console.error("Errore durante il rendering del tab " + tabId + ":", err);
       }
     }
+    window.showTab = showTab;
 
     // Autocompletamento Generico Beneficiari
     function filterBeneficiaries(inputId, listId) {
@@ -2004,16 +2121,22 @@
     // =========================================================================
     function renderMeetingsTable() {
       const tbody = document.getElementById('tbl-incontri-body');
-      const search = document.getElementById('search-incontri').value.toLowerCase().trim();
+      if (!tbody) return;
+      const searchInput = document.getElementById('search-incontri');
+      const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
       tbody.innerHTML = '';
 
-      const filtered = dbMeetings.filter(m => {
-        const rowStr = `${m.beneficiario} ${m.operatore} ${m.attivita} ${m.descrizione}`.toLowerCase();
+      const filtered = (dbMeetings || []).filter(m => {
+        const rowStr = `${m.beneficiario || ''} ${m.operatore || ''} ${m.attivita || ''} ${m.descrizione || ''}`.toLowerCase();
         return rowStr.includes(search);
       });
 
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted p-4">Nessun incontro trovato</td></tr>';
+        if (isDataLoading) {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted p-4"><span class="spinner-border spinner-border-sm me-2"></span>Caricamento incontri in corso...</td></tr>';
+        } else {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted p-4">Nessun incontro registrato</td></tr>';
+        }
         return;
       }
 
@@ -2206,7 +2329,11 @@
       container.innerHTML = '';
 
       if (!dbNuclei || dbNuclei.length === 0) {
-        container.innerHTML = '<p class="text-center text-muted p-3">Nessun nucleo registrato.</p>';
+        if (isDataLoading) {
+          container.innerHTML = '<p class="text-center text-muted p-3"><span class="spinner-border spinner-border-sm me-2"></span>Caricamento nuclei in corso...</p>';
+        } else {
+          container.innerHTML = '<p class="text-center text-muted p-3">Nessun nucleo registrato.</p>';
+        }
         return;
       }
 

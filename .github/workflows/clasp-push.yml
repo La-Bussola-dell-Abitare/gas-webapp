@@ -49,3 +49,7 @@ jobs:
         run: |
           clasp status
           clasp push --force
+
+      - name: Deploy to Google Apps Script
+        run: |
+          clasp deploy --description "Auto deploy on commit ${{ github.sha }}" || true
