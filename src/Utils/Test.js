@@ -100,7 +100,7 @@ function runSystemTests() {
       taxCode: cfBen,
       birthDate: new Date(1980, 0, 1),
       birthPlace: new City("Roma"),
-      statoLavorativo: "occupato",
+      statoLavorativo: "Occupato (stabile)",
       titoloStudio: "diploma",
       documents: {
         cartaIdentita: "elettronica",

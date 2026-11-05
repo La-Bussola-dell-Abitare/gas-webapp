@@ -685,21 +685,13 @@
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Stato Civile</label>
                 <select class="form-select" id="ben-stato-civile">
-                  <option value="singolo">Singolo</option>
-                  <option value="coniugato">Coniugato</option>
-                  <option value="separato">Separato</option>
-                  <option value="divorziato">Divorziato</option>
-                  <option value="vedovo">Vedovo</option>
+                  <option value="">Seleziona Stato Civile...</option>
                 </select>
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Rapporto Parentela *</label>
                 <select class="form-select" id="ben-rapporto" required>
-                  <option value="intestatario">Intestatario</option>
-                  <option value="coniuge">Coniuge</option>
-                  <option value="figlio">Figlio</option>
-                  <option value="parente">Parente</option>
-                  <option value="altro">Altro</option>
+                  <option value="">Seleziona Rapporto Parentela...</option>
                 </select>
               </div>
               <div class="col-md-4">
@@ -711,19 +703,13 @@
               <div class="col-md-6">
                 <label class="form-label font-outfit small">Stato Lavorativo</label>
                 <select class="form-select" id="ben-lavoro">
-                  <option value="occupato">Occupato</option>
-                  <option value="disoccupato">Disoccupato</option>
-                  <option value="pensionato">Pensionato</option>
-                  <option value="altro">Altro</option>
+                  <option value="">Seleziona Condizione Lavorativa...</option>
                 </select>
               </div>
               <div class="col-md-6">
                 <label class="form-label font-outfit small">Titolo di Studio</label>
                 <select class="form-select" id="ben-studio">
-                  <option value="licenza media">Licenza Media</option>
-                  <option value="diploma">Diploma</option>
-                  <option value="laurea">Laurea</option>
-                  <option value="nessuno">Nessuno</option>
+                  <option value="">Seleziona Titolo di Studio...</option>
                 </select>
               </div>
               <div class="col-md-4">
@@ -871,19 +857,19 @@
                     <div class="col-md-4">
                       <label class="form-label font-outfit text-xs">Stato Civile</label>
                       <select class="form-select form-select-sm" id="nuc-ben-stato-civile">
-                        <option value="singolo">Celibe/Nubile</option>
+                        <option value="">Seleziona Stato Civile...</option>
                       </select>
                     </div>
                     <div class="col-md-4">
                       <label class="form-label font-outfit text-xs">Stato Lavorativo</label>
                       <select class="form-select form-select-sm" id="nuc-ben-lavoro">
-                        <option value="disoccupato">Disoccupato</option>
+                        <option value="">Seleziona Condizione Lavorativa...</option>
                       </select>
                     </div>
                     <div class="col-md-4">
                       <label class="form-label font-outfit text-xs">Titolo di Studio</label>
                       <select class="form-select form-select-sm" id="nuc-ben-studio">
-                        <option value="diploma">Diploma</option>
+                        <option value="">Seleziona Titolo di Studio...</option>
                       </select>
                     </div>
                     <div class="col-md-4">
@@ -1130,16 +1116,22 @@
     function populateSelectOptions(selectId, items, placeholder = "Seleziona...") {
       const el = document.getElementById(selectId);
       if (!el || !Array.isArray(items) || items.length === 0) return;
-      const currentVal = el.value;
+      const currentVal = (el.value || "").trim().toLowerCase();
       el.innerHTML = `<option value="">${placeholder}</option>`;
-      items.forEach(item => {
+      let matchedIndex = -1;
+      items.forEach((item, idx) => {
         const opt = document.createElement('option');
         opt.value = item;
         opt.textContent = item;
         el.appendChild(opt);
+        if (currentVal && item.trim().toLowerCase() === currentVal) {
+          matchedIndex = idx + 1;
+        }
       });
-      if (currentVal) {
-        setSelectValue(el, currentVal);
+      if (matchedIndex > 0) {
+        el.selectedIndex = matchedIndex;
+      } else {
+        el.selectedIndex = 0;
       }
     }
 
@@ -1151,14 +1143,15 @@
      */
     function setSelectValue(selectEl, value) {
       if (!selectEl) return;
-      if (!value) {
-        selectEl.value = "";
+      if (value === undefined || value === null || String(value).trim() === "") {
+        selectEl.selectedIndex = 0;
         return;
       }
       const valStr = String(value).trim();
       let found = false;
       for (let i = 0; i < selectEl.options.length; i++) {
-        if (selectEl.options[i].value.toLowerCase() === valStr.toLowerCase()) {
+        if (selectEl.options[i].value.trim().toLowerCase() === valStr.toLowerCase() ||
+            selectEl.options[i].textContent.trim().toLowerCase() === valStr.toLowerCase()) {
           selectEl.selectedIndex = i;
           found = true;
           break;
@@ -1169,7 +1162,7 @@
         opt.value = valStr;
         opt.textContent = valStr;
         selectEl.appendChild(opt);
-        selectEl.value = valStr;
+        selectEl.selectedIndex = selectEl.options.length - 1;
       }
     }
 
@@ -2096,11 +2089,11 @@
       setSelectValue(document.getElementById('ben-cittadinanza'), ben.cittadinanza || 'Italia');
       document.getElementById('ben-residenza').value = ben.residenza || '';
       document.getElementById('ben-domicilio').value = ben.domicilio || '';
-      setSelectValue(document.getElementById('ben-stato-civile'), ben.statoCivile || 'singolo');
-      setSelectValue(document.getElementById('ben-rapporto'), ben.rapportoIntestatario || 'figlio');
+      setSelectValue(document.getElementById('ben-stato-civile'), ben.statoCivile || '');
+      setSelectValue(document.getElementById('ben-rapporto'), ben.rapportoIntestatario || '');
       document.getElementById('ben-anno-arrivo').value = ben.annoArrivo || '';
-      setSelectValue(document.getElementById('ben-lavoro'), ben.statoLavorativo || 'disoccupato');
-      setSelectValue(document.getElementById('ben-studio'), ben.titoloStudio || 'diploma');
+      setSelectValue(document.getElementById('ben-lavoro'), ben.statoLavorativo || '');
+      setSelectValue(document.getElementById('ben-studio'), ben.titoloStudio || '');
       document.getElementById('ben-servizi').value = ben.assistenteSociale || 'No';
 
       // Checkbox documenti

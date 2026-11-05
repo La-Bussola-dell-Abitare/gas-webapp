@@ -11,10 +11,16 @@
  * @enum {string}
  */
 const WorkStatus = /** @type {const}*/Object.freeze({
-    Occupato: "Occupato",
+    OccupatoStabile: "Occupato (stabile)",
+    OccupatoOccasionale: "Occupato (occasionale)",
+    OccupatoIrregolare: "Occupato (irregolare)",
+    LavoratoreAutonomo: "Lavoratore autonomo/atipico",
     Disoccupato: "Disoccupato",
+    Inattivo: "Inattivo",
     Studente: "Studente",
     Pensionato: "Pensionato",
+    IscrittoCPI: "Iscritto CPI",
+    CategoriaProtetta: "Categoria protetta",
     Casalingo: "Casalingo",
     Altro: "Altro"
 });
@@ -25,15 +31,21 @@ const WorkStatus = /** @type {const}*/Object.freeze({
  */
 
 /**
- * Array immutabile degli stati lavorativi ammessi.
+ * Array immutabile degli stati lavorativi ammessi (senza la voce generica 'Occupato').
  * @readonly
- * @type {readonly ["Occupato", "Disoccupato", "Studente", "Pensionato", "Casalingo", "Altro"]}
+ * @type {readonly ["Occupato (stabile)", "Occupato (occasionale)", "Occupato (irregolare)", "Lavoratore autonomo/atipico", "Disoccupato", "Inattivo", "Studente", "Pensionato", "Iscritto CPI", "Categoria protetta", "Casalingo", "Altro"]}
  */
 const WorkStatuses = Object.freeze(/** @type {const} */([
-    "Occupato",
+    "Occupato (stabile)",
+    "Occupato (occasionale)",
+    "Occupato (irregolare)",
+    "Lavoratore autonomo/atipico",
     "Disoccupato",
+    "Inattivo",
     "Studente",
     "Pensionato",
+    "Iscritto CPI",
+    "Categoria protetta",
     "Casalingo",
     "Altro"
 ]));
