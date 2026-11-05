@@ -94,7 +94,8 @@ class LookupRepository {
             stati: typeof StatiMondiali !== "undefined" ? [...StatiMondiali] : [],
             tipiDocumenti: typeof TipiDocumenti !== "undefined" ? [...TipiDocumenti] : [],
             prefissiTelefonici: typeof CountryPhoneData !== "undefined" ? CountryPhoneData : {},
-            topPrefissi: typeof TopPriorityCountries !== "undefined" ? [...TopPriorityCountries] : []
+            topPrefissi: typeof TopPriorityCountries !== "undefined" ? [...TopPriorityCountries] : [],
+            countries: typeof Countries !== "undefined" ? Countries : []
         };
     }
 
@@ -147,7 +148,8 @@ class LookupRepository {
             stati: pick("Stati", defaults.stati),
             tipiDocumenti: pick("TipiDocumenti", defaults.tipiDocumenti),
             prefissiTelefonici: defaults.prefissiTelefonici,
-            topPrefissi: defaults.topPrefissi
+            topPrefissi: defaults.topPrefissi,
+            countries: defaults.countries
         };
 
         // Memorizzazione in CacheService

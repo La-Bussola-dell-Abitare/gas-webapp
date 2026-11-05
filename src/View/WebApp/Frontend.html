@@ -1229,10 +1229,9 @@
     let dbLookups = {};       // liste di valori dai Named Ranges
     let activeTabId = 'tab-incontri';
 
-    // Mapping prefissi telefonici internazionali e cittadinanze (Domain Fallback client-side)
-    const COUNTRY_PHONE_DATA = {"Afghanistan":{"code":"+93","iso":"AF","flag":"🇦🇫"},"Albania":{"code":"+355","iso":"AL","flag":"🇦🇱"},"Algeria":{"code":"+213","iso":"DZ","flag":"🇩🇿"},"Andorra":{"code":"+376","iso":"AD","flag":"🇦🇩"},"Angola":{"code":"+244","iso":"AO","flag":"🇦🇴"},"Antigua e Barbuda":{"code":"+1268","iso":"AG","flag":"🇦🇬"},"Arabia Saudita":{"code":"+966","iso":"SA","flag":"🇸🇦"},"Argentina":{"code":"+54","iso":"AR","flag":"🇦🇷"},"Armenia":{"code":"+374","iso":"AM","flag":"🇦🇲"},"Australia":{"code":"+61","iso":"AU","flag":"🇦🇺"},"Austria":{"code":"+43","iso":"AT","flag":"🇦🇹"},"Azerbaigian":{"code":"+994","iso":"AZ","flag":"🇦🇿"},"Bahamas":{"code":"+1242","iso":"BS","flag":"🇧🇸"},"Bahrein":{"code":"+973","iso":"BH","flag":"🇧🇭"},"Bangladesh":{"code":"+880","iso":"BD","flag":"🇧🇩"},"Barbados":{"code":"+1246","iso":"BB","flag":"🇧🇧"},"Belgio":{"code":"+32","iso":"BE","flag":"🇧🇪"},"Belize":{"code":"+501","iso":"BZ","flag":"🇧🇿"},"Benin":{"code":"+229","iso":"BJ","flag":"🇧🇯"},"Bhutan":{"code":"+975","iso":"BT","flag":"🇧🇹"},"Bielorussia":{"code":"+375","iso":"BY","flag":"🇧🇾"},"Bolivia":{"code":"+591","iso":"BO","flag":"🇧🇴"},"Bosnia ed Erzegovina":{"code":"+387","iso":"BA","flag":"🇧🇦"},"Botswana":{"code":"+267","iso":"BW","flag":"🇧🇼"},"Brasile":{"code":"+55","iso":"BR","flag":"🇧🇷"},"Brunei":{"code":"+673","iso":"BN","flag":"🇧🇳"},"Bulgaria":{"code":"+359","iso":"BG","flag":"🇧🇬"},"Burkina Faso":{"code":"+226","iso":"BF","flag":"🇧🇫"},"Burundi":{"code":"+257","iso":"BI","flag":"🇧🇮"},"Cambogia":{"code":"+855","iso":"KH","flag":"🇰🇭"},"Camerun":{"code":"+237","iso":"CM","flag":"🇨🇲"},"Canada":{"code":"+1","iso":"CA","flag":"🇨🇦"},"Capo Verde":{"code":"+238","iso":"CV","flag":"🇨🇻"},"Ciad":{"code":"+235","iso":"TD","flag":"🇹🇩"},"Cile":{"code":"+56","iso":"CL","flag":"🇨🇱"},"Cina":{"code":"+86","iso":"CN","flag":"🇨🇳"},"Cipro":{"code":"+357","iso":"CY","flag":"🇨🇾"},"Colombia":{"code":"+57","iso":"CO","flag":"🇨🇴"},"Comore":{"code":"+269","iso":"KM","flag":"🇰🇲"},"Congo":{"code":"+242","iso":"CG","flag":"🇨🇬"},"Corea del Nord":{"code":"+850","iso":"KP","flag":"🇰🇵"},"Corea del Sud":{"code":"+82","iso":"KR","flag":"🇰🇷"},"Costa d’Avorio":{"code":"+225","iso":"CI","flag":"🇨🇮"},"Costa Rica":{"code":"+506","iso":"CR","flag":"🇨🇷"},"Croazia":{"code":"+385","iso":"HR","flag":"🇭🇷"},"Cuba":{"code":"+53","iso":"CU","flag":"🇨🇺"},"Danimarca":{"code":"+45","iso":"DK","flag":"🇩🇰"},"Dominica":{"code":"+1767","iso":"DM","flag":"🇩🇲"},"Ecuador":{"code":"+593","iso":"EC","flag":"🇪🇨"},"Egitto":{"code":"+20","iso":"EG","flag":"🇪🇬"},"El Salvador":{"code":"+503","iso":"SV","flag":"🇸🇻"},"Emirati Arabi Uniti":{"code":"+971","iso":"AE","flag":"🇦🇪"},"Eritrea":{"code":"+291","iso":"ER","flag":"🇪🇷"},"Estonia":{"code":"+372","iso":"EE","flag":"🇪🇪"},"Eswatini":{"code":"+268","iso":"SZ","flag":"🇸🇿"},"Etiopia":{"code":"+251","iso":"ET","flag":"🇪🇹"},"Figi":{"code":"+679","iso":"FJ","flag":"🇫🇯"},"Filippine":{"code":"+63","iso":"PH","flag":"🇵🇭"},"Finlandia":{"code":"+358","iso":"FI","flag":"🇫🇮"},"Francia":{"code":"+33","iso":"FR","flag":"🇫🇷"},"Gabon":{"code":"+241","iso":"GA","flag":"🇬🇦"},"Gambia":{"code":"+220","iso":"GM","flag":"🇬🇲"},"Georgia":{"code":"+995","iso":"GE","flag":"🇬🇪"},"Germania":{"code":"+49","iso":"DE","flag":"🇩🇪"},"Ghana":{"code":"+233","iso":"GH","flag":"🇬🇭"},"Giamaica":{"code":"+1876","iso":"JM","flag":"🇯🇲"},"Giappone":{"code":"+81","iso":"JP","flag":"🇯🇵"},"Gibuti":{"code":"+253","iso":"DJ","flag":"🇩🇯"},"Giordania":{"code":"+962","iso":"JO","flag":"🇯🇴"},"Grecia":{"code":"+30","iso":"GR","flag":"🇬🇷"},"Grenada":{"code":"+1473","iso":"GD","flag":"🇬🇩"},"Guatemala":{"code":"+502","iso":"GT","flag":"🇬🇹"},"Guinea":{"code":"+224","iso":"GN","flag":"🇬🇳"},"Guinea Equatoriale":{"code":"+240","iso":"GQ","flag":"🇬🇶"},"Guinea-Bissau":{"code":"+245","iso":"GW","flag":"🇬🇼"},"Guyana":{"code":"+592","iso":"GY","flag":"🇬🇾"},"Haiti":{"code":"+509","iso":"HT","flag":"🇭🇹"},"Honduras":{"code":"+504","iso":"HN","flag":"🇭🇳"},"India":{"code":"+91","iso":"IN","flag":"🇮🇳"},"Indonesia":{"code":"+62","iso":"ID","flag":"🇮🇩"},"Iran":{"code":"+98","iso":"IR","flag":"🇮🇷"},"Iraq":{"code":"+964","iso":"IQ","flag":"🇮🇶"},"Irlanda":{"code":"+353","iso":"IE","flag":"🇮🇪"},"Islanda":{"code":"+354","iso":"IS","flag":"🇮🇸"},"Isole Marshall":{"code":"+692","iso":"MH","flag":"🇲🇭"},"Israele":{"code":"+972","iso":"IL","flag":"🇮🇱"},"Italia":{"code":"+39","iso":"IT","flag":"🇮🇹"},"Kazakistan":{"code":"+7","iso":"KZ","flag":"🇰🇿"},"Kenya":{"code":"+254","iso":"KE","flag":"🇰🇪"},"Kirghizistan":{"code":"+996","iso":"KG","flag":"🇰🇬"},"Kiribati":{"code":"+686","iso":"KI","flag":"🇰🇮"},"Kosovo":{"code":"+383","iso":"XK","flag":"🇽🇰"},"Kuwait":{"code":"+965","iso":"KW","flag":"🇰🇼"},"Laos":{"code":"+856","iso":"LA","flag":"🇱🇦"},"Lesotho":{"code":"+266","iso":"LS","flag":"🇱🇸"},"Lettonia":{"code":"+371","iso":"LV","flag":"🇱🇻"},"Libano":{"code":"+961","iso":"LB","flag":"🇱🇧"},"Liberia":{"code":"+231","iso":"LR","flag":"🇱🇷"},"Libia":{"code":"+218","iso":"LY","flag":"🇱🇾"},"Liechtenstein":{"code":"+423","iso":"LI","flag":"🇱🇮"},"Lituania":{"code":"+370","iso":"LT","flag":"🇱🇹"},"Lussemburgo":{"code":"+352","iso":"LU","flag":"🇱🇺"},"Macedonia del Nord":{"code":"+389","iso":"MK","flag":"🇲🇰"},"Madagascar":{"code":"+261","iso":"MG","flag":"🇲🇬"},"Malawi":{"code":"+265","iso":"MW","flag":"🇲🇼"},"Malaysia":{"code":"+60","iso":"MY","flag":"🇲🇾"},"Maldive":{"code":"+960","iso":"MV","flag":"🇲🇻"},"Mali":{"code":"+223","iso":"ML","flag":"🇲🇱"},"Malta":{"code":"+356","iso":"MT","flag":"🇲🇹"},"Marocco":{"code":"+212","iso":"MA","flag":"🇲🇦"},"Mauritania":{"code":"+222","iso":"MR","flag":"🇲🇷"},"Mauritius":{"code":"+230","iso":"MU","flag":"🇲🇺"},"Messico":{"code":"+52","iso":"MX","flag":"🇲🇽"},"Micronesia":{"code":"+691","iso":"FM","flag":"🇫🇲"},"Moldavia":{"code":"+373","iso":"MD","flag":"🇲🇩"},"Monaco":{"code":"+377","iso":"MC","flag":"🇲🇨"},"Mongolia":{"code":"+976","iso":"MN","flag":"🇲🇳"},"Montenegro":{"code":"+382","iso":"ME","flag":"🇲🇪"},"Mozambico":{"code":"+258","iso":"MZ","flag":"🇲🇿"},"Myanmar":{"code":"+95","iso":"MM","flag":"🇲🇲"},"Namibia":{"code":"+264","iso":"NA","flag":"🇳🇦"},"Nauru":{"code":"+674","iso":"NR","flag":"🇳🇷"},"Nepal":{"code":"+977","iso":"NP","flag":"🇳🇵"},"Nessuno":{"code":"+39","iso":"IT","flag":"🇮🇹"},"Nicaragua":{"code":"+505","iso":"NI","flag":"🇳🇮"},"Niger":{"code":"+227","iso":"NE","flag":"🇳🇪"},"Nigeria":{"code":"+234","iso":"NG","flag":"🇳🇬"},"Norvegia":{"code":"+47","iso":"NO","flag":"🇳🇴"},"Nuova Zelanda":{"code":"+64","iso":"NZ","flag":"🇳🇿"},"Oman":{"code":"+968","iso":"OM","flag":"🇴🇲"},"Paesi Bassi":{"code":"+31","iso":"NL","flag":"🇳🇱"},"Pakistan":{"code":"+92","iso":"PK","flag":"🇵🇰"},"Palau":{"code":"+680","iso":"PW","flag":"🇵🇼"},"Palestina":{"code":"+970","iso":"PS","flag":"🇵🇸"},"Panama":{"code":"+507","iso":"PA","flag":"🇵🇦"},"Papua Nuova Guinea":{"code":"+675","iso":"PG","flag":"🇵🇬"},"Paraguay":{"code":"+595","iso":"PY","flag":"🇵🇾"},"Perù":{"code":"+51","iso":"PE","flag":"🇵🇪"},"Polonia":{"code":"+48","iso":"PL","flag":"🇵🇱"},"Portogallo":{"code":"+351","iso":"PT","flag":"🇵🇹"},"Qatar":{"code":"+974","iso":"QA","flag":"🇶🇦"},"Regno Unito":{"code":"+44","iso":"GB","flag":"🇬🇧"},"Repubblica Ceca":{"code":"+420","iso":"CZ","flag":"🇨🇿"},"Repubblica Centrafricana":{"code":"+236","iso":"CF","flag":"🇨🇫"},"Repubblica Dominicana":{"code":"+1809","iso":"DO","flag":"🇩🇴"},"Romania":{"code":"+40","iso":"RO","flag":"🇷🇴"},"Ruanda":{"code":"+250","iso":"RW","flag":"🇷🇼"},"Russia":{"code":"+7","iso":"RU","flag":"🇷🇺"},"Saint Kitts e Nevis":{"code":"+1869","iso":"KN","flag":"🇰🇳"},"Saint Lucia":{"code":"+1758","iso":"LC","flag":"🇱🇨"},"Saint Vincent e Grenadine":{"code":"+1784","iso":"VC","flag":"🇻🇨"},"Samoa":{"code":"+685","iso":"WS","flag":"🇼🇸"},"San Marino":{"code":"+378","iso":"SM","flag":"🇸🇲"},"São Tomé e Príncipe":{"code":"+239","iso":"ST","flag":"🇸🇹"},"Senegal":{"code":"+221","iso":"SN","flag":"🇸🇳"},"Serbia":{"code":"+381","iso":"RS","flag":"🇷🇸"},"Seychelles":{"code":"+248","iso":"SC","flag":"🇸🇨"},"Sierra Leone":{"code":"+232","iso":"SL","flag":"🇸🇱"},"Singapore":{"code":"+65","iso":"SG","flag":"🇸🇬"},"Siria":{"code":"+963","iso":"SY","flag":"🇸🇾"},"Slovacchia":{"code":"+421","iso":"SK","flag":"🇸🇰"},"Slovenia":{"code":"+386","iso":"SI","flag":"🇸🇮"},"Somalia":{"code":"+252","iso":"SO","flag":"🇸🇴"},"Spagna":{"code":"+34","iso":"ES","flag":"🇪🇸"},"Sri Lanka":{"code":"+94","iso":"LK","flag":"🇱🇰"},"Stati Uniti":{"code":"+1","iso":"US","flag":"🇺🇸"},"Sudafrica":{"code":"+27","iso":"ZA","flag":"🇿🇦"},"Sudan":{"code":"+249","iso":"SD","flag":"🇸🇩"},"Sudan del Sud":{"code":"+211","iso":"SS","flag":"🇸🇸"},"Suriname":{"code":"+597","iso":"SR","flag":"🇸🇷"},"Svezia":{"code":"+46","iso":"SE","flag":"🇸🇪"},"Svizzera":{"code":"+41","iso":"CH","flag":"🇨🇭"},"Tagikistan":{"code":"+992","iso":"TJ","flag":"🇹🇯"},"Tanzania":{"code":"+255","iso":"TZ","flag":"🇹🇿"},"Thailandia":{"code":"+66","iso":"TH","flag":"🇹🇭"},"Timor Est":{"code":"+670","iso":"TL","flag":"🇹🇱"},"Togo":{"code":"+228","iso":"TG","flag":"🇹🇬"},"Tonga":{"code":"+676","iso":"TO","flag":"🇹🇴"},"Trinidad e Tobago":{"code":"+1868","iso":"TT","flag":"🇹🇹"},"Tunisia":{"code":"+216","iso":"TN","flag":"🇹🇳"},"Turchia":{"code":"+90","iso":"TR","flag":"🇹🇷"},"Turkmenistan":{"code":"+993","iso":"TM","flag":"🇹🇲"},"Tuvalu":{"code":"+688","iso":"TV","flag":"🇹🇻"},"Ucraina":{"code":"+380","iso":"UA","flag":"🇺🇦"},"Uganda":{"code":"+256","iso":"UG","flag":"🇺🇬"},"Ungheria":{"code":"+36","iso":"HU","flag":"🇭🇺"},"Uruguay":{"code":"+598","iso":"UY","flag":"🇺🇾"},"Uzbekistan":{"code":"+998","iso":"UZ","flag":"🇺🇿"},"Vanuatu":{"code":"+678","iso":"VU","flag":"🇻🇺"},"Vaticano":{"code":"+39","iso":"VA","flag":"🇻🇦"},"Venezuela":{"code":"+58","iso":"VE","flag":"🇻🇪"},"Vietnam":{"code":"+84","iso":"VN","flag":"🇻🇳"},"Yemen":{"code":"+967","iso":"YE","flag":"🇾🇪"},"Zambia":{"code":"+260","iso":"ZM","flag":"🇿🇲"},"Zimbabwe":{"code":"+263","iso":"ZW","flag":"🇿🇼"}};
-    const TOP_PRIORITY_COUNTRIES = ["Italia","Marocco","Albania","Romania","Ucraina","Nigeria","Senegal","Perù","Egitto","Tunisia","Bangladesh","Pakistan","Cina","Filippine","India"];
-    const CITIZENSHIP_TO_COUNTRY = {"Apolide":"Nessuno","Afghana":"Afghanistan","Albanese":"Albania","Algerina":"Algeria","Andorrana":"Andorra","Angolana":"Angola","Antiguana":"Antigua e Barbuda","Saudita":"Arabia Saudita","Argentina":"Argentina","Armena":"Armenia","Australiana":"Australia","Austriaca":"Austria","Azera":"Azerbaigian","Bahamense":"Bahamas","Bahreinita":"Bahrein","Bangladese":"Bangladesh","Barbadiana":"Barbados","Belga":"Belgio","Beliziana":"Belize","Beninese":"Benin","Bhutanese":"Bhutan","Bielorussa":"Bielorussia","Boliviana":"Bolivia","Bosniaca":"Bosnia ed Erzegovina","Botswanese":"Botswana","Brasiliana":"Brasile","Bruneiana":"Brunei","Bulgara":"Bulgaria","Burkinabé":"Burkina Faso","Burundese":"Burundi","Cambogiana":"Cambogia","Camerunense":"Camerun","Canadese":"Canada","Capoverdiana":"Capo Verde","Ciadiana":"Ciad","Cilena":"Cile","Cinese":"Cina","Cipriota":"Cipro","Colombiana":"Colombia","Comoriana":"Comore","Congolese":"Congo","Nordcoreana":"Corea del Nord","Sudcoreana":"Corea del Sud","Costaricana":"Costa Rica","Ivoriana":"Costa d’Avorio","Croata":"Croazia","Cubana":"Cuba","Danese":"Danimarca","Dominicana":"Dominica","Dominicana_RD":"Repubblica Dominicana","Ecuadoriana":"Ecuador","Egiziana":"Egitto","Salvadoregna":"El Salvador","Emiratina":"Emirati Arabi Uniti","Eritrea":"Eritrea","Estone":"Estonia","Swatina":"Eswatini","Etiope":"Etiopia","Figiana":"Figi","Filippina":"Filippine","Finlandese":"Finlandia","Francese":"Francia","Gabonese":"Gabon","Gambiana":"Gambia","Georgiana":"Georgia","Tedesca":"Germania","Ghanese":"Ghana","Giamaicana":"Giamaica","Giapponese":"Giappone","Gibutiana":"Gibuti","Giordana":"Giordania","Greca":"Grecia","Grenadina":"Grenada","Guatemalteca":"Guatemala","Guineana":"Guinea","Guineense":"Guinea-Bissau","Equatoguineana":"Guinea Equatoriale","Guyanese":"Guyana","Haitiana":"Haiti","Honduregna":"Honduras","Indiana":"India","Indonesiana":"Indonesia","Iraniana":"Iran","Irachena":"Iraq","Irlandese":"Irlanda","Islandese":"Islanda","Israeliana":"Israele","Italiana":"Italia","Kazaka":"Kazakistan","Kenyana":"Kenya","Kirghisa":"Kirghizistan","Kiribatiana":"Kiribati","Kosovara":"Kosovo","Kuwaitiana":"Kuwait","Laotiana":"Laos","Lesothiana":"Lesotho","Lettone":"Lettonia","Libanese":"Libano","Liberiana":"Liberia","Libica":"Libia","Liechtensteiniana":"Liechtenstein","Lituana":"Lituania","Lussemburghese":"Lussemburgo","Macedone":"Macedonia del Nord","Malgascia":"Madagascar","Malawiana":"Malawi","Malese":"Malaysia","Maldiviana":"Maldive","Maliana":"Mali","Maltese":"Malta","Marocchina":"Marocco","Marshallese":"Isole Marshall","Mauritana":"Mauritania","Mauriziana":"Mauritius","Messicana":"Messico","Micronesiana":"Micronesia","Moldava":"Moldavia","Monegasca":"Monaco","Mongola":"Mongolia","Montenegrina":"Montenegro","Mozambicana":"Mozambico","Birmana":"Myanmar","Namibiana":"Namibia","Nauruana":"Nauru","Nepalese":"Nepal","Nicaraguense":"Nicaragua","Nigerina":"Niger","Nigeriana":"Nigeria","Norvegese":"Norvegia","Neozelandese":"Nuova Zelanda","Omanita":"Oman","Pakistana":"Pakistan","Palauana":"Palau","Palestinese":"Palestina","Panamense":"Panama","Papua":"Papua Nuova Guinea","Paraguayana":"Paraguay","Olandese":"Paesi Bassi","Peruviana":"Perù","Polacca":"Polonia","Portoghese":"Portogallo","Qatarina":"Qatar","Britannica":"Regno Unito","Ceca":"Repubblica Ceca","Centrafricana":"Repubblica Centrafricana","Romena":"Romania","Ruandese":"Ruanda","Russa":"Russia","Nevisiana":"Saint Kitts e Nevis","Luciana":"Saint Lucia","Vincentina":"Saint Vincent e Grenadine","Samoana":"Samoa","Sammarinese":"San Marino","Santomese":"São Tomé e Príncipe","Senegalese":"Senegal","Serba":"Serbia","Seychellese":"Seychelles","Sierraleonese":"Sierra Leone","Singaporiana":"Singapore","Siriana":"Siria","Slovacca":"Slovacchia","Slovena":"Slovenia","Somala":"Somalia","Spagnola":"Spagna","Singalese":"Sri Lanka","Statunitense":"Stati Uniti","Sudafricana":"Sudafrica","Sudanese":"Sudan","Sudsudanese":"Sudan del Sud","Surinamese":"Suriname","Svedese":"Svezia","Svizzera":"Svizzera","Tagika":"Tagikistan","Thailandese":"Thailandia","Tanzaniana":"Tanzania","Timorese":"Timor Est","Togolese":"Togo","Tongana":"Tonga","Trinidadiana":"Trinidad e Tobago","Tunisina":"Tunisia","Turca":"Turchia","Turkmena":"Turkmenistan","Tuvaluana":"Tuvalu","Ucraina":"Ucraina","Ugandese":"Uganda","Ungherese":"Ungheria","Uruguaiana":"Uruguay","Uzbeka":"Uzbekistan","Vanuatiana":"Vanuatu","Vaticana":"Vaticano","Venezuelana":"Venezuela","Vietnamita":"Vietnam","Yemenita":"Yemen","Zambiana":"Zambia","Zimbabwese":"Zimbabwe"};
+    // Catalogo unificato Nazioni e prefissi (Domain Model SSOT)
+    const COUNTRIES = [{"name":"Afghanistan","citizenship":"Afghana","iso":"AF","phone":"+93","flag":"🇦🇫","isTopPriority":false},{"name":"Albania","citizenship":"Albanese","iso":"AL","phone":"+355","flag":"🇦🇱","isTopPriority":true},{"name":"Algeria","citizenship":"Algerina","iso":"DZ","phone":"+213","flag":"🇩🇿","isTopPriority":false},{"name":"Andorra","citizenship":"Andorrana","iso":"AD","phone":"+376","flag":"🇦🇩","isTopPriority":false},{"name":"Angola","citizenship":"Angolana","iso":"AO","phone":"+244","flag":"🇦🇴","isTopPriority":false},{"name":"Antigua e Barbuda","citizenship":"Antiguana","iso":"AG","phone":"+1268","flag":"🇦🇬","isTopPriority":false},{"name":"Arabia Saudita","citizenship":"Saudita","iso":"SA","phone":"+966","flag":"🇸🇦","isTopPriority":false},{"name":"Argentina","citizenship":"Argentina","iso":"AR","phone":"+54","flag":"🇦🇷","isTopPriority":false},{"name":"Armenia","citizenship":"Armena","iso":"AM","phone":"+374","flag":"🇦🇲","isTopPriority":false},{"name":"Australia","citizenship":"Australiana","iso":"AU","phone":"+61","flag":"🇦🇺","isTopPriority":false},{"name":"Austria","citizenship":"Austriaca","iso":"AT","phone":"+43","flag":"🇦🇹","isTopPriority":false},{"name":"Azerbaigian","citizenship":"Azera","iso":"AZ","phone":"+994","flag":"🇦🇿","isTopPriority":false},{"name":"Bahamas","citizenship":"Bahamense","iso":"BS","phone":"+1242","flag":"🇧🇸","isTopPriority":false},{"name":"Bahrein","citizenship":"Bahreinita","iso":"BH","phone":"+973","flag":"🇧🇭","isTopPriority":false},{"name":"Bangladesh","citizenship":"Bangladese","iso":"BD","phone":"+880","flag":"🇧🇩","isTopPriority":true},{"name":"Barbados","citizenship":"Barbadiana","iso":"BB","phone":"+1246","flag":"🇧🇧","isTopPriority":false},{"name":"Belgio","citizenship":"Belga","iso":"BE","phone":"+32","flag":"🇧🇪","isTopPriority":false},{"name":"Belize","citizenship":"Beliziana","iso":"BZ","phone":"+501","flag":"🇧🇿","isTopPriority":false},{"name":"Benin","citizenship":"Beninese","iso":"BJ","phone":"+229","flag":"🇧🇯","isTopPriority":false},{"name":"Bhutan","citizenship":"Bhutanese","iso":"BT","phone":"+975","flag":"🇧🇹","isTopPriority":false},{"name":"Bielorussia","citizenship":"Bielorussa","iso":"BY","phone":"+375","flag":"🇧🇾","isTopPriority":false},{"name":"Bolivia","citizenship":"Boliviana","iso":"BO","phone":"+591","flag":"🇧🇴","isTopPriority":false},{"name":"Bosnia ed Erzegovina","citizenship":"Bosniaca","iso":"BA","phone":"+387","flag":"🇧🇦","isTopPriority":false},{"name":"Botswana","citizenship":"Botswanese","iso":"BW","phone":"+267","flag":"🇧🇼","isTopPriority":false},{"name":"Brasile","citizenship":"Brasiliana","iso":"BR","phone":"+55","flag":"🇧🇷","isTopPriority":false},{"name":"Brunei","citizenship":"Bruneiana","iso":"BN","phone":"+673","flag":"🇧🇳","isTopPriority":false},{"name":"Bulgaria","citizenship":"Bulgara","iso":"BG","phone":"+359","flag":"🇧🇬","isTopPriority":false},{"name":"Burkina Faso","citizenship":"Burkinabé","iso":"BF","phone":"+226","flag":"🇧🇫","isTopPriority":false},{"name":"Burundi","citizenship":"Burundese","iso":"BI","phone":"+257","flag":"🇧🇮","isTopPriority":false},{"name":"Cambogia","citizenship":"Cambogiana","iso":"KH","phone":"+855","flag":"🇰🇭","isTopPriority":false},{"name":"Camerun","citizenship":"Camerunense","iso":"CM","phone":"+237","flag":"🇨🇲","isTopPriority":false},{"name":"Canada","citizenship":"Canadese","iso":"CA","phone":"+1","flag":"🇨🇦","isTopPriority":false},{"name":"Capo Verde","citizenship":"Capoverdiana","iso":"CV","phone":"+238","flag":"🇨🇻","isTopPriority":false},{"name":"Ciad","citizenship":"Ciadiana","iso":"TD","phone":"+235","flag":"🇹🇩","isTopPriority":false},{"name":"Cile","citizenship":"Cilena","iso":"CL","phone":"+56","flag":"🇨🇱","isTopPriority":false},{"name":"Cina","citizenship":"Cinese","iso":"CN","phone":"+86","flag":"🇨🇳","isTopPriority":true},{"name":"Cipro","citizenship":"Cipriota","iso":"CY","phone":"+357","flag":"🇨🇾","isTopPriority":false},{"name":"Colombia","citizenship":"Colombiana","iso":"CO","phone":"+57","flag":"🇨🇴","isTopPriority":false},{"name":"Comore","citizenship":"Comoriana","iso":"KM","phone":"+269","flag":"🇰🇲","isTopPriority":false},{"name":"Congo","citizenship":"Congolese","iso":"CG","phone":"+242","flag":"🇨🇬","isTopPriority":false},{"name":"Corea del Nord","citizenship":"Nordcoreana","iso":"KP","phone":"+850","flag":"🇰🇵","isTopPriority":false},{"name":"Corea del Sud","citizenship":"Sudcoreana","iso":"KR","phone":"+82","flag":"🇰🇷","isTopPriority":false},{"name":"Costa d’Avorio","citizenship":"Ivoriana","iso":"CI","phone":"+225","flag":"🇨🇮","isTopPriority":false},{"name":"Costa Rica","citizenship":"Costaricana","iso":"CR","phone":"+506","flag":"🇨🇷","isTopPriority":false},{"name":"Croazia","citizenship":"Croata","iso":"HR","phone":"+385","flag":"🇭🇷","isTopPriority":false},{"name":"Cuba","citizenship":"Cubana","iso":"CU","phone":"+53","flag":"🇨🇺","isTopPriority":false},{"name":"Danimarca","citizenship":"Danese","iso":"DK","phone":"+45","flag":"🇩🇰","isTopPriority":false},{"name":"Dominica","citizenship":"Dominicana","iso":"DM","phone":"+1767","flag":"🇩🇲","isTopPriority":false},{"name":"Ecuador","citizenship":"Ecuadoriana","iso":"EC","phone":"+593","flag":"🇪🇨","isTopPriority":false},{"name":"Egitto","citizenship":"Egiziana","iso":"EG","phone":"+20","flag":"🇪🇬","isTopPriority":true},{"name":"El Salvador","citizenship":"Salvadoregna","iso":"SV","phone":"+503","flag":"🇸🇻","isTopPriority":false},{"name":"Emirati Arabi Uniti","citizenship":"Emiratina","iso":"AE","phone":"+971","flag":"🇦🇪","isTopPriority":false},{"name":"Eritrea","citizenship":"Eritrea","iso":"ER","phone":"+291","flag":"🇪🇷","isTopPriority":false},{"name":"Estonia","citizenship":"Estone","iso":"EE","phone":"+372","flag":"🇪🇪","isTopPriority":false},{"name":"Eswatini","citizenship":"Swatina","iso":"SZ","phone":"+268","flag":"🇸🇿","isTopPriority":false},{"name":"Etiopia","citizenship":"Etiope","iso":"ET","phone":"+251","flag":"🇪🇹","isTopPriority":false},{"name":"Figi","citizenship":"Figiana","iso":"FJ","phone":"+679","flag":"🇫🇯","isTopPriority":false},{"name":"Filippine","citizenship":"Filippina","iso":"PH","phone":"+63","flag":"🇵🇭","isTopPriority":true},{"name":"Finlandia","citizenship":"Finlandese","iso":"FI","phone":"+358","flag":"🇫🇮","isTopPriority":false},{"name":"Francia","citizenship":"Francese","iso":"FR","phone":"+33","flag":"🇫🇷","isTopPriority":false},{"name":"Gabon","citizenship":"Gabonese","iso":"GA","phone":"+241","flag":"🇬🇦","isTopPriority":false},{"name":"Gambia","citizenship":"Gambiana","iso":"GM","phone":"+220","flag":"🇬🇲","isTopPriority":false},{"name":"Georgia","citizenship":"Georgiana","iso":"GE","phone":"+995","flag":"🇬🇪","isTopPriority":false},{"name":"Germania","citizenship":"Tedesca","iso":"DE","phone":"+49","flag":"🇩🇪","isTopPriority":false},{"name":"Ghana","citizenship":"Ghanese","iso":"GH","phone":"+233","flag":"🇬🇭","isTopPriority":false},{"name":"Giamaica","citizenship":"Giamaicana","iso":"JM","phone":"+1876","flag":"🇯🇲","isTopPriority":false},{"name":"Giappone","citizenship":"Giapponese","iso":"JP","phone":"+81","flag":"🇯🇵","isTopPriority":false},{"name":"Gibuti","citizenship":"Gibutiana","iso":"DJ","phone":"+253","flag":"🇩🇯","isTopPriority":false},{"name":"Giordania","citizenship":"Giordana","iso":"JO","phone":"+962","flag":"🇯🇴","isTopPriority":false},{"name":"Grecia","citizenship":"Greca","iso":"GR","phone":"+30","flag":"🇬🇷","isTopPriority":false},{"name":"Grenada","citizenship":"Grenadina","iso":"GD","phone":"+1473","flag":"🇬🇩","isTopPriority":false},{"name":"Guatemala","citizenship":"Guatemalteca","iso":"GT","phone":"+502","flag":"🇬🇹","isTopPriority":false},{"name":"Guinea","citizenship":"Guineana","iso":"GN","phone":"+224","flag":"🇬🇳","isTopPriority":false},{"name":"Guinea Equatoriale","citizenship":"Equatoguineana","iso":"GQ","phone":"+240","flag":"🇬🇶","isTopPriority":false},{"name":"Guinea-Bissau","citizenship":"Guineense","iso":"GW","phone":"+245","flag":"🇬🇼","isTopPriority":false},{"name":"Guyana","citizenship":"Guyanese","iso":"GY","phone":"+592","flag":"🇬🇾","isTopPriority":false},{"name":"Haiti","citizenship":"Haitiana","iso":"HT","phone":"+509","flag":"🇭🇹","isTopPriority":false},{"name":"Honduras","citizenship":"Honduregna","iso":"HN","phone":"+504","flag":"🇭🇳","isTopPriority":false},{"name":"India","citizenship":"Indiana","iso":"IN","phone":"+91","flag":"🇮🇳","isTopPriority":true},{"name":"Indonesia","citizenship":"Indonesiana","iso":"ID","phone":"+62","flag":"🇮🇩","isTopPriority":false},{"name":"Iran","citizenship":"Iraniana","iso":"IR","phone":"+98","flag":"🇮🇷","isTopPriority":false},{"name":"Iraq","citizenship":"Irachena","iso":"IQ","phone":"+964","flag":"🇮🇶","isTopPriority":false},{"name":"Irlanda","citizenship":"Irlandese","iso":"IE","phone":"+353","flag":"🇮🇪","isTopPriority":false},{"name":"Islanda","citizenship":"Islandese","iso":"IS","phone":"+354","flag":"🇮🇸","isTopPriority":false},{"name":"Isole Marshall","citizenship":"Marshallese","iso":"MH","phone":"+692","flag":"🇲🇭","isTopPriority":false},{"name":"Israele","citizenship":"Israeliana","iso":"IL","phone":"+972","flag":"🇮🇱","isTopPriority":false},{"name":"Italia","citizenship":"Italiana","iso":"IT","phone":"+39","flag":"🇮🇹","isTopPriority":true},{"name":"Kazakistan","citizenship":"Kazaka","iso":"KZ","phone":"+7","flag":"🇰🇿","isTopPriority":false},{"name":"Kenya","citizenship":"Kenyana","iso":"KE","phone":"+254","flag":"🇰🇪","isTopPriority":false},{"name":"Kirghizistan","citizenship":"Kirghisa","iso":"KG","phone":"+996","flag":"🇰🇬","isTopPriority":false},{"name":"Kiribati","citizenship":"Kiribatiana","iso":"KI","phone":"+686","flag":"🇰🇮","isTopPriority":false},{"name":"Kosovo","citizenship":"Kosovara","iso":"XK","phone":"+383","flag":"🇽🇰","isTopPriority":false},{"name":"Kuwait","citizenship":"Kuwaitiana","iso":"KW","phone":"+965","flag":"🇰🇼","isTopPriority":false},{"name":"Laos","citizenship":"Laotiana","iso":"LA","phone":"+856","flag":"🇱🇦","isTopPriority":false},{"name":"Lesotho","citizenship":"Lesothiana","iso":"LS","phone":"+266","flag":"🇱🇸","isTopPriority":false},{"name":"Lettonia","citizenship":"Lettone","iso":"LV","phone":"+371","flag":"🇱🇻","isTopPriority":false},{"name":"Libano","citizenship":"Libanese","iso":"LB","phone":"+961","flag":"🇱🇧","isTopPriority":false},{"name":"Liberia","citizenship":"Liberiana","iso":"LR","phone":"+231","flag":"🇱🇷","isTopPriority":false},{"name":"Libia","citizenship":"Libica","iso":"LY","phone":"+218","flag":"🇱🇾","isTopPriority":false},{"name":"Liechtenstein","citizenship":"Liechtensteiniana","iso":"LI","phone":"+423","flag":"🇱🇮","isTopPriority":false},{"name":"Lituania","citizenship":"Lituana","iso":"LT","phone":"+370","flag":"🇱🇹","isTopPriority":false},{"name":"Lussemburgo","citizenship":"Lussemburghese","iso":"LU","phone":"+352","flag":"🇱🇺","isTopPriority":false},{"name":"Macedonia del Nord","citizenship":"Macedone","iso":"MK","phone":"+389","flag":"🇲🇰","isTopPriority":false},{"name":"Madagascar","citizenship":"Malgascia","iso":"MG","phone":"+261","flag":"🇲🇬","isTopPriority":false},{"name":"Malawi","citizenship":"Malawiana","iso":"MW","phone":"+265","flag":"🇲🇼","isTopPriority":false},{"name":"Malaysia","citizenship":"Malese","iso":"MY","phone":"+60","flag":"🇲🇾","isTopPriority":false},{"name":"Maldive","citizenship":"Maldiviana","iso":"MV","phone":"+960","flag":"🇲🇻","isTopPriority":false},{"name":"Mali","citizenship":"Maliana","iso":"ML","phone":"+223","flag":"🇲🇱","isTopPriority":false},{"name":"Malta","citizenship":"Maltese","iso":"MT","phone":"+356","flag":"🇲🇹","isTopPriority":false},{"name":"Marocco","citizenship":"Marocchina","iso":"MA","phone":"+212","flag":"🇲🇦","isTopPriority":true},{"name":"Mauritania","citizenship":"Mauritana","iso":"MR","phone":"+222","flag":"🇲🇷","isTopPriority":false},{"name":"Mauritius","citizenship":"Mauriziana","iso":"MU","phone":"+230","flag":"🇲🇺","isTopPriority":false},{"name":"Messico","citizenship":"Messicana","iso":"MX","phone":"+52","flag":"🇲🇽","isTopPriority":false},{"name":"Micronesia","citizenship":"Micronesiana","iso":"FM","phone":"+691","flag":"🇫🇲","isTopPriority":false},{"name":"Moldavia","citizenship":"Moldava","iso":"MD","phone":"+373","flag":"🇲🇩","isTopPriority":false},{"name":"Monaco","citizenship":"Monegasca","iso":"MC","phone":"+377","flag":"🇲🇨","isTopPriority":false},{"name":"Mongolia","citizenship":"Mongola","iso":"MN","phone":"+976","flag":"🇲🇳","isTopPriority":false},{"name":"Montenegro","citizenship":"Montenegrina","iso":"ME","phone":"+382","flag":"🇲🇪","isTopPriority":false},{"name":"Mozambico","citizenship":"Mozambicana","iso":"MZ","phone":"+258","flag":"🇲🇿","isTopPriority":false},{"name":"Myanmar","citizenship":"Birmana","iso":"MM","phone":"+95","flag":"🇲🇲","isTopPriority":false},{"name":"Namibia","citizenship":"Namibiana","iso":"NA","phone":"+264","flag":"🇳🇦","isTopPriority":false},{"name":"Nauru","citizenship":"Nauruana","iso":"NR","phone":"+674","flag":"🇳🇷","isTopPriority":false},{"name":"Nepal","citizenship":"Nepalese","iso":"NP","phone":"+977","flag":"🇳🇵","isTopPriority":false},{"name":"Nessuno","citizenship":"Apolide","iso":"IT","phone":"+39","flag":"🇮🇹","isTopPriority":false},{"name":"Nicaragua","citizenship":"Nicaraguense","iso":"NI","phone":"+505","flag":"🇳🇮","isTopPriority":false},{"name":"Niger","citizenship":"Nigerina","iso":"NE","phone":"+227","flag":"🇳🇪","isTopPriority":false},{"name":"Nigeria","citizenship":"Nigeriana","iso":"NG","phone":"+234","flag":"🇳🇬","isTopPriority":true},{"name":"Norvegia","citizenship":"Norvegese","iso":"NO","phone":"+47","flag":"🇳🇴","isTopPriority":false},{"name":"Nuova Zelanda","citizenship":"Neozelandese","iso":"NZ","phone":"+64","flag":"🇳🇿","isTopPriority":false},{"name":"Oman","citizenship":"Omanita","iso":"OM","phone":"+968","flag":"🇴🇲","isTopPriority":false},{"name":"Paesi Bassi","citizenship":"Olandese","iso":"NL","phone":"+31","flag":"🇳🇱","isTopPriority":false},{"name":"Pakistan","citizenship":"Pakistana","iso":"PK","phone":"+92","flag":"🇵🇰","isTopPriority":true},{"name":"Palau","citizenship":"Palauana","iso":"PW","phone":"+680","flag":"🇵🇼","isTopPriority":false},{"name":"Palestina","citizenship":"Palestinese","iso":"PS","phone":"+970","flag":"🇵🇸","isTopPriority":false},{"name":"Panama","citizenship":"Panamense","iso":"PA","phone":"+507","flag":"🇵🇦","isTopPriority":false},{"name":"Papua Nuova Guinea","citizenship":"Papua","iso":"PG","phone":"+675","flag":"🇵🇬","isTopPriority":false},{"name":"Paraguay","citizenship":"Paraguayana","iso":"PY","phone":"+595","flag":"🇵🇾","isTopPriority":false},{"name":"Perù","citizenship":"Peruviana","iso":"PE","phone":"+51","flag":"🇵🇪","isTopPriority":true},{"name":"Polonia","citizenship":"Polacca","iso":"PL","phone":"+48","flag":"🇵🇱","isTopPriority":false},{"name":"Portogallo","citizenship":"Portoghese","iso":"PT","phone":"+351","flag":"🇵🇹","isTopPriority":false},{"name":"Qatar","citizenship":"Qatarina","iso":"QA","phone":"+974","flag":"🇶🇦","isTopPriority":false},{"name":"Regno Unito","citizenship":"Britannica","iso":"GB","phone":"+44","flag":"🇬🇧","isTopPriority":false},{"name":"Repubblica Ceca","citizenship":"Ceca","iso":"CZ","phone":"+420","flag":"🇨🇿","isTopPriority":false},{"name":"Repubblica Centrafricana","citizenship":"Centrafricana","iso":"CF","phone":"+236","flag":"🇨🇫","isTopPriority":false},{"name":"Repubblica Dominicana","citizenship":"Dominicana_RD","iso":"DO","phone":"+1809","flag":"🇩🇴","isTopPriority":false},{"name":"Romania","citizenship":"Romena","iso":"RO","phone":"+40","flag":"🇷🇴","isTopPriority":true},{"name":"Ruanda","citizenship":"Ruandese","iso":"RW","phone":"+250","flag":"🇷🇼","isTopPriority":false},{"name":"Russia","citizenship":"Russa","iso":"RU","phone":"+7","flag":"🇷🇺","isTopPriority":false},{"name":"Saint Kitts e Nevis","citizenship":"Nevisiana","iso":"KN","phone":"+1869","flag":"🇰🇳","isTopPriority":false},{"name":"Saint Lucia","citizenship":"Luciana","iso":"LC","phone":"+1758","flag":"🇱🇨","isTopPriority":false},{"name":"Saint Vincent e Grenadine","citizenship":"Vincentina","iso":"VC","phone":"+1784","flag":"🇻🇨","isTopPriority":false},{"name":"Samoa","citizenship":"Samoana","iso":"WS","phone":"+685","flag":"🇼🇸","isTopPriority":false},{"name":"San Marino","citizenship":"Sammarinese","iso":"SM","phone":"+378","flag":"🇸🇲","isTopPriority":false},{"name":"São Tomé e Príncipe","citizenship":"Santomese","iso":"ST","phone":"+239","flag":"🇸🇹","isTopPriority":false},{"name":"Senegal","citizenship":"Senegalese","iso":"SN","phone":"+221","flag":"🇸🇳","isTopPriority":true},{"name":"Serbia","citizenship":"Serba","iso":"RS","phone":"+381","flag":"🇷🇸","isTopPriority":false},{"name":"Seychelles","citizenship":"Seychellese","iso":"SC","phone":"+248","flag":"🇸🇨","isTopPriority":false},{"name":"Sierra Leone","citizenship":"Sierraleonese","iso":"SL","phone":"+232","flag":"🇸🇱","isTopPriority":false},{"name":"Singapore","citizenship":"Singaporiana","iso":"SG","phone":"+65","flag":"🇸🇬","isTopPriority":false},{"name":"Siria","citizenship":"Siriana","iso":"SY","phone":"+963","flag":"🇸🇾","isTopPriority":false},{"name":"Slovacchia","citizenship":"Slovacca","iso":"SK","phone":"+421","flag":"🇸🇰","isTopPriority":false},{"name":"Slovenia","citizenship":"Slovena","iso":"SI","phone":"+386","flag":"🇸🇮","isTopPriority":false},{"name":"Somalia","citizenship":"Somala","iso":"SO","phone":"+252","flag":"🇸🇴","isTopPriority":false},{"name":"Spagna","citizenship":"Spagnola","iso":"ES","phone":"+34","flag":"🇪🇸","isTopPriority":false},{"name":"Sri Lanka","citizenship":"Singalese","iso":"LK","phone":"+94","flag":"🇱🇰","isTopPriority":false},{"name":"Stati Uniti","citizenship":"Statunitense","iso":"US","phone":"+1","flag":"🇺🇸","isTopPriority":false},{"name":"Sudafrica","citizenship":"Sudafricana","iso":"ZA","phone":"+27","flag":"🇿🇦","isTopPriority":false},{"name":"Sudan","citizenship":"Sudanese","iso":"SD","phone":"+249","flag":"🇸🇩","isTopPriority":false},{"name":"Sudan del Sud","citizenship":"Sudsudanese","iso":"SS","phone":"+211","flag":"🇸🇸","isTopPriority":false},{"name":"Suriname","citizenship":"Surinamese","iso":"SR","phone":"+597","flag":"🇸🇷","isTopPriority":false},{"name":"Svezia","citizenship":"Svedese","iso":"SE","phone":"+46","flag":"🇸🇪","isTopPriority":false},{"name":"Svizzera","citizenship":"Svizzera","iso":"CH","phone":"+41","flag":"🇨🇭","isTopPriority":false},{"name":"Tagikistan","citizenship":"Tagika","iso":"TJ","phone":"+992","flag":"🇹🇯","isTopPriority":false},{"name":"Tanzania","citizenship":"Tanzaniana","iso":"TZ","phone":"+255","flag":"🇹🇿","isTopPriority":false},{"name":"Thailandia","citizenship":"Thailandese","iso":"TH","phone":"+66","flag":"🇹🇭","isTopPriority":false},{"name":"Timor Est","citizenship":"Timorese","iso":"TL","phone":"+670","flag":"🇹🇱","isTopPriority":false},{"name":"Togo","citizenship":"Togolese","iso":"TG","phone":"+228","flag":"🇹🇬","isTopPriority":false},{"name":"Tonga","citizenship":"Tongana","iso":"TO","phone":"+676","flag":"🇹🇴","isTopPriority":false},{"name":"Trinidad e Tobago","citizenship":"Trinidadiana","iso":"TT","phone":"+1868","flag":"🇹🇹","isTopPriority":false},{"name":"Tunisia","citizenship":"Tunisina","iso":"TN","phone":"+216","flag":"🇹🇳","isTopPriority":true},{"name":"Turchia","citizenship":"Turca","iso":"TR","phone":"+90","flag":"🇹🇷","isTopPriority":false},{"name":"Turkmenistan","citizenship":"Turkmena","iso":"TM","phone":"+993","flag":"🇹🇲","isTopPriority":false},{"name":"Tuvalu","citizenship":"Tuvaluana","iso":"TV","phone":"+688","flag":"🇹🇻","isTopPriority":false},{"name":"Ucraina","citizenship":"Ucraina","iso":"UA","phone":"+380","flag":"🇺🇦","isTopPriority":true},{"name":"Uganda","citizenship":"Ugandese","iso":"UG","phone":"+256","flag":"🇺🇬","isTopPriority":false},{"name":"Ungheria","citizenship":"Ungherese","iso":"HU","phone":"+36","flag":"🇭🇺","isTopPriority":false},{"name":"Uruguay","citizenship":"Uruguaiana","iso":"UY","phone":"+598","flag":"🇺🇾","isTopPriority":false},{"name":"Uzbekistan","citizenship":"Uzbeka","iso":"UZ","phone":"+998","flag":"🇺🇿","isTopPriority":false},{"name":"Vanuatu","citizenship":"Vanuatiana","iso":"VU","phone":"+678","flag":"🇻🇺","isTopPriority":false},{"name":"Vaticano","citizenship":"Vaticana","iso":"VA","phone":"+39","flag":"🇻🇦","isTopPriority":false},{"name":"Venezuela","citizenship":"Venezuelana","iso":"VE","phone":"+58","flag":"🇻🇪","isTopPriority":false},{"name":"Vietnam","citizenship":"Vietnamita","iso":"VN","phone":"+84","flag":"🇻🇳","isTopPriority":false},{"name":"Yemen","citizenship":"Yemenita","iso":"YE","phone":"+967","flag":"🇾🇪","isTopPriority":false},{"name":"Zambia","citizenship":"Zambiana","iso":"ZM","phone":"+260","flag":"🇿🇲","isTopPriority":false},{"name":"Zimbabwe","citizenship":"Zimbabwese","iso":"ZW","phone":"+263","flag":"🇿🇼","isTopPriority":false}];
+    const TOP_PRIORITY_COUNTRIES = COUNTRIES.filter(c => c.isTopPriority).map(c => c.name);
 
     // Inizializzazione pagina
     window.onload = function () {
@@ -1413,11 +1412,33 @@
     }
 
     /**
+     * Ricerca un record paese a partire da un valore arbitrario (nome stato, aggettivo cittadinanza o codice ISO).
+     * @param {string} query
+     * @return {{ name: string, citizenship: string, iso: string, phone: string, flag: string, isTopPriority?: boolean } | null}
+     */
+    function findCountry(query) {
+      if (!query || typeof query !== "string") return null;
+      const clean = query.trim();
+      if (!clean) return null;
+      const lower = clean.toLowerCase();
+      const list = (dbLookups && Array.isArray(dbLookups.countries) && dbLookups.countries.length > 0) ? dbLookups.countries : COUNTRIES;
+      for (let i = 0; i < list.length; i++) {
+        const c = list[i];
+        if (c.name.toLowerCase() === lower ||
+            c.citizenship.toLowerCase() === lower ||
+            c.iso.toLowerCase() === lower) {
+          return c;
+        }
+      }
+      return null;
+    }
+
+    /**
      * Inizializza i dropdown dei prefissi telefonici in tutti i form.
      */
     function initPhonePrefixDropdowns() {
-      populatePhonePrefixDropdown('ben-prefisso-tel', COUNTRY_PHONE_DATA, TOP_PRIORITY_COUNTRIES);
-      populatePhonePrefixDropdown('nuc-ben-prefisso-tel', COUNTRY_PHONE_DATA, TOP_PRIORITY_COUNTRIES);
+      populatePhonePrefixDropdown('ben-prefisso-tel', COUNTRIES);
+      populatePhonePrefixDropdown('nuc-ben-prefisso-tel', COUNTRIES);
     }
 
     /**
@@ -1462,51 +1483,6 @@
     }
 
     /**
-     * Individua le informazioni sul prefisso telefonico dato un nome stato o un aggettivo di cittadinanza.
-     * @param {string} val - Es. "Italia", "Italiana", "Marocco", "Marocchina"
-     * @return {{ country: string, info: { code: string, iso: string, flag: string } } | null}
-     */
-    function findPhoneInfoForCountryOrCitizenship(val) {
-      if (!val || typeof val !== "string") return null;
-      const cleanVal = val.trim();
-      if (!cleanVal) return null;
-
-      const phoneSource = (dbLookups && dbLookups.prefissiTelefonici && Object.keys(dbLookups.prefissiTelefonici).length > 0)
-        ? dbLookups.prefissiTelefonici
-        : COUNTRY_PHONE_DATA;
-
-      // 1. Match diretto per nome nazione
-      if (phoneSource[cleanVal]) {
-        return { country: cleanVal, info: phoneSource[cleanVal] };
-      }
-
-      // 2. Match tramite mappa cittadinanza (aggettivo -> stato)
-      const mappedCountry = CITIZENSHIP_TO_COUNTRY[cleanVal];
-      if (mappedCountry && phoneSource[mappedCountry]) {
-        return { country: mappedCountry, info: phoneSource[mappedCountry] };
-      }
-
-      // 3. Match case-insensitive per nome nazione
-      const lower = cleanVal.toLowerCase();
-      for (const [k, v] of Object.entries(phoneSource)) {
-        if (k.toLowerCase() === lower) {
-          return { country: k, info: v };
-        }
-      }
-
-      // 4. Match case-insensitive per aggettivo di cittadinanza
-      for (const [adj, country] of Object.entries(CITIZENSHIP_TO_COUNTRY)) {
-        if (adj.toLowerCase() === lower) {
-          if (phoneSource[country]) {
-            return { country: country, info: phoneSource[country] };
-          }
-        }
-      }
-
-      return null;
-    }
-
-    /**
      * Separa una stringa contenente un numero di telefono (con o senza prefisso)
      * restituendo il prefisso identificato e la parte numerica locale.
      * @param {string} fullNumber - Numero di telefono memorizzato
@@ -1523,19 +1499,15 @@
       }
 
       if (cleaned.startsWith("+")) {
-        const phoneData = (dbLookups && dbLookups.prefissiTelefonici && Object.keys(dbLookups.prefissiTelefonici).length > 0)
-          ? dbLookups.prefissiTelefonici
-          : COUNTRY_PHONE_DATA;
+        const list = (dbLookups && Array.isArray(dbLookups.countries) && dbLookups.countries.length > 0) ? dbLookups.countries : COUNTRIES;
+        const prefixes = list.map(c => c.phone);
+        const uniquePrefixes = Array.from(new Set(prefixes)).sort((a, b) => b.length - a.length);
 
-        if (phoneData) {
-          const prefixes = Object.values(phoneData).map(p => p.code);
-          const uniquePrefixes = Array.from(new Set(prefixes)).sort((a, b) => b.length - a.length);
-
-          for (const pref of uniquePrefixes) {
-            if (cleaned.startsWith(pref)) {
-              const local = cleaned.substring(pref.length).trim();
-              return { prefix: pref, number: local };
-            }
+        for (let i = 0; i < uniquePrefixes.length; i++) {
+          const pref = uniquePrefixes[i];
+          if (cleaned.startsWith(pref)) {
+            const local = cleaned.substring(pref.length).trim();
+            return { prefix: pref, number: local };
           }
         }
 
@@ -1588,32 +1560,28 @@
     /**
      * Popola un selettore di prefisso telefonico raggruppando per paesi frequenti e tutti i paesi.
      * @param {string} selectId - ID dell'elemento select
-     * @param {Record<string, {code: string, iso: string, flag: string}>} phoneData
-     * @param {string[]} topCountries
+     * @param {Array<{ name: string, phone: string, flag: string, isTopPriority?: boolean }>} [countriesList]
      */
-    function populatePhonePrefixDropdown(selectId, phoneData, topCountries) {
+    function populatePhonePrefixDropdown(selectId, countriesList) {
       const el = document.getElementById(selectId);
-      const data = (phoneData && Object.keys(phoneData).length > 0) ? phoneData : COUNTRY_PHONE_DATA;
-      if (!el || !data) return;
+      const list = (Array.isArray(countriesList) && countriesList.length > 0) ? countriesList : COUNTRIES;
+      if (!el || !list) return;
 
       const currentVal = el.value || "+39";
       const currentCountry = (el.selectedOptions && el.selectedOptions[0]) ? el.selectedOptions[0].dataset.country : "";
       el.innerHTML = "";
 
       // 1. Gruppo Paesi Frequenti
-      const tops = (Array.isArray(topCountries) && topCountries.length > 0) ? topCountries : TOP_PRIORITY_COUNTRIES;
-      if (tops && tops.length > 0) {
+      const frequenti = list.filter(c => c.isTopPriority);
+      if (frequenti.length > 0) {
         const grpFrequenti = document.createElement("optgroup");
         grpFrequenti.label = "Frequenti";
-        tops.forEach(country => {
-          const info = data[country];
-          if (info) {
-            const opt = document.createElement("option");
-            opt.value = info.code;
-            opt.dataset.country = country;
-            opt.textContent = `${info.flag} ${info.code} (${country})`;
-            grpFrequenti.appendChild(opt);
-          }
+        frequenti.forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c.phone;
+          opt.dataset.country = c.name;
+          opt.textContent = `${c.flag} ${c.phone} (${c.name})`;
+          grpFrequenti.appendChild(opt);
         });
         el.appendChild(grpFrequenti);
       }
@@ -1621,16 +1589,13 @@
       // 2. Gruppo Tutti i Paesi (in ordine alfabetico)
       const grpTutti = document.createElement("optgroup");
       grpTutti.label = "Tutti i Paesi";
-      const sortedCountries = Object.keys(data).sort((a, b) => a.localeCompare(b, "it"));
-      sortedCountries.forEach(country => {
-        const info = data[country];
-        if (info) {
-          const opt = document.createElement("option");
-          opt.value = info.code;
-          opt.dataset.country = country;
-          opt.textContent = `${info.flag} ${info.code} - ${country}`;
-          grpTutti.appendChild(opt);
-        }
+      const sorted = [...list].sort((a, b) => a.name.localeCompare(b.name, "it"));
+      sorted.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c.phone;
+        opt.dataset.country = c.name;
+        opt.textContent = `${c.flag} ${c.phone} - ${c.name}`;
+        grpTutti.appendChild(opt);
       });
       el.appendChild(grpTutti);
 
@@ -1651,10 +1616,10 @@
       const selectedValue = citEl.value;
       if (!selectedValue) return;
 
-      const match = findPhoneInfoForCountryOrCitizenship(selectedValue);
-      if (!match || !match.info || !match.info.code) return;
+      const country = findCountry(selectedValue);
+      if (!country || !country.phone) return;
 
-      setSelectPhonePrefix(prefEl, match.info.code, match.country);
+      setSelectPhonePrefix(prefEl, country.phone, country.name);
 
       if (telefonoInputId) {
         const prefix = telefonoInputId.replace('telefono', '');
@@ -1697,9 +1662,9 @@
           populateSelectOptions('nuc-ben-cittadinanza', lookups.stati, 'Seleziona Cittadinanza / Stato...');
         }
       }
-      if (lookups.prefissiTelefonici || COUNTRY_PHONE_DATA) {
-        populatePhonePrefixDropdown('ben-prefisso-tel', lookups.prefissiTelefonici || COUNTRY_PHONE_DATA, lookups.topPrefissi || TOP_PRIORITY_COUNTRIES);
-        populatePhonePrefixDropdown('nuc-ben-prefisso-tel', lookups.prefissiTelefonici || COUNTRY_PHONE_DATA, lookups.topPrefissi || TOP_PRIORITY_COUNTRIES);
+      if (lookups.countries || COUNTRIES) {
+        populatePhonePrefixDropdown('ben-prefisso-tel', lookups.countries || COUNTRIES);
+        populatePhonePrefixDropdown('nuc-ben-prefisso-tel', lookups.countries || COUNTRIES);
       }
     }
 
