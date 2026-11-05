@@ -92,7 +92,9 @@ class LookupRepository {
             statiLavorativi: typeof WorkStatuses !== "undefined" ? [...WorkStatuses] : [],
             titoliStudio: typeof TitoliStudio !== "undefined" ? [...TitoliStudio] : [],
             stati: typeof StatiMondiali !== "undefined" ? [...StatiMondiali] : [],
-            tipiDocumenti: typeof TipiDocumenti !== "undefined" ? [...TipiDocumenti] : []
+            tipiDocumenti: typeof TipiDocumenti !== "undefined" ? [...TipiDocumenti] : [],
+            prefissiTelefonici: typeof CountryPhoneData !== "undefined" ? CountryPhoneData : {},
+            topPrefissi: typeof TopPriorityCountries !== "undefined" ? [...TopPriorityCountries] : []
         };
     }
 
@@ -139,7 +141,9 @@ class LookupRepository {
             statiLavorativi: pick("StatoLavorativo", defaults.statiLavorativi),
             titoliStudio: pick("TitoliStudio", defaults.titoliStudio),
             stati: pick("Stati", defaults.stati),
-            tipiDocumenti: pick("TipiDocumenti", defaults.tipiDocumenti)
+            tipiDocumenti: pick("TipiDocumenti", defaults.tipiDocumenti),
+            prefissiTelefonici: defaults.prefissiTelefonici,
+            topPrefissi: defaults.topPrefissi
         };
 
         // Memorizzazione in CacheService

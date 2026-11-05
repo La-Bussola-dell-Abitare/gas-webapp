@@ -658,9 +658,15 @@
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Telefono *</label>
-                <input type="text" class="form-control" id="ben-telefono" required placeholder="Es. 3331234567"
-                  oninput="triggerValidationTelefono('ben-')" onblur="triggerValidationTelefono('ben-')">
-                <div class="invalid-feedback font-outfit" id="ben-telefono-feedback"></div>
+                <div class="input-group">
+                  <select class="form-select font-outfit px-2" id="ben-prefisso-tel" style="max-width: 140px;"
+                    onchange="triggerValidationTelefono('ben-')">
+                    <option value="+39" selected>🇮🇹 +39</option>
+                  </select>
+                  <input type="text" class="form-control" id="ben-telefono" required placeholder="Es. 333 1234567"
+                    oninput="triggerValidationTelefono('ben-')" onblur="triggerValidationTelefono('ben-')">
+                </div>
+                <div class="invalid-feedback font-outfit" id="ben-telefono-feedback" style="display: none;"></div>
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Email</label>
@@ -670,7 +676,8 @@
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Cittadinanza *</label>
-                <select class="form-select" id="ben-cittadinanza" required>
+                <select class="form-select" id="ben-cittadinanza" required
+                  onchange="syncPhonePrefixWithCitizenship('ben-cittadinanza', 'ben-prefisso-tel', 'ben-telefono')">
                   <option value="Italia">Italia</option>
                 </select>
               </div>
@@ -838,9 +845,15 @@
                     </div>
                     <div class="col-md-4">
                       <label class="form-label font-outfit text-xs">Telefono *</label>
-                      <input type="text" class="form-control form-control-sm" id="nuc-ben-telefono" placeholder="Es. 3331234567"
-                        oninput="triggerValidationTelefono('nuc-ben-')" onblur="triggerValidationTelefono('nuc-ben-')">
-                      <div class="invalid-feedback font-outfit" id="nuc-ben-telefono-feedback"></div>
+                      <div class="input-group input-group-sm">
+                        <select class="form-select form-select-sm font-outfit px-2" id="nuc-ben-prefisso-tel" style="max-width: 135px;"
+                          onchange="triggerValidationTelefono('nuc-ben-')">
+                          <option value="+39" selected>🇮🇹 +39</option>
+                        </select>
+                        <input type="text" class="form-control form-control-sm" id="nuc-ben-telefono" placeholder="Es. 333 1234567"
+                          oninput="triggerValidationTelefono('nuc-ben-')" onblur="triggerValidationTelefono('nuc-ben-')">
+                      </div>
+                      <div class="invalid-feedback font-outfit" id="nuc-ben-telefono-feedback" style="display: none;"></div>
                     </div>
                     <div class="col-md-4">
                       <label class="form-label font-outfit text-xs">Email</label>
@@ -850,7 +863,8 @@
                     </div>
                     <div class="col-md-4">
                       <label class="form-label font-outfit text-xs">Cittadinanza *</label>
-                      <select class="form-select form-select-sm" id="nuc-ben-cittadinanza">
+                      <select class="form-select form-select-sm" id="nuc-ben-cittadinanza"
+                        onchange="syncPhonePrefixWithCitizenship('nuc-ben-cittadinanza', 'nuc-ben-prefisso-tel', 'nuc-ben-telefono')">
                         <option value="Italia">Italia</option>
                       </select>
                     </div>
@@ -1167,8 +1181,136 @@
     }
 
     /**
+     * Separa una stringa contenente un numero di telefono (con o senza prefisso)
+     * restituendo il prefisso identificato e la parte numerica locale.
+     * @param {string} fullNumber - Numero di telefono memorizzato
+     * @return {{ prefix: string; number: string }}
+     */
+    function splitPhoneNumber(fullNumber) {
+      if (!fullNumber || typeof fullNumber !== "string") {
+        return { prefix: "+39", number: "" };
+      }
+
+      let cleaned = fullNumber.trim();
+      if (cleaned.startsWith("00")) {
+        cleaned = "+" + cleaned.substring(2);
+      }
+
+      if (cleaned.startsWith("+")) {
+        const phoneData = dbLookups && dbLookups.prefissiTelefonici ? dbLookups.prefissiTelefonici : null;
+        if (phoneData) {
+          const prefixes = Object.values(phoneData).map(p => p.code);
+          const uniquePrefixes = Array.from(new Set(prefixes)).sort((a, b) => b.length - a.length);
+
+          for (const pref of uniquePrefixes) {
+            if (cleaned.startsWith(pref)) {
+              const local = cleaned.substring(pref.length).trim();
+              return { prefix: pref, number: local };
+            }
+          }
+        }
+
+        const match = cleaned.match(/^(\+\d{1,4})\s*(.*)$/);
+        if (match) {
+          return { prefix: match[1], number: match[2].trim() };
+        }
+      }
+
+      return { prefix: "+39", number: cleaned };
+    }
+
+    /**
+     * Ricompone e standardizza prefisso e numero locale nel formato E.164.
+     * @param {string} prefix - Prefisso internazionale (es. "+39")
+     * @param {string} localNumber - Numero locale (es. "333 1234567")
+     * @return {string} Numero unificato (es. "+39 333 1234567")
+     */
+    function formatE164(prefix, localNumber) {
+      const num = (localNumber || "").trim();
+      if (!num) return "";
+
+      let pref = (prefix || "+39").trim();
+      if (!pref.startsWith("+")) pref = "+" + pref;
+
+      return `${pref} ${num}`;
+    }
+
+    /**
+     * Popola un selettore di prefisso telefonico raggruppando per paesi frequenti e tutti i paesi.
+     * @param {string} selectId - ID dell'elemento select
+     * @param {Record<string, {code: string, iso: string, flag: string}>} phoneData
+     * @param {string[]} topCountries
+     */
+    function populatePhonePrefixDropdown(selectId, phoneData, topCountries) {
+      const el = document.getElementById(selectId);
+      if (!el || !phoneData) return;
+
+      const currentVal = el.value || "+39";
+      el.innerHTML = "";
+
+      // 1. Gruppo Paesi Frequenti
+      if (Array.isArray(topCountries) && topCountries.length > 0) {
+        const grpFrequenti = document.createElement("optgroup");
+        grpFrequenti.label = "Frequenti";
+        topCountries.forEach(country => {
+          const info = phoneData[country];
+          if (info) {
+            const opt = document.createElement("option");
+            opt.value = info.code;
+            opt.dataset.country = country;
+            opt.textContent = `${info.flag} ${info.code} (${info.iso})`;
+            grpFrequenti.appendChild(opt);
+          }
+        });
+        el.appendChild(grpFrequenti);
+      }
+
+      // 2. Gruppo Tutti i Paesi (in ordine alfabetico)
+      const grpTutti = document.createElement("optgroup");
+      grpTutti.label = "Tutti i Paesi";
+      const sortedCountries = Object.keys(phoneData).sort((a, b) => a.localeCompare(b, "it"));
+      sortedCountries.forEach(country => {
+        const info = phoneData[country];
+        if (info) {
+          const opt = document.createElement("option");
+          opt.value = info.code;
+          opt.dataset.country = country;
+          opt.textContent = `${info.flag} ${info.code} - ${country}`;
+          grpTutti.appendChild(opt);
+        }
+      });
+      el.appendChild(grpTutti);
+
+      setSelectValue(el, currentVal);
+    }
+
+    /**
+     * Sincronizza il prefisso telefonico con la cittadinanza selezionata.
+     * @param {string} cittadinanzaSelectId - ID select cittadinanza (es. 'ben-cittadinanza')
+     * @param {string} prefissoSelectId - ID select prefisso (es. 'ben-prefisso-tel')
+     * @param {string} telefonoInputId - ID input telefono (es. 'ben-telefono')
+     */
+    function syncPhonePrefixWithCitizenship(cittadinanzaSelectId, prefissoSelectId, telefonoInputId) {
+      const citEl = document.getElementById(cittadinanzaSelectId);
+      const prefEl = document.getElementById(prefissoSelectId);
+      if (!citEl || !prefEl || !dbLookups || !dbLookups.prefissiTelefonici) return;
+
+      const selectedCountry = citEl.value;
+      if (!selectedCountry) return;
+
+      const phoneInfo = dbLookups.prefissiTelefonici[selectedCountry];
+      if (!phoneInfo || !phoneInfo.code) return;
+
+      setSelectValue(prefEl, phoneInfo.code);
+      if (telefonoInputId) {
+        const prefix = telefonoInputId.replace('telefono', '');
+        triggerValidationTelefono(prefix);
+      }
+    }
+
+    /**
      * Popola tutti i menu a tendina dell'applicazione con i valori scaricati dai Named Ranges.
-     * @param {Record<string, string[]>} lookups - Oggetto dizionario con le liste di valori
+     * @param {Record<string, any>} lookups - Oggetto dizionario con le liste di valori
      */
     function populateAllLookups(lookups) {
       if (!lookups) return;
@@ -1200,6 +1342,10 @@
         if (document.getElementById('nuc-ben-cittadinanza')?.tagName === 'SELECT') {
           populateSelectOptions('nuc-ben-cittadinanza', lookups.stati, 'Seleziona Cittadinanza / Stato...');
         }
+      }
+      if (lookups.prefissiTelefonici) {
+        populatePhonePrefixDropdown('ben-prefisso-tel', lookups.prefissiTelefonici, lookups.topPrefissi);
+        populatePhonePrefixDropdown('nuc-ben-prefisso-tel', lookups.prefissiTelefonici, lookups.topPrefissi);
       }
     }
 
@@ -1643,6 +1789,7 @@
       toggleIntestatarioMode();
 
       setSelectValue(document.getElementById('nuc-ben-cittadinanza'), 'Italia');
+      setSelectValue(document.getElementById('nuc-ben-prefisso-tel'), '+39');
       setSelectValue(document.getElementById('nuc-ben-sesso'), 'M');
       setSelectValue(document.getElementById('nuc-ben-doc-carta'), 'Non posseduto');
 
@@ -1747,13 +1894,14 @@
     }
 
     /**
-     * Valida il numero di telefono.
-     * @param {string} telefono
+     * Valida il numero di telefono (considerando sia il prefisso che il numero locale).
+     * @param {string} localNumber - Numero inserito dall'utente
+     * @param {string} [prefix="+39"] - Prefisso selezionato
      * @param {boolean} [required=true]
      * @return {{ valid: boolean; message: string }}
      */
-    function validateTelefono(telefono, required = true) {
-      const val = (telefono || '').trim();
+    function validateTelefono(localNumber, prefix = "+39", required = true) {
+      const val = (localNumber || '').trim();
       if (!val) {
         if (required) return { valid: false, message: "Il numero di telefono è obbligatorio." };
         return { valid: true, message: "" };
@@ -1762,16 +1910,20 @@
       if (!validCharsRegex.test(val)) {
         return { valid: false, message: "Il telefono contiene caratteri non validi (ammessi solo cifre, +, spazi, trattini)." };
       }
-      const digitsOnly = val.replace(/\D/g, '');
-      if (digitsOnly.length === 0) {
+      const localDigits = val.replace(/\D/g, '');
+      if (localDigits.length === 0) {
         return { valid: false, message: "Inserisci le cifre del numero di telefono." };
       }
-      if (digitsOnly.length < 6) {
-        const cifreStr = digitsOnly.length === 1 ? "1 cifra" : digitsOnly.length + " cifre";
-        return { valid: false, message: "Numero di telefono troppo corto (" + cifreStr + "; minimo 6 cifre)." };
+
+      const prefDigits = (prefix || '+39').replace(/\D/g, '');
+      const totalDigits = val.startsWith('+') ? localDigits.length : (prefDigits.length + localDigits.length);
+
+      if (totalDigits < 6 || localDigits.length < 4) {
+        const cifreStr = localDigits.length === 1 ? "1 cifra" : `${localDigits.length} cifre`;
+        return { valid: false, message: "Numero di telefono troppo corto (" + cifreStr + "; minimo 6 cifre complessive)." };
       }
-      if (digitsOnly.length > 15) {
-        return { valid: false, message: "Numero di telefono troppo lungo (" + digitsOnly.length + " cifre; massimo 15 cifre)." };
+      if (totalDigits > 15) {
+        return { valid: false, message: "Numero di telefono troppo lungo (" + totalDigits + " cifre totali; massimo 15 cifre)." };
       }
       return { valid: true, message: "" };
     }
@@ -1839,11 +1991,17 @@
         } else {
           input.classList.remove('is-valid');
         }
-        if (feedback) feedback.textContent = '';
+        if (feedback) {
+          feedback.textContent = '';
+          feedback.style.display = 'none';
+        }
       } else {
         input.classList.remove('is-valid');
         input.classList.add('is-invalid');
-        if (feedback) feedback.textContent = result.message;
+        if (feedback) {
+          feedback.textContent = result.message;
+          feedback.style.display = 'block';
+        }
       }
     }
 
@@ -1858,7 +2016,9 @@
       const input = document.getElementById(prefix + 'telefono');
       if (!input) return;
       const isRequired = input.hasAttribute('required');
-      const res = validateTelefono(input.value, isRequired);
+      const prefSelect = document.getElementById(prefix + 'prefisso-tel');
+      const prefVal = prefSelect ? prefSelect.value : '+39';
+      const res = validateTelefono(input.value, prefVal, isRequired);
       applyValidationUI(prefix + 'telefono', prefix + 'telefono-feedback', res);
     }
 
@@ -1901,7 +2061,9 @@
       const telInput = document.getElementById(prefix + 'telefono');
       if (telInput) {
         const isRequired = telInput.hasAttribute('required');
-        const telRes = validateTelefono(telInput.value, isRequired);
+        const prefSelect = document.getElementById(prefix + 'prefisso-tel');
+        const prefVal = prefSelect ? prefSelect.value : '+39';
+        const telRes = validateTelefono(telInput.value, prefVal, isRequired);
         applyValidationUI(prefix + 'telefono', prefix + 'telefono-feedback', telRes);
         if (!telRes.valid) {
           isFormValid = false;
@@ -1949,7 +2111,10 @@
         const input = document.getElementById(prefix + field);
         if (input) input.classList.remove('is-invalid', 'is-valid');
         const feedback = document.getElementById(prefix + field + '-feedback');
-        if (feedback) feedback.textContent = '';
+        if (feedback) {
+          feedback.textContent = '';
+          feedback.style.display = 'none';
+        }
       });
     }
 
@@ -1997,7 +2162,7 @@
           dataNascita: document.getElementById('nuc-ben-data-nascita').value,
           luogoNascita: document.getElementById('nuc-ben-luogo-nascita').value,
           sesso: document.getElementById('nuc-ben-sesso').value,
-          telefono: document.getElementById('nuc-ben-telefono').value,
+          telefono: formatE164(document.getElementById('nuc-ben-prefisso-tel')?.value, document.getElementById('nuc-ben-telefono')?.value),
           email: document.getElementById('nuc-ben-email').value,
           cittadinanza: document.getElementById('nuc-ben-cittadinanza').value,
           statoCivile: document.getElementById('nuc-ben-stato-civile').value,
@@ -2056,6 +2221,7 @@
       document.getElementById('ben-cf').disabled = false;
       document.getElementById('modal-ben-title').textContent = `Aggiungi Membro al Nucleo #${nucleoId}`;
       setSelectValue(document.getElementById('ben-cittadinanza'), 'Italia');
+      setSelectValue(document.getElementById('ben-prefisso-tel'), '+39');
 
       // Auto-compila residenza con quella del nucleo
       const nucleoObj = dbNuclei.find(n => String(n.id).trim() === String(nucleoId).trim());
@@ -2091,7 +2257,9 @@
       document.getElementById('ben-data-nascita').value = formattedDate;
       document.getElementById('ben-luogo-nascita').value = ben.luogoNascita;
       document.getElementById('ben-sesso').value = ben.sesso || 'M';
-      document.getElementById('ben-telefono').value = ben.telefono || '';
+      const phoneParts = splitPhoneNumber(ben.telefono || '');
+      setSelectValue(document.getElementById('ben-prefisso-tel'), phoneParts.prefix);
+      document.getElementById('ben-telefono').value = phoneParts.number;
       document.getElementById('ben-email').value = ben.email || '';
       setSelectValue(document.getElementById('ben-cittadinanza'), ben.cittadinanza || 'Italia');
       document.getElementById('ben-residenza').value = ben.residenza || '';
@@ -2129,7 +2297,7 @@
         dataNascita: document.getElementById('ben-data-nascita').value,
         luogoNascita: document.getElementById('ben-luogo-nascita').value,
         sesso: document.getElementById('ben-sesso').value,
-        telefono: document.getElementById('ben-telefono').value,
+        telefono: formatE164(document.getElementById('ben-prefisso-tel')?.value, document.getElementById('ben-telefono')?.value),
         email: document.getElementById('ben-email').value,
         cittadinanza: document.getElementById('ben-cittadinanza').value,
         residenza: document.getElementById('ben-residenza').value,
