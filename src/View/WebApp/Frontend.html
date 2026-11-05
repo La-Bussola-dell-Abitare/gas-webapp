@@ -8,39 +8,63 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap"
     rel="stylesheet">
 
   <style>
     :root {
-      --primary: #1e3a8a;
-      --primary-hover: #1d4ed8;
-      --primary-light: #eff6ff;
-      --accent: #8e001c;
-      --success: #10b981;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --text: #0f172a;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
-      --focus-ring: rgba(30, 58, 138, 0.15);
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+      /* Palette Istituzionale Roma Capitale */
+      --primary: #8E001C;            /* Rosso Roma (Pantone 202 C / RGB 142, 0, 28) */
+      --primary-hover: #730017;      /* Rosso Roma scuro (interazione/focus) */
+      --primary-dark: #5A0012;       /* Tonalità profonda */
+      --primary-light: #FBEBEF;      /* Rosso Roma tenue per container / selezioni */
+      --primary-container: #FFDADA;  /* Container Material 3 */
+      --on-primary-container: #3B0007;
+
+      --accent: #FFB300;             /* Giallo Roma / Oro Capitolino (Pantone 130 C / RGB 255, 179, 0) */
+      --accent-hover: #E5A100;       /* Oro scuro */
+      --accent-light: #FFF8E1;       /* Oro tenue per container */
+      --accent-text: #664600;        /* Oro scuro per testi ad alto contrasto */
+
+      --success: #1E7E34;            /* Verde istituzionale */
+      --warning: #D97706;            /* Ambra */
+      --danger: #BA1A1A;             /* Material Error */
+
+      /* Superfici e Sfondi Material 3 */
+      --bg: #F8F6F6;                 /* Warm off-white ispirato al travertino */
+      --card-bg: #FFFFFF;
+      --surface-variant: #F4EEEE;    /* Superficie secondaria calda */
+      --text: #1C191A;               /* On-surface Material ad alto contrasto */
+      --text-secondary: #54484A;     /* On-surface-variant */
+      --text-muted: #7E7274;
+      --border: #E5DCDE;             /* Bordo outline morbido */
+      --border-focus: #8E001C;
+      --focus-ring: rgba(142, 0, 28, 0.18);
+
+      /* Material 3 Elevation Shadows */
+      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 10px -1px rgba(142, 0, 28, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+      --shadow-lg: 0 10px 24px -3px rgba(142, 0, 28, 0.12), 0 4px 8px -2px rgba(0, 0, 0, 0.05);
     }
 
     body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Roboto', 'Plus Jakarta Sans', sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* Top Header & Navigation */
+    .font-outfit {
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* Top Header & Navigation - Roma Capitale */
     .app-header {
-      background: linear-gradient(90deg, #1e3a8a 0%, #0f172a 100%);
+      background: var(--primary);
       color: white;
-      box-shadow: var(--shadow-md);
+      box-shadow: 0 2px 8px rgba(142, 0, 28, 0.25);
+      border-bottom: 3px solid var(--accent);
       position: sticky;
       top: 0;
       z-index: 1020;
@@ -48,13 +72,30 @@
 
     .header-logo-badge {
       background: rgba(255, 255, 255, 0.15);
-      color: white;
-      border-radius: 8px;
-      padding: 6px;
+      color: var(--accent);
+      border-radius: 12px;
+      padding: 8px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-roma-sync {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 20px;
+      font-weight: 500;
+      font-size: 0.85rem;
+      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .btn-roma-sync:hover {
+      background: var(--accent);
+      color: #382400;
+      border-color: var(--accent);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     }
 
     .app-top-nav {
@@ -68,29 +109,28 @@
     }
 
     .app-header .nav-link {
-      color: rgba(255, 255, 255, 0.75);
+      color: rgba(255, 255, 255, 0.82);
       font-weight: 500;
       border: none;
       border-bottom: 3px solid transparent;
       border-radius: 0;
-      padding: 12px 18px;
-      font-size: 0.95rem;
-      transition: all 0.2s ease;
+      padding: 13px 20px;
+      font-size: 0.94rem;
+      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
       display: inline-flex;
       align-items: center;
     }
 
     .app-header .nav-link:hover {
-      color: white;
-      border-bottom-color: rgba(255, 255, 255, 0.4);
-      background: rgba(255, 255, 255, 0.06);
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
     }
 
     .app-header .nav-link.active {
-      color: white;
+      color: #ffffff;
       font-weight: 600;
-      border-bottom-color: #38bdf8;
-      background: rgba(255, 255, 255, 0.12);
+      border-bottom: 3px solid var(--accent);
+      background: rgba(255, 255, 255, 0.14);
     }
 
     .main-content {
@@ -104,24 +144,200 @@
       margin: 0 auto;
     }
 
+    /* Cards Material 3 */
     .card-custom {
       background: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      box-shadow: var(--shadow-md);
-      transition: transform 0.2s, box-shadow 0.2s;
+      border-radius: 16px;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.25s cubic-bezier(0.2, 0, 0, 1), transform 0.2s ease;
     }
 
     .card-custom:hover {
-      box-shadow: var(--shadow-lg);
+      box-shadow: var(--shadow-md);
     }
 
     .card-header-custom {
-      background: #fafafa;
+      background: var(--surface-variant);
       border-bottom: 1px solid var(--border);
+      border-top-left-radius: 16px !important;
+      border-top-right-radius: 16px !important;
       padding: 16px 20px;
       font-weight: 600;
+      color: var(--primary);
       font-family: 'Outfit', sans-serif;
+      letter-spacing: -0.2px;
+    }
+
+    /* Form Controls Material Outlined */
+    .form-control, .form-select {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 14px;
+      font-size: 0.92rem;
+      color: var(--text);
+      background-color: #ffffff;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+      outline: none;
+    }
+
+    .form-control-sm, .form-select-sm {
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.84rem;
+    }
+
+    .form-label {
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+    }
+
+    .form-check-input:checked {
+      background-color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .form-check-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    /* Bottoni Material 3 */
+    .btn {
+      border-radius: 10px;
+      font-weight: 500;
+      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .btn-primary {
+      background-color: var(--primary) !important;
+      border-color: var(--primary) !important;
+      color: #ffffff !important;
+      box-shadow: 0 1px 3px rgba(142, 0, 28, 0.25);
+    }
+
+    .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+      background-color: var(--primary-hover) !important;
+      border-color: var(--primary-hover) !important;
+      color: #ffffff !important;
+      box-shadow: 0 3px 8px rgba(142, 0, 28, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline-primary {
+      color: var(--primary) !important;
+      border-color: var(--primary) !important;
+      background-color: transparent;
+    }
+
+    .btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active {
+      background-color: var(--primary) !important;
+      border-color: var(--primary) !important;
+      color: #ffffff !important;
+      box-shadow: 0 2px 6px rgba(142, 0, 28, 0.25);
+    }
+
+    .btn-xs {
+      font-size: 0.74rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    /* Modali Material 3 Dialog */
+    .modal-content {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-variant);
+      padding: 18px 24px;
+    }
+
+    .modal-header .modal-title {
+      color: var(--primary);
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .modal-footer {
+      border-top: 1px solid var(--border);
+      padding: 16px 24px;
+      background: #ffffff;
+    }
+
+    /* Tabelle Material Data Table */
+    .table {
+      --bs-table-hover-bg: rgba(142, 0, 28, 0.03);
+    }
+
+    .table thead th {
+      background-color: var(--surface-variant);
+      color: var(--text-secondary);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.76rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      border-bottom: 1px solid var(--border);
+      padding: 13px 16px;
+    }
+
+    .table tbody td {
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.90rem;
+      vertical-align: middle;
+    }
+
+    /* Badge & Chip Material */
+    .badge {
+      border-radius: 8px;
+      font-weight: 500;
+      padding: 5px 9px;
+      letter-spacing: 0.2px;
+    }
+
+    .badge.bg-primary {
+      background-color: var(--primary) !important;
+      color: #ffffff !important;
+    }
+
+    .badge.bg-secondary {
+      background-color: var(--surface-variant) !important;
+      color: var(--text-secondary) !important;
+      border: 1px solid var(--border);
+    }
+
+    .badge.bg-dark {
+      background-color: var(--primary-dark) !important;
+      color: #ffffff !important;
+    }
+
+    .badge.bg-warning {
+      background-color: var(--accent) !important;
+      color: #382400 !important;
+    }
+
+    .badge.bg-info {
+      background-color: var(--accent-light) !important;
+      color: var(--accent-text) !important;
+      border: 1px solid rgba(255, 179, 0, 0.4);
     }
 
     .autocomplete-list {
@@ -133,17 +349,17 @@
       overflow-y: auto;
       background: white;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 12px;
       box-shadow: var(--shadow-lg);
       z-index: 10;
       list-style: none;
-      padding: 0;
-      margin: 4px 0 0 0;
+      padding: 4px 0;
+      margin: 6px 0 0 0;
       display: none;
     }
 
     .autocomplete-list li {
-      padding: 10px 14px;
+      padding: 10px 16px;
       font-size: 14px;
       cursor: pointer;
       transition: background 0.15s ease;
@@ -152,6 +368,7 @@
     .autocomplete-list li:hover {
       background: var(--primary-light);
       color: var(--primary);
+      font-weight: 500;
     }
 
     /* Toast Notification */
@@ -160,6 +377,12 @@
       bottom: 24px;
       right: 24px;
       z-index: 1050;
+    }
+
+    .toast {
+      border-radius: 14px;
+      box-shadow: var(--shadow-lg);
+      border: none;
     }
 
     .spinner-border-sm {
@@ -174,34 +397,35 @@
     .invalid-feedback {
       font-size: 0.76rem;
       font-weight: 500;
-      margin-top: 3px;
+      margin-top: 4px;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- TOP HEADER -->
+  <!-- TOP HEADER - ROMA CAPITALE -->
   <header class="app-header">
     <div class="container-fluid px-4">
-      <div class="d-flex flex-wrap align-items-center justify-content-between py-2 border-bottom border-white border-opacity-10">
+      <div class="d-flex flex-wrap align-items-center justify-content-between py-2 border-bottom border-white border-opacity-15">
         <div class="d-flex align-items-center gap-3">
           <div class="header-logo-badge">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
               <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
           </div>
           <div>
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
               <h1 class="h5 m-0 font-outfit fw-bold text-white" style="letter-spacing: -0.3px;">La Bussola dell'Abitare</h1>
-              <span class="badge bg-white bg-opacity-20 text-white font-outfit small py-1 px-2">Sportello Sociale</span>
+              <span class="badge font-outfit text-xs px-2 py-1" style="background-color: var(--accent); color: #382400; font-weight: 700; letter-spacing: 0.3px;">ROMA CAPITALE</span>
+              <span class="badge bg-white bg-opacity-20 text-white font-outfit text-xs py-1 px-2">Sportello Sociale</span>
             </div>
-            <p class="text-white-50 m-0 text-xs">Municipio XI • Gestione Operativa Web App</p>
+            <p class="text-white text-opacity-75 m-0 text-xs">Municipio XI &bull; Sportello per il Diritto all'Abitare</p>
           </div>
         </div>
         <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0">
-          <button class="btn btn-sm btn-outline-light d-flex align-items-center gap-1 shadow-sm px-3" onclick="reloadData(true)">
+          <button class="btn btn-sm btn-roma-sync d-flex align-items-center gap-1 shadow-sm px-3" onclick="reloadData(true)">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="23 4 23 10 17 10"></polyline>
               <polyline points="1 20 1 14 7 14"></polyline>
@@ -217,7 +441,7 @@
         <ul class="nav">
           <li class="nav-item">
             <a class="nav-link active" href="javascript:void(0)" id="menu-incontri" onclick="showTab('tab-incontri')">
-              <svg class="me-1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -228,7 +452,7 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="javascript:void(0)" id="menu-nuclei" onclick="showTab('tab-nuclei')">
-              <svg class="me-1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                 <polyline points="9 22 9 12 15 12 15 22"></polyline>
               </svg>
@@ -237,7 +461,7 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="javascript:void(0)" id="menu-documenti" onclick="showTab('tab-documenti')">
-              <svg class="me-1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <polyline points="14 2 14 8 20 8"></polyline>
                 <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -249,7 +473,7 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="javascript:void(0)" id="menu-appuntamenti" onclick="showTab('tab-appuntamenti')">
-              <svg class="me-1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="16" y1="2" x2="16" y2="6"></line>
                 <line x1="8" y1="2" x2="8" y2="6"></line>
