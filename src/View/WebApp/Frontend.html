@@ -571,7 +571,7 @@
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Codice Fiscale *</label>
                 <input type="text" class="form-control" id="ben-cf" required maxlength="16"
-                  style="text-transform: uppercase;" oninput="validateAndDecodeCF()">
+                  style="text-transform: uppercase;" oninput="validateAndDecodeCF('ben-')">
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Nome *</label>
@@ -722,12 +722,142 @@
           <form id="nucleo-form" onsubmit="handleNucleoSubmit(event)">
             <input type="hidden" id="nuc-id">
             <div class="row g-3">
-              <div class="col-md-8 position-relative">
-                <label class="form-label font-outfit small">Intestatario (Codice Fiscale) *</label>
+              <!-- Selezione Modalità Intestatario -->
+              <div class="col-12" id="nuc-mode-selector-container">
+                <label class="form-label font-outfit small d-block mb-1 fw-bold">Intestatario del Nucleo *</label>
+                <div class="btn-group w-100" role="group">
+                  <input type="radio" class="btn-check" name="nuc-mode" id="nuc-mode-nuovo" value="nuovo" checked onchange="toggleIntestatarioMode()">
+                  <label class="btn btn-outline-primary btn-sm py-2" for="nuc-mode-nuovo">
+                    + Crea Nuovo Beneficiario (Intestatario)
+                  </label>
+
+                  <input type="radio" class="btn-check" name="nuc-mode" id="nuc-mode-esistente" value="esistente" onchange="toggleIntestatarioMode()">
+                  <label class="btn btn-outline-secondary btn-sm py-2" for="nuc-mode-esistente">
+                    Seleziona Beneficiario Esistente
+                  </label>
+                </div>
+              </div>
+
+              <!-- Sezione A: Intestatario Esistente (Autocompletamento) -->
+              <div class="col-12 position-relative d-none" id="sec-nuc-intestatario-esistente">
+                <label class="form-label font-outfit small">Cerca Intestatario tra i Beneficiari già Registrati *</label>
                 <input type="text" class="form-control" id="nuc-intestatario"
-                  placeholder="Cerca beneficiario..." required autocomplete="off"
+                  placeholder="Digita nome o codice fiscale..." autocomplete="off"
                   oninput="filterBeneficiaries('nuc-intestatario', 'nuc-intest-list')">
                 <ul id="nuc-intest-list" class="autocomplete-list"></ul>
+                <div class="form-text text-xs text-muted">Seleziona la persona dall'elenco per associarla come intestatario del nucleo.</div>
+              </div>
+
+              <!-- Sezione B: Nuovo Beneficiario Intestatario -->
+              <div class="col-12" id="sec-nuc-nuovo-intestatario">
+                <div class="card bg-light border p-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="font-outfit small text-uppercase text-primary m-0 fw-bold">Anagrafica Nuovo Intestatario</h6>
+                    <span class="badge bg-primary text-white">Verrà registrato nei Beneficiari</span>
+                  </div>
+                  <div class="row g-2">
+                    <div class="col-md-4 position-relative">
+                      <label class="form-label font-outfit text-xs">Codice Fiscale *</label>
+                      <input type="text" class="form-control form-control-sm text-uppercase" id="nuc-ben-cf" placeholder="Es. RSSMRA85M01H501Z" maxlength="16" oninput="validateAndDecodeCF('nuc-ben-')">
+                      <div class="form-text text-2xs text-muted">Decodifica automatica istantanea</div>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label font-outfit text-xs">Nome *</label>
+                      <input type="text" class="form-control form-control-sm" id="nuc-ben-nome" placeholder="Nome">
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label font-outfit text-xs">Cognome *</label>
+                      <input type="text" class="form-control form-control-sm" id="nuc-ben-cognome" placeholder="Cognome">
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label font-outfit text-xs">Data di Nascita *</label>
+                      <input type="date" class="form-control form-control-sm" id="nuc-ben-data-nascita">
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label font-outfit text-xs">Luogo Nascita *</label>
+                      <input type="text" class="form-control form-control-sm" id="nuc-ben-luogo-nascita" placeholder="Comune o Stato">
+                    </div>
+                    <div class="col-md-2">
+                      <label class="form-label font-outfit text-xs">Sesso *</label>
+                      <select class="form-select form-select-sm" id="nuc-ben-sesso">
+                        <option value="M">M</option>
+                        <option value="F">F</option>
+                      </select>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label font-outfit text-xs">Telefono *</label>
+                      <input type="text" class="form-control form-control-sm" id="nuc-ben-telefono" placeholder="Cellulare">
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label font-outfit text-xs">Email</label>
+                      <input type="email" class="form-control form-control-sm" id="nuc-ben-email" placeholder="email@esempio.it">
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label font-outfit text-xs">Cittadinanza *</label>
+                      <select class="form-select form-select-sm" id="nuc-ben-cittadinanza">
+                        <option value="Italiana">Italiana</option>
+                      </select>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label font-outfit text-xs">Stato Civile</label>
+                      <select class="form-select form-select-sm" id="nuc-ben-stato-civile">
+                        <option value="singolo">Celibe/Nubile</option>
+                      </select>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label font-outfit text-xs">Stato Lavorativo</label>
+                      <select class="form-select form-select-sm" id="nuc-ben-lavoro">
+                        <option value="disoccupato">Disoccupato</option>
+                      </select>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label font-outfit text-xs">Titolo di Studio</label>
+                      <select class="form-select form-select-sm" id="nuc-ben-studio">
+                        <option value="diploma">Diploma</option>
+                      </select>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label font-outfit text-xs">Anno Arrivo in Italia</label>
+                      <input type="number" class="form-control form-control-sm" id="nuc-ben-anno-arrivo" placeholder="Es. 2020">
+                    </div>
+
+                    <!-- Documenti Personali -->
+                    <div class="col-12 mt-2 pt-2 border-top">
+                      <label class="form-label font-outfit text-xs d-block mb-1">Documenti Personali in Possesso</label>
+                      <div class="d-flex flex-wrap gap-3 small">
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="checkbox" id="nuc-ben-doc-passaporto">
+                          <label class="form-check-label text-xs" for="nuc-ben-doc-passaporto">Passaporto</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="checkbox" id="nuc-ben-doc-patente">
+                          <label class="form-check-label text-xs" for="nuc-ben-doc-patente">Patente</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="checkbox" id="nuc-ben-doc-permesso">
+                          <label class="form-check-label text-xs" for="nuc-ben-doc-permesso">Permesso Soggiorno</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="checkbox" id="nuc-ben-doc-tessera">
+                          <label class="form-check-label text-xs" for="nuc-ben-doc-tessera">Tessera Sanitaria</label>
+                        </div>
+                        <div class="d-inline-flex align-items-center gap-1 ms-auto">
+                          <label class="text-xs text-muted mb-0">Carta Identità:</label>
+                          <select class="form-select form-select-sm py-0" id="nuc-ben-doc-carta" style="width: auto;">
+                            <option value="Non posseduto">Non posseduto</option>
+                            <option value="Carta d'Identità Elettronica">Elettronica</option>
+                            <option value="Carta d'Identità Cartacea">Cartacea</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Dati Specifici del Nucleo Familiare -->
+              <div class="col-12 mt-3 pt-2 border-top">
+                <h6 class="font-outfit small text-uppercase text-secondary m-0 fw-bold">Dimensioni Socio-Abitative del Nucleo</h6>
               </div>
               <div class="col-md-4">
                 <label class="form-label font-outfit small">ISEE del Nucleo</label>
@@ -988,15 +1118,23 @@
       }
       if (lookups.statiCivili) {
         populateSelectOptions('ben-stato-civile', lookups.statiCivili, 'Seleziona Stato Civile...');
+        populateSelectOptions('nuc-ben-stato-civile', lookups.statiCivili, 'Seleziona Stato Civile...');
       }
       if (lookups.statiLavorativi) {
         populateSelectOptions('ben-lavoro', lookups.statiLavorativi, 'Seleziona Condizione Lavorativa...');
+        populateSelectOptions('nuc-ben-lavoro', lookups.statiLavorativi, 'Seleziona Condizione Lavorativa...');
       }
       if (lookups.titoliStudio) {
         populateSelectOptions('ben-studio', lookups.titoliStudio, 'Seleziona Titolo di Studio...');
+        populateSelectOptions('nuc-ben-studio', lookups.titoliStudio, 'Seleziona Titolo di Studio...');
       }
-      if (lookups.stati && document.getElementById('ben-cittadinanza')?.tagName === 'SELECT') {
-        populateSelectOptions('ben-cittadinanza', lookups.stati, 'Seleziona Cittadinanza / Stato...');
+      if (lookups.stati) {
+        if (document.getElementById('ben-cittadinanza')?.tagName === 'SELECT') {
+          populateSelectOptions('ben-cittadinanza', lookups.stati, 'Seleziona Cittadinanza / Stato...');
+        }
+        if (document.getElementById('nuc-ben-cittadinanza')?.tagName === 'SELECT') {
+          populateSelectOptions('nuc-ben-cittadinanza', lookups.stati, 'Seleziona Cittadinanza / Stato...');
+        }
       }
     }
 
@@ -1384,17 +1522,69 @@
      * Apre il popup modale per la creazione di un nuovo nucleo familiare,
      * resettando i campi del modulo e reimpostando i testi della form.
      */
+    /**
+     * Alterna la visualizzazione tra la creazione di un nuovo intestatario
+     * e la selezione di un beneficiario già esistente.
+     */
+    function toggleIntestatarioMode() {
+      const radioNuovo = document.getElementById('nuc-mode-nuovo');
+      const isNuovo = radioNuovo ? radioNuovo.checked : false;
+      const secNuovo = document.getElementById('sec-nuc-nuovo-intestatario');
+      const secEsistente = document.getElementById('sec-nuc-intestatario-esistente');
+      const textEl = document.getElementById('btn-nuc-submit-text');
+      const isEditing = !!(document.getElementById('nuc-id') && document.getElementById('nuc-id').value);
+
+      if (isNuovo) {
+        if (secNuovo) secNuovo.classList.remove('d-none');
+        if (secEsistente) secEsistente.classList.add('d-none');
+        document.getElementById('nuc-intestatario')?.removeAttribute('required');
+        document.getElementById('nuc-ben-cf')?.setAttribute('required', 'required');
+        document.getElementById('nuc-ben-nome')?.setAttribute('required', 'required');
+        document.getElementById('nuc-ben-cognome')?.setAttribute('required', 'required');
+        document.getElementById('nuc-ben-data-nascita')?.setAttribute('required', 'required');
+        document.getElementById('nuc-ben-luogo-nascita')?.setAttribute('required', 'required');
+        document.getElementById('nuc-ben-telefono')?.setAttribute('required', 'required');
+        if (textEl && !isEditing) textEl.textContent = 'Salva Nucleo e Intestatario';
+      } else {
+        if (secNuovo) secNuovo.classList.add('d-none');
+        if (secEsistente) secEsistente.classList.remove('d-none');
+        document.getElementById('nuc-intestatario')?.setAttribute('required', 'required');
+        document.getElementById('nuc-ben-cf')?.removeAttribute('required');
+        document.getElementById('nuc-ben-nome')?.removeAttribute('required');
+        document.getElementById('nuc-ben-cognome')?.removeAttribute('required');
+        document.getElementById('nuc-ben-data-nascita')?.removeAttribute('required');
+        document.getElementById('nuc-ben-luogo-nascita')?.removeAttribute('required');
+        document.getElementById('nuc-ben-telefono')?.removeAttribute('required');
+        if (textEl && !isEditing) textEl.textContent = 'Salva Nucleo Familiare';
+      }
+    }
+
+    /**
+     * Apre il popup modale per la creazione di un nuovo nucleo familiare,
+     * predisponendo la creazione del nuovo intestatario.
+     */
     function openAddNucleoModal() {
       document.getElementById('nucleo-form').reset();
       document.getElementById('nuc-id').value = '';
       document.getElementById('nuc-richiesta').value = '';
       document.getElementById('nuc-abitazione').value = '';
       document.getElementById('nucleo-form-title').textContent = 'Crea Nuovo Nucleo Familiare';
+
+      const modeSelector = document.getElementById('nuc-mode-selector-container');
+      if (modeSelector) modeSelector.classList.remove('d-none');
+      const radioNuovo = document.getElementById('nuc-mode-nuovo');
+      if (radioNuovo) radioNuovo.checked = true;
+      toggleIntestatarioMode();
+
+      setSelectValue(document.getElementById('nuc-ben-cittadinanza'), 'Italiana');
+      setSelectValue(document.getElementById('nuc-ben-sesso'), 'M');
+      setSelectValue(document.getElementById('nuc-ben-doc-carta'), 'Non posseduto');
+
       const textEl = document.getElementById('btn-nuc-submit-text');
       if (textEl) {
-        textEl.textContent = 'Salva Nucleo Familiare';
+        textEl.textContent = 'Salva Nucleo e Intestatario';
       } else {
-        document.getElementById('btn-nuc-submit').textContent = 'Salva Nucleo Familiare';
+        document.getElementById('btn-nuc-submit').textContent = 'Salva Nucleo e Intestatario';
       }
       new bootstrap.Modal(document.getElementById('modal-nucleo')).show();
     }
@@ -1409,6 +1599,14 @@
 
       document.getElementById('nucleo-form').reset();
       document.getElementById('nuc-id').value = n.id;
+
+      // In modalità modifica nucleo, fissa la modalità su intestatario esistente
+      const modeSelector = document.getElementById('nuc-mode-selector-container');
+      if (modeSelector) modeSelector.classList.add('d-none');
+      const radioEsistente = document.getElementById('nuc-mode-esistente');
+      if (radioEsistente) radioEsistente.checked = true;
+      toggleIntestatarioMode();
+
       document.getElementById('nuc-intestatario').value = n.intestatario;
       document.getElementById('nuc-isee').value = n.isee || '';
       document.getElementById('nuc-residenza').value = n.residenza;
@@ -1434,7 +1632,7 @@
 
     /**
      * Gestisce la sottomissione del modulo nucleo (creazione o modifica).
-     * Invia i dati al backend Apps Script, chiude il popup modale e aggiorna la vista.
+     * Invia i dati unificati a submitNucleoCompleto, garantendo atomicità.
      * @param {Event} e - Evento di submit del form.
      */
     function handleNucleoSubmit(e) {
@@ -1444,19 +1642,46 @@
       submitBtn.disabled = true;
       if (spin) spin.classList.remove('d-none');
 
-      const data = {
-        id: document.getElementById('nuc-id').value,
-        intestatario: document.getElementById('nuc-intestatario').value,
-        isee: document.getElementById('nuc-isee').value,
-        residenza: document.getElementById('nuc-residenza').value,
-        domicilio: document.getElementById('nuc-domicilio').value,
-        descrizioneCaso: document.getElementById('nuc-descrizione').value,
-        obiettiviProgettualita: document.getElementById('nuc-obiettivi').value,
-        tipologiaRichiesta: document.getElementById('nuc-richiesta').value,
-        orientamentoFollowUp: document.getElementById('nuc-followup').value,
-        tipologiaAbitazione: document.getElementById('nuc-abitazione').value,
-        assistenteSociale: document.getElementById('nuc-assistente').value,
-        medicoDiBase: document.getElementById('nuc-medico').value
+      const isNuovoIntestatario = document.getElementById('nuc-mode-nuovo') ? document.getElementById('nuc-mode-nuovo').checked : false;
+
+      const payload = {
+        isNuovoIntestatario: isNuovoIntestatario,
+        nucleo: {
+          id: document.getElementById('nuc-id').value,
+          intestatario: document.getElementById('nuc-intestatario').value,
+          isee: document.getElementById('nuc-isee').value,
+          residenza: document.getElementById('nuc-residenza').value,
+          domicilio: document.getElementById('nuc-domicilio').value,
+          descrizioneCaso: document.getElementById('nuc-descrizione').value,
+          obiettiviProgettualita: document.getElementById('nuc-obiettivi').value,
+          tipologiaRichiesta: document.getElementById('nuc-richiesta').value,
+          orientamentoFollowUp: document.getElementById('nuc-followup').value,
+          tipologiaAbitazione: document.getElementById('nuc-abitazione').value,
+          assistenteSociale: document.getElementById('nuc-assistente').value,
+          medicoDiBase: document.getElementById('nuc-medico').value
+        },
+        intestatario: isNuovoIntestatario ? {
+          cf: document.getElementById('nuc-ben-cf').value,
+          nome: document.getElementById('nuc-ben-nome').value,
+          cognome: document.getElementById('nuc-ben-cognome').value,
+          dataNascita: document.getElementById('nuc-ben-data-nascita').value,
+          luogoNascita: document.getElementById('nuc-ben-luogo-nascita').value,
+          sesso: document.getElementById('nuc-ben-sesso').value,
+          telefono: document.getElementById('nuc-ben-telefono').value,
+          email: document.getElementById('nuc-ben-email').value,
+          cittadinanza: document.getElementById('nuc-ben-cittadinanza').value,
+          statoCivile: document.getElementById('nuc-ben-stato-civile').value,
+          statoLavorativo: document.getElementById('nuc-ben-lavoro').value,
+          titoloStudio: document.getElementById('nuc-ben-studio').value,
+          annoArrivo: document.getElementById('nuc-ben-anno-arrivo').value ? parseInt(document.getElementById('nuc-ben-anno-arrivo').value, 10) : null,
+          documents: {
+            passaporto: document.getElementById('nuc-ben-doc-passaporto').checked,
+            patente: document.getElementById('nuc-ben-doc-patente').checked,
+            permessoSoggiorno: document.getElementById('nuc-ben-doc-permesso').checked,
+            tesseraSanitaria: document.getElementById('nuc-ben-doc-tessera').checked,
+            cartaIdentita: document.getElementById('nuc-ben-doc-carta').value
+          }
+        } : null
       };
 
       google.script.run
@@ -1475,9 +1700,9 @@
             document.getElementById('nucleo-form-title').textContent = 'Crea Nuovo Nucleo Familiare';
             const textEl = document.getElementById('btn-nuc-submit-text');
             if (textEl) {
-              textEl.textContent = 'Salva Nucleo Familiare';
+              textEl.textContent = 'Salva Nucleo e Intestatario';
             } else {
-              document.getElementById('btn-nuc-submit').textContent = 'Salva Nucleo Familiare';
+              document.getElementById('btn-nuc-submit').textContent = 'Salva Nucleo e Intestatario';
             }
             reloadData();
           } else {
@@ -1489,7 +1714,7 @@
           if (spin) spin.classList.add('d-none');
           showToast("Errore di rete: " + err.message, "error");
         })
-        .submitNucleo(data);
+        .submitNucleoCompleto(payload);
     }
 
     // Gestione Membro (Modal)
@@ -1628,8 +1853,9 @@
         .removeBeneficiary(cf);
     }
 
-    function validateAndDecodeCF() {
-      const cfInput = document.getElementById('ben-cf');
+    function validateAndDecodeCF(prefix = 'ben-') {
+      const cfInput = document.getElementById(prefix + 'cf');
+      if (!cfInput) return;
       const cf = cfInput.value.toUpperCase().trim();
       if (cf.length === 16) {
         cfInput.disabled = true;
@@ -1637,9 +1863,12 @@
           .withSuccessHandler(function (res) {
             cfInput.disabled = false;
             if (res.success) {
-              if (res.dataNascita) document.getElementById('ben-data-nascita').value = res.dataNascita;
-              if (res.luogoNascita) document.getElementById('ben-luogo-nascita').value = res.luogoNascita;
-              if (res.sesso) document.getElementById('ben-sesso').value = res.sesso;
+              const dateEl = document.getElementById(prefix + 'data-nascita');
+              const luogoEl = document.getElementById(prefix + 'luogo-nascita');
+              const sessoEl = document.getElementById(prefix + 'sesso');
+              if (dateEl && res.dataNascita) dateEl.value = res.dataNascita;
+              if (luogoEl && res.luogoNascita) luogoEl.value = res.luogoNascita;
+              if (sessoEl && res.sesso) sessoEl.value = res.sesso;
               showToast("Codice Fiscale decodificato!", "success");
             }
           })

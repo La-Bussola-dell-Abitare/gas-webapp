@@ -283,16 +283,176 @@ function getNucleiObjects() {
 }
 
 /**
- * Registra o modifica un nucleo familiare.
+ * Registra o modifica in modo atomico un Nucleo Familiare, gestendo sia la creazione contestuale
+ * del nuovo intestatario tra i Beneficiari sia il collegamento a un beneficiario già registrato.
+ * Protetto da LockService per prevenire race conditions e assegnazioni duplicate di ID.
+ * 
+ * @param {{
+ *   isNuovoIntestatario: boolean;
+ *   nucleo: Record<string, any>;
+ *   intestatario?: Record<string, any>;
+ * }} payload
+ * @return {{ success: boolean; message: string; id: string }}
+ */
+function submitNucleoCompleto(payload) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(15000);
+  } catch (lockErr) {
+    return {
+      success: false,
+      message: "Il server è occupato con un'altra registrazione. Riprova tra pochi istanti.",
+      id: ""
+    };
+  }
+
+  try {
+    const isNuovo = !!(payload && payload.isNuovoIntestatario);
+    const nucData = (payload && payload.nucleo) || {};
+    const intestData = (payload && payload.intestatario) || {};
+
+    const isUpdate = !!(nucData.id && String(nucData.id).trim());
+    const nucleoId = isUpdate ? String(nucData.id).trim() : NucleoFamiliare.generateNextId();
+
+    if (isNuovo) {
+      // 1. Validazione preventiva dati intestatario
+      const cf = (intestData.cf || "").trim().toUpperCase();
+      const nome = (intestData.nome || "").trim();
+      const cognome = (intestData.cognome || "").trim();
+
+      if (!cf) {
+        throw new Error("Il Codice Fiscale dell'intestatario è obbligatorio.");
+      }
+      if (!nome || !cognome) {
+        throw new Error("Nome e Cognome dell'intestatario sono obbligatori.");
+      }
+
+      // 2. Costruzione payload del beneficiario intestatario
+      const benPayload = {
+        cf: cf,
+        nome: nome,
+        cognome: cognome,
+        dataNascita: intestData.dataNascita || "",
+        luogoNascita: intestData.luogoNascita || "",
+        sesso: intestData.sesso || "M",
+        telefono: intestData.telefono || "",
+        email: intestData.email || "",
+        cittadinanza: intestData.cittadinanza || "Italiana",
+        residenza: nucData.residenza || intestData.residenza || "",
+        domicilio: nucData.domicilio || intestData.domicilio || nucData.residenza || "",
+        statoCivile: intestData.statoCivile || "",
+        rapportoIntestatario: "Intestatario",
+        annoArrivo: intestData.annoArrivo ? Number(intestData.annoArrivo) : null,
+        statoLavorativo: intestData.statoLavorativo || "",
+        titoloStudio: intestData.titoloStudio || "",
+        assistenteSociale: nucData.assistenteSociale || intestData.assistenteSociale || "No",
+        idNucleo: nucleoId,
+        isUpdate: false,
+        documents: intestData.documents || {
+          cartaIdentita: intestData.cartaIdentita || "Non posseduto",
+          passaporto: !!intestData.passaporto,
+          patente: !!intestData.patente,
+          permessoSoggiorno: !!intestData.permessoSoggiorno,
+          tesseraSanitaria: !!intestData.tesseraSanitaria
+        }
+      };
+
+      // 3. Registrazione beneficiario nel foglio "Beneficiari"
+      const benResult = BeneficiarioRepository.add(benPayload);
+      if (!benResult.success) {
+        throw new Error("Errore registrazione intestatario: " + benResult.message);
+      }
+
+      // 4. Salvataggio record nel foglio "Nuclei Familiari"
+      nucData.id = nucleoId;
+      nucData.intestatario = `${nome} ${cognome} (${cf})`;
+      const nucResult = NucleoFamiliare.add(nucData);
+      if (!nucResult.success) {
+        throw new Error("Errore salvataggio nucleo: " + nucResult.message);
+      }
+
+      return {
+        success: true,
+        message: `Nucleo #${nucleoId} e intestatario ${nome} ${cognome} registrati con successo!`,
+        id: nucleoId
+      };
+    } else {
+      // Caso intestatario esistente selezionato
+      if (!nucData.intestatario) {
+        throw new Error("Specificare o selezionare l'Intestatario del nucleo.");
+      }
+
+      nucData.id = nucleoId;
+      const nucResult = NucleoFamiliare.add(nucData);
+      if (!nucResult.success) {
+        throw new Error("Errore salvataggio nucleo: " + nucResult.message);
+      }
+
+      // Associa idNucleo al beneficiario esistente
+      try {
+        const rawIntest = String(nucData.intestatario).trim();
+        const cfMatch = rawIntest.match(/\b([A-Za-z0-9]{16})\b/);
+        const targetCF = cfMatch ? cfMatch[1].toUpperCase() : (rawIntest.length === 16 ? rawIntest.toUpperCase() : "");
+
+        const ss = SpreadsheetApp.getActiveSpreadsheet();
+        const benSheet = ss ? (ss.getSheetByName(typeof WA_SHEET_BENEFICIARI !== 'undefined' ? WA_SHEET_BENEFICIARI : "Beneficiari") || ss.getSheetByName("Beneficiari")) : null;
+        if (benSheet) {
+          const bData = benSheet.getDataRange().getValues();
+          if (bData.length > 1) {
+            const bHeaders = bData[0].map(h => h.toString().trim().toLowerCase());
+            const bIdx = BeneficiarioRepository._getColIndexes(bHeaders);
+            if (bIdx.idNucleo >= 0) {
+              for (let r = 1; r < bData.length; r++) {
+                const rowCF = bIdx.cf >= 0 ? safeString(bData[r][bIdx.cf]).toUpperCase() : "";
+                const rowName = ((bIdx.nome >= 0 ? safeString(bData[r][bIdx.nome]) : "") + " " + (bIdx.cognome >= 0 ? safeString(bData[r][bIdx.cognome]) : "")).toLowerCase();
+                const matchByCF = targetCF && rowCF === targetCF;
+                const matchByName = rawIntest && rowName && rawIntest.toLowerCase().includes(rowName);
+
+                if (matchByCF || matchByName) {
+                  benSheet.getRange(r + 1, bIdx.idNucleo + 1).setValue(nucleoId);
+                  if (bIdx.rapportoIntestatario >= 0) {
+                    const currentRapp = safeString(bData[r][bIdx.rapportoIntestatario]);
+                    if (!currentRapp) {
+                      benSheet.getRange(r + 1, bIdx.rapportoIntestatario + 1).setValue("Intestatario");
+                    }
+                  }
+                  break;
+                }
+              }
+            }
+          }
+        }
+      } catch (linkErr) {
+        Logger.log("Avviso aggiornamento idNucleo beneficiario esistente: " + linkErr.message);
+      }
+
+      return {
+        success: true,
+        message: isUpdate ? `Nucleo #${nucleoId} aggiornato con successo!` : `Nucleo #${nucleoId} registrato con successo!`,
+        id: nucleoId
+      };
+    }
+  } catch (error) {
+    Logger.log("Errore submitNucleoCompleto: " + (error instanceof Error ? error.message : String(error)));
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : String(error),
+      id: ""
+    };
+  } finally {
+    try {
+      lock.releaseLock();
+    } catch (e) { }
+  }
+}
+
+/**
+ * Registra o modifica un nucleo familiare (retrocompatibilità).
  * @param {Record<string, any>} data Dati del nucleo familiare da salvare
  * @return {{ success: boolean; message: string; id: string }}
  */
 function submitNucleo(data) {
-  try {
-    return NucleoFamiliare.add(data);
-  } catch (error) {
-    return { success: false, message: error instanceof Error ? error.message : String(error), id: "" };
-  }
+  return submitNucleoCompleto({ isNuovoIntestatario: false, nucleo: data });
 }
 
 /**

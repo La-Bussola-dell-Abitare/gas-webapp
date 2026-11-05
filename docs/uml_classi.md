@@ -230,6 +230,7 @@ classDiagram
         +submitMeeting(data) Object
         +getNucleiObjects() Object[]
         +submitNucleo(data) Object
+        +submitNucleoCompleto(payload) Object
         +getFormLookups(forceRefresh) Object
         +decodeCF(cf) Object
         +generateFoglioFirmeDoc(op, cl, d) Object

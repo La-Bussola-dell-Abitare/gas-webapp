@@ -71,9 +71,9 @@ sequenceDiagram
 
 ---
 
-## 2. Sequenza 2: Censimento Nucleo Familiare con Decodifica Istantanea del Codice Fiscale
+## 2. Sequenza 2: Censimento Nucleo Familiare e Creazione Atomica dell'Intestatario
 
-Illustra l'interazione tra la digitazione del Codice Fiscale da parte dell'utente, l'algoritmo di decodifica/normalizzazione (CIN e Belfiore) e il salvataggio atomico con calcolo del nuovo ID numerico.
+Illustra l'interazione tra la selezione Dual-Mode (creazione nuovo beneficiario intestatario vs selezione esistente), l'algoritmo di decodifica istantanea del Codice Fiscale e il salvataggio atomico tramite `submitNucleoCompleto` protetto da `LockService`.
 
 ```mermaid
 sequenceDiagram
@@ -81,64 +81,86 @@ sequenceDiagram
     actor Op as Operatore / Assistente Sociale
     participant UI as Frontend.html
     participant Ctrl as Backend.js
+    participant Lock as LockService (Script Lock)
     participant ModelCF as CodiceFiscale
     participant Cache as CacheService (Script Cache)
     participant RemoteAPI as API Comuni / Belfiore
+    participant BenRepo as BeneficiarioRepository
     participant Nucleo as NucleoFamiliare
-    participant SS as Google Sheets ("Nuclei Familiari")
+    participant SS as Google Sheets ("Beneficiari" & "Nuclei Familiari")
 
-    Op->>UI: Inserisce Codice Fiscale nel campo intestatario
-    UI->>Ctrl: google.script.run.decodeCF(cf)
-    activate Ctrl
-
-    Ctrl->>ModelCF: new CodiceFiscale(cf)
-    ModelCF->>ModelCF: _decodificaOmocodia(cf)
-    ModelCF->>ModelCF: isValid() verifica carattere di controllo (CIN)
+    Op->>UI: Clicca su "+ Nuovo Nucleo Familiare"
+    UI->>Op: Mostra Modal Dual-Mode (Default: Crea Nuovo Intestatario)
     
-    alt Codice Fiscale non valido
-        ModelCF-->>Ctrl: isValid() = false
-        Ctrl-->>UI: { success: false }
-        UI->>Op: Bordo rosso sul campo CF (formato errato)
-    else Codice Fiscale valido
-        ModelCF->>ModelCF: getBirthdate(), getSesso(), getCodiceComune()
+    alt Modalità Nuovo Intestatario: Inserimento CF
+        Op->>UI: Inserisce Codice Fiscale dell'intestatario
+        UI->>Ctrl: google.script.run.decodeCF(cf)
+        activate Ctrl
+
+        Ctrl->>ModelCF: new CodiceFiscale(cf)
+        ModelCF->>ModelCF: _decodificaOmocodia(cf)
+        ModelCF->>ModelCF: isValid() verifica carattere di controllo (CIN)
         
-        ModelCF->>Cache: get("BELFIORE_" + codiceComune)
-        alt Trovato in Cache
-            Cache-->>ModelCF: "Roma" (da cache)
-        else Non presente in Cache
-            ModelCF->>RemoteAPI: UrlFetchApp.fetch(comuni.json)
-            RemoteAPI-->>ModelCF: Dati comune trovati
-            ModelCF->>Cache: put("BELFIORE_H501", "Roma", 21600)
+        alt Codice Fiscale non valido
+            ModelCF-->>Ctrl: isValid() = false
+            Ctrl-->>UI: { success: false }
+            UI->>Op: Bordo rosso sul campo CF (formato errato)
+        else Codice Fiscale valido
+            ModelCF->>ModelCF: getBirthdate(), getSesso(), getCodiceComune()
+            ModelCF->>Cache: get("BELFIORE_" + codiceComune)
+            alt Trovato in Cache
+                Cache-->>ModelCF: "Roma" (da cache)
+            else Non presente in Cache
+                ModelCF->>RemoteAPI: UrlFetchApp.fetch(comuni.json)
+                RemoteAPI-->>ModelCF: Dati comune trovati
+                ModelCF->>Cache: put("BELFIORE_H501", "Roma", 21600)
+            end
+            ModelCF-->>Ctrl: { success: true, sesso: "M", dataNascita: "1980-01-01", luogoNascita: "Roma" }
+            Ctrl-->>UI: { success: true, sesso, dataNascita, luogoNascita }
+            deactivate Ctrl
+            UI->>Op: Autocompila i campi: Data di Nascita, Sesso e Comune
         end
-
-        ModelCF-->>Ctrl: { success: true, sesso: "M", dataNascita: "1980-01-01", luogoNascita: "Roma" }
-        Ctrl-->>UI: { success: true, sesso, dataNascita, luogoNascita }
-        deactivate Ctrl
-
-        UI->>Op: Autocompila i campi: Data di Nascita, Sesso e Comune
+    else Modalità Beneficiario Esistente
+        Op->>UI: Seleziona tab "Esistente" e cerca da autocomplete
     end
 
-    %% Invio del form nucleo
-    Op->>UI: Compila ISEE, indirizzi, descrizione caso e clicca "Salva Nucleo"
-    UI->>Ctrl: google.script.run.submitNucleo(formData)
+    %% Invio del form nucleo e salvataggio atomico
+    Op->>UI: Compila dati nucleo (residenza, richiesta, abitazione) e clicca "Salva Nucleo e Intestatario"
+    UI->>Ctrl: google.script.run.submitNucleoCompleto(payload)
     activate Ctrl
 
-    Ctrl->>Nucleo: add(formData)
-    activate Nucleo
-    Nucleo->>Nucleo: getAll() per identificare max(id)
-    Nucleo->>Nucleo: generateNextId() -> es. "105"
-    
-    Nucleo->>SS: sheet.getLastRow() + 1
-    Nucleo->>SS: setValue(nextId, intestatario, isee, residenza, ...)
-    SS-->>Nucleo: Scrittura completata
-    Nucleo-->>Ctrl: { success: true, id: "105", message: "Nucleo registrato" }
-    deactivate Nucleo
+    Ctrl->>Lock: waitLock(15000)
+    activate Lock
+    Lock-->>Ctrl: Lock acquisito (mutua esclusione)
 
-    Ctrl-->>UI: Risultato operazione
+    alt isNuovoIntestatario = true
+        Ctrl->>Nucleo: generateNextId() -> es. "105"
+        Ctrl->>BenRepo: add(benPayload con idNucleo="105", rapporto="Intestatario")
+        activate BenRepo
+        BenRepo->>SS: Scrittura riga nel foglio "Beneficiari"
+        SS-->>BenRepo: OK
+        BenRepo-->>Ctrl: { success: true }
+        deactivate BenRepo
+
+        Ctrl->>Nucleo: add(nucleoData con id="105", intestatario="Nome Cognome (CF)")
+        activate Nucleo
+        Nucleo->>SS: Scrittura riga nel foglio "Nuclei Familiari"
+        SS-->>Nucleo: OK
+        Nucleo-->>Ctrl: { success: true, id: "105" }
+        deactivate Nucleo
+    else isNuovoIntestatario = false (Beneficiario Esistente)
+        Ctrl->>Nucleo: add(nucData)
+        Ctrl->>SS: Aggiorna colonna idNucleo e rapportoIntestatario sul foglio "Beneficiari"
+    end
+
+    Ctrl->>Lock: releaseLock()
+    deactivate Lock
+
+    Ctrl-->>UI: { success: true, message: "Nucleo #105 e intestatario registrati!", id: "105" }
     deactivate Ctrl
 
-    UI->>Op: Mostra Toast: "Nucleo Familiare registrato con successo (ID 105)"
-    UI->>UI: Ricarica elenco nuclei con reloadData()
+    UI->>Op: Mostra Toast di successo e chiude il modale
+    UI->>UI: Ricarica elenco nuclei e beneficiari con reloadData()
 ```
 
 ---
