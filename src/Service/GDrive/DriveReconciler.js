@@ -92,10 +92,7 @@ class DriveReconciler {
     // 1. Dati anagrafici del nucleo e dei membri
     const allBeneficiari = (typeof BeneficiarioRepository !== "undefined") ? BeneficiarioRepository.getAll() : [];
     const members = allBeneficiari.filter(b => String(b.idNucleo).trim() === idStr);
-    const intestatario = members.find(b => (b.rapportoIntestatario || "").toLowerCase() === "intestatario") || members[0];
-    const intestatarioNome = intestatario
-      ? `${intestatario.name || intestatario.nome || ""} ${intestatario.surname || intestatario.cognome || ""}`.trim()
-      : "";
+    let intestatario = members.find(b => (b.rapportoIntestatario || "").toLowerCase() === "intestatario") || members[0];
 
     let nucleoObj = null;
     try {
@@ -103,19 +100,41 @@ class DriveReconciler {
       nucleoObj = allNuclei.find(n => String(n.id).trim() === idStr) || null;
     } catch (eN) {}
 
+    // Fallback: se l'intestatario non è nei membri con idNucleo ma è specificato nel nucleo, cercalo per CF
+    if (!intestatario && nucleoObj && nucleoObj.intestatario) {
+      const cleanCF = String(nucleoObj.intestatario).toUpperCase().trim();
+      intestatario = allBeneficiari.find(b => (b.cf || "").toUpperCase().trim() === cleanCF) || null;
+      if (intestatario && !members.some(m => (m.cf || "").toUpperCase().trim() === cleanCF)) {
+        members.push(intestatario);
+      }
+    }
+
+    let intestatarioNome = intestatario
+      ? `${intestatario.name || intestatario.nome || ""} ${intestatario.surname || intestatario.cognome || ""}`.trim()
+      : "";
+
     // 2. Localizzazione cartella radice del nucleo
     try {
       const folderInfo = DriveManager.getOrCreateNucleoFolder(idStr, intestatarioNome);
       folderId = folderInfo.id;
       folderUrl = folderInfo.url;
       folder = DriveApp.getFolderById(folderId);
+
+      // Se non abbiamo ancora il nome dell'intestatario, tentiamo di dedurlo dal nome della cartella Drive
+      if (!intestatarioNome && folder) {
+        const folderNameRaw = folder.getName().trim();
+        const match = folderNameRaw.match(/^\s*\d+\s*[-–—]?\s*(.+)$/);
+        if (match && match[1] && !/^nucleo$/i.test(match[1].trim())) {
+          intestatarioNome = match[1].trim();
+        }
+      }
     } catch (e) {
       issues.push({
         type: "MISSING_MEMBER_FOLDER",
         severity: "danger",
         message: "Cartella radice del nucleo #" + idStr + " non accessibile: " + e.message
       });
-      return {
+      return JSON.parse(JSON.stringify({
         nucleoId: idStr,
         intestatario: intestatarioNome,
         folderId: "",
@@ -140,7 +159,7 @@ class DriveReconciler {
         untrackedList: [],
         orphanList: [],
         diffList: []
-      };
+      }));
     }
 
     // 3. Verifica denominazione conforme della cartella radice nucleo
@@ -297,6 +316,14 @@ class DriveReconciler {
       }
     }
 
+    const formatSafeDate = (d) => {
+      if (!d) return "";
+      if (d instanceof Date) {
+        return !isNaN(d.getTime()) ? d.toISOString() : "";
+      }
+      return String(d);
+    };
+
     // 7. Rilevamento duplicati (esatti per dimensione e semantici per persona/tipo/anno)
     const sizeMap = {};
     const semanticMap = {};
@@ -316,11 +343,13 @@ class DriveReconciler {
         }
       }
 
-      // Match semantico: per documenti annuali o unici (stesso intestatario o nucleo + stesso tipo documento)
-      if (docRec && docRec.name !== "Altro") {
+      // Match semantico: per documenti annuali, periodici o con scadenza (stesso intestatario o nucleo + stesso tipo documento)
+      // ESCLUDIAMO categoricamente i documenti generici non classificati ("Altro Documento" / "ALTRO") per evitare falsi positivi
+      const isGeneric = !docRec || docRec.id === "ALTRO" || docRec.name === "Altro" || docRec.name === "Altro Documento";
+      if (!isGeneric) {
         const yearMatch = item.fileName.match(/\b(20\d{2})\b/);
         const yearKey = yearMatch ? yearMatch[1] : "N_A";
-        const semKey = `${item.memberCF || "NUCLEO"}_${docRec.name}_${yearKey}`;
+        const semKey = `${item.memberCF || "NUCLEO"}_${docRec.id || docRec.name}_${yearKey}`;
 
         if (!semanticMap[semKey]) {
           semanticMap[semKey] = [item];
@@ -341,8 +370,8 @@ class DriveReconciler {
             const dupInfo = {
               type: "EXACT",
               reason: `Stessa dimensione in byte (${sizeVal} B)`,
-              primary: { id: primary.fileId, name: primary.fileName, folderName: primary.folderName, lastUpdated: primary.lastUpdated, size: primary.size },
-              duplicate: { id: dup.fileId, name: dup.fileName, folderName: dup.folderName, lastUpdated: dup.lastUpdated, size: dup.size }
+              primary: { id: primary.fileId, name: primary.fileName, folderName: primary.folderName, lastUpdated: formatSafeDate(primary.lastUpdated), size: primary.size },
+              duplicate: { id: dup.fileId, name: dup.fileName, folderName: dup.folderName, lastUpdated: formatSafeDate(dup.lastUpdated), size: dup.size }
             };
             duplicateGroups.push(dupInfo);
             issues.push({
@@ -351,7 +380,7 @@ class DriveReconciler {
               fileId: dup.fileId,
               fileName: dup.fileName,
               message: `Possibile file duplicato: '${dup.fileName}' ha identica dimensione (${sizeVal} B) di '${primary.fileName}'.`,
-              extra: dupInfo
+              extra: Object.assign({}, dupInfo)
             });
           }
         }
@@ -369,8 +398,8 @@ class DriveReconciler {
             const dupInfo = {
               type: "SEMANTIC",
               reason: `Stesso documento e periodo per lo stesso soggetto (${semKey})`,
-              primary: { id: primary.fileId, name: primary.fileName, folderName: primary.folderName, lastUpdated: primary.lastUpdated, size: primary.size },
-              duplicate: { id: dup.fileId, name: dup.fileName, folderName: dup.folderName, lastUpdated: dup.lastUpdated, size: dup.size }
+              primary: { id: primary.fileId, name: primary.fileName, folderName: primary.folderName, lastUpdated: formatSafeDate(primary.lastUpdated), size: primary.size },
+              duplicate: { id: dup.fileId, name: dup.fileName, folderName: dup.folderName, lastUpdated: formatSafeDate(dup.lastUpdated), size: dup.size }
             };
             duplicateGroups.push(dupInfo);
             issues.push({
@@ -379,7 +408,7 @@ class DriveReconciler {
               fileId: dup.fileId,
               fileName: dup.fileName,
               message: `Doppione semantico rilevato: '${dup.fileName}' riguarda lo stesso documento/periodo di '${primary.fileName}'.`,
-              extra: dupInfo
+              extra: Object.assign({}, dupInfo)
             });
           }
         }
@@ -545,7 +574,7 @@ class DriveReconciler {
           fileId: fId,
           fileName: fName,
           message: `Il file '${fName}' non è ancora registrato nel foglio 'Documenti'.`,
-          extra: untrackedItem
+          extra: Object.assign({}, untrackedItem)
         });
       }
 
@@ -686,7 +715,7 @@ class DriveReconciler {
             severity: "danger",
             fileId: sheetDoc.idDrive,
             message: `Riga orfana nel foglio Documenti (ID ${sheetDoc.id}, ${sheetDoc.tipo}): il file Drive collegato è inesistente o nel cestino.`,
-            extra: orphanItem
+            extra: Object.assign({}, orphanItem)
           });
         }
       }
@@ -737,7 +766,7 @@ class DriveReconciler {
       };
     });
 
-    return {
+    const reportObj = {
       nucleoId: idStr,
       intestatario: intestatarioNome,
       folderId: folderId,
@@ -763,6 +792,8 @@ class DriveReconciler {
       orphanList: orphanList,
       diffList: diffList
     };
+
+    return JSON.parse(JSON.stringify(reportObj));
   }
 
   /**

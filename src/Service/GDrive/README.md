@@ -81,6 +81,12 @@ Tutti i file risiedono all'interno della cartella radice configurata in `CONFIG.
   *Scartata*: Google Apps Script ha un limite di esecuzione di 6 minuti per invocazione RPC e quote UrlFetchApp. L'analisi OCR di decine di file contemporanei rallenterebbe la UI. L'approccio ibrido (Fast Audit di default + Deep AI opzionale/on-demand con limite `maxAIFiles: 5`) garantisce reattività istantanea e scalabilità.
 - **Perché usare `file.moveTo` invece di cancellazione e ricreazione?**
   *Motivazione*: `file.moveTo` preserva l'ID univoco del file Google Drive, la cronologia delle versioni e le autorizzazioni di condivisione, evitando di rompere i collegamenti già registrati.
+- **Perché sanitizzare il report con `JSON.parse(JSON.stringify(report))` prima dell'invio RPC?**
+  *Motivazione*: Il serializzatore RPC nativo di Google Apps Script (`google.script.run`) non supporta grafi di memoria con riferimenti condivisi (es. lo stesso oggetto `dupInfo` presente sia in `duplicateGroups` che in `issues[i].extra`) né date non formattate in contesti complessi. In caso di errore di serializzazione, Apps Script recapita silenziosamente `null` al client, causando il fallimento con errore `"Rapporto non disponibile"`. La serializzazione preventiva crea un albero JSON puro, privo di cicli o referenze condivise, con date in formato ISO 8601 standard.
+- **Perché escludere categoricamente i documenti `ALTRO` / `Altro Documento` dalla deduplicazione semantica?**
+  *Motivazione*: I file non classificati condividono la tipologia di fallback e spesso non contengono anni nel nome file. Permettere il raggruppamento semantico su di essi genererebbe un'esplosione combinatoria di falsi duplicati (es. tutti i file PDF o immagini non tipizzati scambiati per copie l'uno dell'altro).
+- **Perché auto-dedurre l'intestatario dal nome cartella Drive (`^\s*\d+\s*[-–—]?\s*(.+)$`)?**
+  *Motivazione*: Se un nucleo familiare o un fascicolo di test (es. Nucleo #3) ha una cartella su Drive ma non è ancora formalmente censito con righe associate nei fogli *Nuclei Familiari* o *Beneficiari*, il sistema ricava il nome direttamente dalla cartella fisica, garantendo la visualizzazione corretta della dashboard diagnostica anziché fallire o mostrare etichette vuote.
 
 ---
 

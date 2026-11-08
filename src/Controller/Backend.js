@@ -991,7 +991,8 @@ function auditNucleoDrive(nucleoId, options) {
     if (typeof DriveReconciler === "undefined") {
       throw new Error("Modulo DriveReconciler non disponibile.");
     }
-    return { success: true, report: DriveReconciler.auditNucleo(nucleoId, options) };
+    const report = DriveReconciler.auditNucleo(nucleoId, options);
+    return { success: true, report: JSON.parse(JSON.stringify(report)) };
   } catch (err) {
     Logger.log("Errore auditNucleoDrive: " + (err instanceof Error ? err.message : String(err)));
     return { success: false, message: err instanceof Error ? err.message : String(err) };
@@ -1008,7 +1009,7 @@ function inspectDriveFileWithAI(fileId) {
     if (typeof DriveReconciler === "undefined") {
       throw new Error("Modulo DriveReconciler non disponibile.");
     }
-    return DriveReconciler.inspectFileWithAI(fileId);
+    return JSON.parse(JSON.stringify(DriveReconciler.inspectFileWithAI(fileId)));
   } catch (err) {
     Logger.log("Errore inspectDriveFileWithAI: " + (err instanceof Error ? err.message : String(err)));
     return { success: false, message: err instanceof Error ? err.message : String(err) };
@@ -1026,7 +1027,7 @@ function executeDriveReconciliation(nucleoId, approvedPlan) {
     if (typeof DriveReconciler === "undefined") {
       throw new Error("Modulo DriveReconciler non disponibile.");
     }
-    return DriveReconciler.executeApprovedPlan(nucleoId, approvedPlan);
+    return JSON.parse(JSON.stringify(DriveReconciler.executeApprovedPlan(nucleoId, approvedPlan)));
   } catch (err) {
     Logger.log("Errore executeDriveReconciliation: " + (err instanceof Error ? err.message : String(err)));
     return { success: false, actionsApplied: [], errors: [err instanceof Error ? err.message : String(err)] };
@@ -1061,7 +1062,7 @@ function auditArchive() {
     if (typeof DriveReconciler === "undefined") {
       throw new Error("Modulo DriveReconciler non disponibile.");
     }
-    return DriveReconciler.auditArchive();
+    return JSON.parse(JSON.stringify(DriveReconciler.auditArchive()));
   } catch (err) {
     Logger.log("Errore auditArchive: " + (err instanceof Error ? err.message : String(err)));
     return { totalNuclei: 0, healthyNuclei: 0, warningNuclei: 0, criticalNuclei: 0, reports: [] };

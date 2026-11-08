@@ -38,7 +38,7 @@ fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8')
 
 try {
   console.log(`🚀 [CLASP] Eseguo push e deploy sull'ID: ${DEPLOYMENT_ID}...`);
-  execSync(`clasp push && clasp deploy -i ${DEPLOYMENT_ID} -d "Test session: ${action}"`, { stdio: 'inherit' });
+  execSync(`clasp push -f && clasp deploy -i ${DEPLOYMENT_ID} -d "Test session: ${action}"`, { stdio: 'inherit' });
   console.log(`\n✅ Operazione completata con successo (${action.toUpperCase()})!`);
   console.log(`🔗 URL WebApp: https://script.google.com/macros/s/${DEPLOYMENT_ID}/exec\n`);
 } catch (err) {

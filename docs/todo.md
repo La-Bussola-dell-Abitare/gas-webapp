@@ -1,5 +1,7 @@
 # BUG
-* Diagnostica da errore
+* (Risolto) Diagnostica da errore "Errore durante l'audit: Rapporto non disponibile" (risolto errore serializzazione RPC Apps Script su date native e referenze condivise in memoria, esclusi file generici ALTRO dalla deduplicazione semantica e aggiunto recupero fallback intestatario da cartella Drive)
+
+# Automazioni
 
 # Funzionalità
 * (Fatto) Modalità di debug real-time con intercettore RPC (latenza ms e payload), ispettore stato database in memoria, diagnostica compressione Canvas e IA Gemini Flash, trappola errori globali, benchmark ping server, pulsante esportazione report e toggle ID tecnici (scorciatoia Ctrl+Shift+D, navbar e modale impostazioni)

@@ -5739,7 +5739,8 @@
           content.classList.remove('d-none');
 
           if (!res || !res.success || !res.report) {
-            content.innerHTML = '<div class="alert alert-danger m-3"><i class="bi bi-exclamation-triangle me-2"></i>Errore durante l\'audit: ' + ((res && res.message) || 'Rapporto non disponibile.') + '</div>';
+            const errMsg = (res && res.message) ? res.message : (!res ? 'La risposta del server è vuota (possibile timeout o limite di memoria RPC).' : 'Rapporto non disponibile.');
+            content.innerHTML = '<div class="alert alert-danger m-3"><i class="bi bi-exclamation-triangle me-2"></i>Errore durante l\'audit: ' + escapeHtml(errMsg) + '</div>';
             return;
           }
 
