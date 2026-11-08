@@ -134,6 +134,33 @@ function runSystemTests() {
     Logger.log("Avviso: Impossibile testare la connettività ai fogli in questo contesto o foglio non configurato: " + e.message);
   }
 
+  // ---------------------------------------------------------
+  // 6. TEST ANALISI CARTELLE, FUZZY MATCHING E DUPLICATI
+  // ---------------------------------------------------------
+  Logger.log("\n--- Test Analisi Cartelle & Fuzzy Matching ---");
+  try {
+    const analysisInverted = analyzeFolderName("Rossi Mario", "Mario", "Rossi");
+    assert(analysisInverted.status === "INVERTED" && analysisInverted.isMismatch === true, "Rilevata inversione 'Rossi Mario' -> 'Mario Rossi'");
+    assert(analysisInverted.canonicalName === "Mario Rossi", "Nome canonico corretto per inversione");
+
+    const analysisTypo = analyzeFolderName("Mairo Rossi", "Mario", "Rossi");
+    assert(analysisTypo.status === "TYPO" && analysisTypo.isMismatch === true, "Rilevato refuso 'Mairo Rossi'");
+
+    const analysisExact = analyzeFolderName("Mario Rossi", "Mario", "Rossi");
+    assert(analysisExact.status === "EXACT" && analysisExact.isMismatch === false, "Riconosciuto match esatto 'Mario Rossi'");
+
+    const analysisNucleoInverted = analyzeFolderName("12 - Rossi Mario", "Mario", "Rossi", "12");
+    assert(analysisNucleoInverted.status === "INVERTED", "Rilevata inversione nucleo '12 - Rossi Mario'");
+    assert(analysisNucleoInverted.canonicalName === "12 - Mario Rossi", "Nome canonico nucleo conforme '12 - Mario Rossi'");
+
+    const sim = calculateStringSimilarity("Mario Rossi", "Mario Rossi");
+    assert(sim === 1.0, "Similarità 1.0 per stringhe identiche");
+    const dist = calculateLevenshteinDistance("Mario", "Mairo");
+    assert(dist === 2, "Distanza Levenshtein corretta tra Mario e Mairo (2)");
+  } catch (e) {
+    assert(false, "Errore durante i test di Analisi Cartelle: " + e.message);
+  }
+
   Logger.log("\n=== FINE TEST DI SISTEMA ===");
   Logger.log("RISULTATI: passed=" + passed + ", failed=" + failed);
   return { passed, failed };

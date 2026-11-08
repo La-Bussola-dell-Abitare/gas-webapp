@@ -1740,27 +1740,44 @@
 
   <!-- Modal Diagnostica e Riconciliazione Drive -->
   <div class="modal fade" id="modal-diagnostica-drive" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
       <div class="modal-content">
-        <div class="modal-header bg-light">
-          <h5 class="modal-title font-outfit">
-            <i class="bi bi-shield-check text-primary me-2"></i>Diagnostica e Riconciliazione Drive
-          </h5>
+        <div class="modal-header bg-light py-2">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-shield-check text-primary fs-5"></i>
+            <h5 class="modal-title font-outfit fs-6 fw-bold m-0">Diagnostica e Riconciliazione Drive & Anagrafica</h5>
+          </div>
+          <div class="d-flex align-items-center gap-3 ms-auto me-2">
+            <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
+              <input class="form-check-input" type="checkbox" id="diagnostica-deep-ai-toggle" onchange="runNucleoHealthCheck(currentReconcileNucleoId, null, this.checked)">
+              <label class="form-check-label text-xs fw-semibold text-secondary" for="diagnostica-deep-ai-toggle">
+                <i class="bi bi-stars text-primary me-1"></i>Analisi IA Gemini Flash
+              </label>
+            </div>
+            <button type="button" class="btn btn-outline-secondary btn-xs py-1 px-2" onclick="runNucleoHealthCheck(currentReconcileNucleoId, null, document.getElementById('diagnostica-deep-ai-toggle').checked)" title="Riesegui audit">
+              <i class="bi bi-arrow-clockwise me-1"></i>Rianalizza
+            </button>
+          </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body" id="modal-diagnostica-body">
-          <div class="text-center py-4" id="diagnostica-spinner">
+        <div class="modal-body p-3" id="modal-diagnostica-body">
+          <div class="text-center py-5" id="diagnostica-spinner">
             <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2 text-muted font-outfit small">Audit in corso su Google Drive e fogli di calcolo...</p>
+            <p class="mt-2 text-muted font-outfit small">Audit diagnostico in corso su Google Drive, archivi e fogli di calcolo...</p>
           </div>
           <div id="diagnostica-content" class="d-none"></div>
         </div>
-        <div class="modal-footer bg-light py-2" id="modal-diagnostica-footer">
-          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Chiudi</button>
-          <button type="button" class="btn btn-primary btn-sm" id="btn-reconcile-now" onclick="executeCurrentReconciliation(this)">
-            <span class="spinner-border spinner-border-sm me-1 d-none" id="spin-reconcile"></span>
-            ⚡ Bonifica e Riorganizza Ora
-          </button>
+        <div class="modal-footer bg-light py-2 justify-content-between" id="modal-diagnostica-footer">
+          <div class="text-xs text-muted" id="reconcile-selection-summary">
+            Nessuna azione selezionata.
+          </div>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Chiudi</button>
+            <button type="button" class="btn btn-primary btn-sm" id="btn-reconcile-now" onclick="executeCurrentApprovedReconciliation(this)">
+              <span class="spinner-border spinner-border-sm me-1 d-none" id="spin-reconcile"></span>
+              ⚡ Applica Azioni Selezionate
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -5692,17 +5709,26 @@
       initDocumentDropzones();
     }
 
+    let currentReconcileReport = null;
+
     /**
-     * Esegue l'audit diagnostico su una cartella nucleo e mostra la modale di riconciliazione.
+     * Esegue l'audit diagnostico su una cartella nucleo e visualizza la dashboard interattiva di riconciliazione.
+     * @param {string|number} nucleoId - ID del nucleo da analizzare.
+     * @param {HTMLElement} [btnEl] - Elemento bottone chiamante.
+     * @param {boolean} [deepAIScan=false] - Se attivare l'analisi con Gemini Flash.
      */
-    function runNucleoHealthCheck(nucleoId, btnEl) {
+    function runNucleoHealthCheck(nucleoId, btnEl, deepAIScan = false) {
       currentReconcileNucleoId = nucleoId;
-      const modal = new bootstrap.Modal(document.getElementById('modal-diagnostica-drive'));
+      const modalEl = document.getElementById('modal-diagnostica-drive');
+      const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
       modal.show();
 
       const spinner = document.getElementById('diagnostica-spinner');
       const content = document.getElementById('diagnostica-content');
       const btnRec = document.getElementById('btn-reconcile-now');
+      const aiToggle = document.getElementById('diagnostica-deep-ai-toggle');
+      if (aiToggle) aiToggle.checked = !!deepAIScan;
+
       spinner.classList.remove('d-none');
       content.classList.add('d-none');
       btnRec.disabled = true;
@@ -5713,88 +5739,705 @@
           content.classList.remove('d-none');
 
           if (!res || !res.success || !res.report) {
-            content.innerHTML = '<div class="alert alert-danger">Errore durante la diagnosi: ' + ((res && res.message) || 'Rapporto non disponibile') + '</div>';
+            content.innerHTML = '<div class="alert alert-danger m-3"><i class="bi bi-exclamation-triangle me-2"></i>Errore durante l\'audit: ' + ((res && res.message) || 'Rapporto non disponibile.') + '</div>';
             return;
           }
 
-          const rep = res.report;
-          let badgeStatus = '';
-          if (rep.status === 'HEALTHY') badgeStatus = '<span class="badge bg-success fs-6">🟢 Conforme</span>';
-          else if (rep.status === 'WARNING') badgeStatus = '<span class="badge bg-warning text-dark fs-6">🟡 Richiede Riconciliazione</span>';
-          else badgeStatus = '<span class="badge bg-danger fs-6">🔴 Criticità Rilevate</span>';
-
-          let issuesHtml = '';
-          if (rep.issues.length === 0) {
-            issuesHtml = '<div class="alert alert-success m-0"><i class="bi bi-check-circle me-1"></i>Tutti i file e le cartelle sono perfettamente sincronizzati e conformi agli standard.</div>';
-            btnRec.disabled = true;
-          } else {
-            btnRec.disabled = false;
-            issuesHtml = '<div class="list-group list-group-flush mb-3">';
-            rep.issues.forEach(iss => {
-              const bgClass = iss.severity === 'danger' ? 'list-group-item-danger' : (iss.severity === 'warning' ? 'list-group-item-warning' : 'list-group-item-light');
-              issuesHtml += `
-                <div class="list-group-item ${bgClass} py-2">
-                  <div class="fw-semibold">${iss.message}</div>
-                  ${iss.fileName ? ('<div class="text-xs text-muted font-monospace mt-1">File: ' + iss.fileName + '</div>') : ''}
-                </div>
-              `;
-            });
-            issuesHtml += '</div>';
-          }
-
-          content.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
-              <div>
-                <h6 class="m-0 font-outfit">Nucleo #${rep.nucleoId} - ${rep.intestatario}</h6>
-                <div class="text-xs text-muted"><a href="${rep.folderUrl}" target="_blank" class="text-primary">Apri cartella su Google Drive ↗</a></div>
-              </div>
-              <div>${badgeStatus}</div>
-            </div>
-            <div class="row g-2 mb-3 text-center">
-              <div class="col-3"><div class="border rounded p-2 bg-light"><div class="fs-5 fw-bold">${rep.stats.totalFiles}</div><div class="text-xs text-muted">File Totali</div></div></div>
-              <div class="col-3"><div class="border rounded p-2 bg-light"><div class="fs-5 fw-bold text-warning">${rep.stats.misplacedFiles}</div><div class="text-xs text-muted">File Fuori Posto</div></div></div>
-              <div class="col-3"><div class="border rounded p-2 bg-light"><div class="fs-5 fw-bold text-danger">${rep.stats.missingFolders}</div><div class="text-xs text-muted">Cartelle Assenti</div></div></div>
-              <div class="col-3"><div class="border rounded p-2 bg-light"><div class="fs-5 fw-bold text-danger">${rep.stats.expiredDocs}</div><div class="text-xs text-muted">Doc Scaduti</div></div></div>
-            </div>
-            <h6>Dettaglio Anomalie:</h6>
-            ${issuesHtml}
-          `;
+          currentReconcileReport = res.report;
+          renderReconcileDashboard(res.report);
         })
         .withFailureHandler(err => {
           spinner.classList.add('d-none');
           content.classList.remove('d-none');
-          content.innerHTML = '<div class="alert alert-danger">Errore RPC: ' + (err.message || err) + '</div>';
+          content.innerHTML = '<div class="alert alert-danger m-3"><i class="bi bi-x-octagon me-2"></i>Errore di comunicazione RPC: ' + (err.message || err) + '</div>';
         })
-        .auditNucleoDrive(nucleoId);
+        .auditNucleoDrive(nucleoId, { deepAIScan: deepAIScan });
     }
 
     /**
-     * Esegue la riconciliazione automatica del nucleo attualmente aperto nella modale.
+     * Esegue il rendering della dashboard a schede con checklist di approvazione.
+     * @param {Object} rep - Rapporto diagnostico restituito dal backend.
      */
-    function executeCurrentReconciliation(btn) {
-      if (!currentReconcileNucleoId) return;
+    function renderReconcileDashboard(rep) {
+      const content = document.getElementById('diagnostica-content');
+
+      let badgeStatus = '';
+      if (rep.status === 'HEALTHY') badgeStatus = '<span class="badge bg-success fs-6"><i class="bi bi-check-circle me-1"></i>🟢 Conforme</span>';
+      else if (rep.status === 'WARNING') badgeStatus = '<span class="badge bg-warning text-dark fs-6"><i class="bi bi-exclamation-triangle me-1"></i>🟡 Richiede Riconciliazione</span>';
+      else badgeStatus = '<span class="badge bg-danger fs-6"><i class="bi bi-x-circle me-1"></i>🔴 Criticità Rilevate</span>';
+
+      const missingFolders = rep.issues.filter(i => i.type === 'MISSING_MEMBER_FOLDER');
+      const folderMismatches = rep.issues.filter(i => i.type === 'FOLDER_NAME_MISMATCH');
+      const misplacedFiles = rep.issues.filter(i => i.type === 'MISPLACED_FILE');
+      const nonStandardFiles = rep.issues.filter(i => i.type === 'NON_STANDARD_FILENAME');
+      const duplicateGroups = rep.duplicateGroups || [];
+      const untrackedList = rep.untrackedList || [];
+      const orphanList = rep.orphanList || [];
+      const diffList = rep.diffList || [];
+
+      const tab1Count = missingFolders.length + folderMismatches.length + misplacedFiles.length + nonStandardFiles.length;
+      const tab2Count = duplicateGroups.length;
+      const tab3Count = untrackedList.length + orphanList.length;
+      const tab4Count = diffList.length;
+
+      let html = `
+        <!-- Intestazione e Metriche Nucleo -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center pb-2 mb-3 border-bottom gap-2">
+          <div>
+            <h5 class="m-0 font-outfit fw-bold">Nucleo #${rep.nucleoId} - ${escapeHtml(rep.intestatario)}</h5>
+            <div class="text-xs text-muted mt-1">
+              ${rep.folderUrl ? `<a href="${rep.folderUrl}" target="_blank" class="text-primary text-decoration-none"><i class="bi bi-folder2-open me-1"></i>Apri cartella Google Drive ↗</a>` : '<span class="text-danger">Cartella non collegata</span>'}
+              <span class="mx-2">•</span>
+              <span>Componenti censiti: <strong>${(rep.members || []).length}</strong></span>
+            </div>
+          </div>
+          <div>${badgeStatus}</div>
+        </div>
+
+        <!-- Metric Badges Row -->
+        <div class="row g-2 mb-3 text-center">
+          <div class="col-6 col-md-3">
+            <div class="border rounded p-2 bg-light shadow-sm">
+              <div class="fs-5 fw-bold text-dark">${rep.stats.totalFiles}</div>
+              <div class="text-xs text-muted">File su Drive</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="border rounded p-2 bg-light shadow-sm">
+              <div class="fs-5 fw-bold ${tab1Count > 0 ? 'text-warning' : 'text-success'}">${tab1Count}</div>
+              <div class="text-xs text-muted">File/Cartelle da Riordinare</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="border rounded p-2 bg-light shadow-sm">
+              <div class="fs-5 fw-bold ${tab2Count > 0 ? 'text-danger' : 'text-success'}">${tab2Count}</div>
+              <div class="text-xs text-muted">Duplicati Rilevati</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="border rounded p-2 bg-light shadow-sm">
+              <div class="fs-5 fw-bold ${tab4Count > 0 ? 'text-info' : 'text-secondary'}">${tab4Count}</div>
+              <div class="text-xs text-muted">Discrepanze Anagrafica</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Schede di Revisione Interattiva -->
+        <ul class="nav nav-tabs font-outfit mb-3" id="reconcileTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active py-2 text-xs fw-semibold" id="tab-files-nav" data-bs-toggle="tab" data-bs-target="#tab-files" type="button" role="tab">
+              <i class="bi bi-folder-symlink me-1"></i>1. File & Cartelle
+              ${tab1Count > 0 ? `<span class="badge bg-warning text-dark ms-1">${tab1Count}</span>` : '<span class="badge bg-light text-secondary ms-1">0</span>'}
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link py-2 text-xs fw-semibold" id="tab-dups-nav" data-bs-toggle="tab" data-bs-target="#tab-dups" type="button" role="tab">
+              <i class="bi bi-copy me-1"></i>2. Duplicati
+              ${tab2Count > 0 ? `<span class="badge bg-danger ms-1">${tab2Count}</span>` : '<span class="badge bg-light text-secondary ms-1">0</span>'}
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link py-2 text-xs fw-semibold" id="tab-sheet-nav" data-bs-toggle="tab" data-bs-target="#tab-sheet" type="button" role="tab">
+              <i class="bi bi-table me-1"></i>3. Foglio 'Documenti'
+              ${tab3Count > 0 ? `<span class="badge bg-primary ms-1">${tab3Count}</span>` : '<span class="badge bg-light text-secondary ms-1">0</span>'}
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link py-2 text-xs fw-semibold" id="tab-diff-nav" data-bs-toggle="tab" data-bs-target="#tab-diff" type="button" role="tab">
+              <i class="bi bi-stars text-primary me-1"></i>4. Anagrafica (IA)
+              ${tab4Count > 0 ? `<span class="badge bg-info text-dark ms-1">${tab4Count}</span>` : '<span class="badge bg-light text-secondary ms-1">0</span>'}
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content" id="reconcileTabsContent">
+          <!-- TAB 1: FILE & CARTELLE -->
+          <div class="tab-pane fade show active" id="tab-files" role="tabpanel">
+            ${renderTabFiles(missingFolders, folderMismatches, misplacedFiles, nonStandardFiles)}
+          </div>
+
+          <!-- TAB 2: DUPLICATI -->
+          <div class="tab-pane fade" id="tab-dups" role="tabpanel">
+            ${renderTabDuplicates(duplicateGroups)}
+          </div>
+
+          <!-- TAB 3: FOGLIO DOCUMENTI -->
+          <div class="tab-pane fade" id="tab-sheet" role="tabpanel">
+            ${renderTabSheetSync(untrackedList, orphanList, rep.members)}
+          </div>
+
+          <!-- TAB 4: ALLINEAMENTO ANAGRAFICA (IA) -->
+          <div class="tab-pane fade" id="tab-diff" role="tabpanel">
+            ${renderTabAnagraficaDiff(diffList)}
+          </div>
+        </div>
+      `;
+
+      content.innerHTML = html;
+      updateReconcileSelectionSummary();
+    }
+
+    /**
+     * Renderizza il contenuto del Tab 1: File & Cartelle (Spostamenti e Ridenominazioni).
+     */
+    function renderTabFiles(missingFolders, folderMismatches, misplacedFiles, nonStandardFiles) {
+      if (missingFolders.length === 0 && folderMismatches.length === 0 && misplacedFiles.length === 0 && nonStandardFiles.length === 0) {
+        return `
+          <div class="alert alert-success d-flex align-items-center gap-2 m-2">
+            <i class="bi bi-check-circle-fill fs-5"></i>
+            <div>Tutte le cartelle e la disposizione dei file sono perfettamente conformi agli standard di archiviazione.</div>
+          </div>
+        `;
+      }
+
+      let out = '';
+
+      // Sezione Cartelle Mancanti o da Rinominare
+      if (missingFolders.length > 0 || folderMismatches.length > 0) {
+        out += `
+          <h6 class="fw-bold font-outfit text-dark mt-2 mb-2"><i class="bi bi-folder-check text-primary me-2"></i>Cartelle Personali & Nucleo:</h6>
+          <div class="list-group list-group-flush border rounded mb-3">
+        `;
+        missingFolders.forEach((mf, idx) => {
+          out += `
+            <div class="list-group-item d-flex align-items-center justify-content-between py-2 list-group-item-warning">
+              <div class="form-check m-0">
+                <input class="form-check-input rec-check rec-missing-folder" type="checkbox" id="rec-mf-${idx}" data-cf="${escapeHtml(mf.targetMemberCF)}" checked onchange="updateReconcileSelectionSummary()">
+                <label class="form-check-label text-xs fw-semibold" for="rec-mf-${idx}">
+                  Crea sottocartella personale per: <strong>${escapeHtml(mf.targetMemberName)}</strong> (${escapeHtml(mf.targetMemberCF)})
+                </label>
+              </div>
+              <span class="badge bg-secondary font-monospace">Mancante</span>
+            </div>
+          `;
+        });
+        folderMismatches.forEach((fm, idx) => {
+          out += `
+            <div class="list-group-item d-flex align-items-center justify-content-between py-2">
+              <div class="form-check m-0">
+                <input class="form-check-input rec-check rec-folder-rename" type="checkbox" id="rec-fm-${idx}" data-folder-id="${escapeHtml(fm.folderId)}" checked onchange="updateReconcileSelectionSummary()">
+                <label class="form-check-label text-xs" for="rec-fm-${idx}">
+                  Rinomina cartella: <del class="text-danger">${escapeHtml(fm.currentName)}</del> &rarr;
+                  <input type="text" class="form-control form-control-xs d-inline-block w-auto py-0 px-2 fw-bold text-success font-monospace" id="rec-fm-name-${idx}" value="${escapeHtml(fm.suggestedNewName)}">
+                  <div class="text-xs text-muted mt-1"><i class="bi bi-info-circle me-1"></i>${escapeHtml(fm.message)}</div>
+                </label>
+              </div>
+              <span class="badge bg-warning text-dark">Rinomina</span>
+            </div>
+          `;
+        });
+        out += '</div>';
+      }
+
+      // Sezione File Fuori Posto
+      if (misplacedFiles.length > 0) {
+        out += `
+          <h6 class="fw-bold font-outfit text-dark mt-3 mb-2"><i class="bi bi-arrows-move text-warning me-2"></i>File Fuori Posto da Riposizionare:</h6>
+          <div class="list-group list-group-flush border rounded mb-3">
+        `;
+        misplacedFiles.forEach((mf, idx) => {
+          out += `
+            <div class="list-group-item d-flex align-items-center justify-content-between py-2">
+              <div class="form-check m-0">
+                <input class="form-check-input rec-check rec-file-move" type="checkbox" id="rec-move-${idx}" data-file-id="${escapeHtml(mf.fileId)}" data-target-folder="${escapeHtml(mf.targetFolderId)}" checked onchange="updateReconcileSelectionSummary()">
+                <label class="form-check-label text-xs" for="rec-move-${idx}">
+                  Sposta <span class="fw-bold font-monospace text-dark">'${escapeHtml(mf.fileName)}'</span>
+                  <div class="text-xs text-muted mt-1">
+                    Da: <span class="badge bg-light text-secondary border">${escapeHtml(mf.currentName)}</span> &rarr;
+                    A: <span class="badge bg-primary text-white border">${escapeHtml(mf.targetFolderName)}</span>
+                    <span class="ms-2">(${escapeHtml(mf.message)})</span>
+                  </div>
+                </label>
+              </div>
+              <span class="badge bg-info text-dark">Spostamento</span>
+            </div>
+          `;
+        });
+        out += '</div>';
+      }
+
+      // Sezione File con Nomi Non Standard
+      if (nonStandardFiles.length > 0) {
+        out += `
+          <h6 class="fw-bold font-outfit text-dark mt-3 mb-2"><i class="bi bi-tag text-info me-2"></i>Nomi File da Standardizzare (Convenzione Ufficiale):</h6>
+          <div class="list-group list-group-flush border rounded mb-3">
+        `;
+        nonStandardFiles.forEach((ns, idx) => {
+          out += `
+            <div class="list-group-item d-flex align-items-center justify-content-between py-2">
+              <div class="form-check m-0 flex-grow-1 me-2">
+                <input class="form-check-input rec-check rec-file-rename" type="checkbox" id="rec-ns-${idx}" data-file-id="${escapeHtml(ns.fileId)}" checked onchange="updateReconcileSelectionSummary()">
+                <label class="form-check-label text-xs w-100" for="rec-ns-${idx}">
+                  <del class="text-muted font-monospace">${escapeHtml(ns.currentName)}</del> &rarr;
+                  <input type="text" class="form-control form-control-xs d-inline-block w-75 py-0 px-2 fw-semibold text-primary font-monospace mt-1" id="rec-ns-name-${idx}" value="${escapeHtml(ns.suggestedNewName)}">
+                  ${ns.targetMemberName ? `<div class="text-xs text-secondary mt-1">Componente: <strong>${escapeHtml(ns.targetMemberName)}</strong></div>` : ''}
+                </label>
+              </div>
+              <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2" onclick="inspectFileInlineAI('${escapeHtml(ns.fileId)}', this)" title="Ispeziona contenuto con IA Gemini Flash">
+                <i class="bi bi-stars"></i> IA
+              </button>
+            </div>
+          `;
+        });
+        out += '</div>';
+      }
+
+      return out;
+    }
+
+    /**
+     * Renderizza il Tab 2: Gestione Duplicati.
+     */
+    function renderTabDuplicates(duplicateGroups) {
+      if (duplicateGroups.length === 0) {
+        return `
+          <div class="alert alert-success d-flex align-items-center gap-2 m-2">
+            <i class="bi bi-check-circle-fill fs-5"></i>
+            <div>Nessun documento duplicato rilevato. L'archivio è pulito e privo di ridondanze.</div>
+          </div>
+        `;
+      }
+
+      let out = `
+        <div class="alert alert-warning py-2 text-xs mb-3">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i>
+          Sono stati individuati <strong>${duplicateGroups.length}</strong> possibili documenti duplicati. Scegli per ciascuno l'azione da intraprendere (l'eliminazione sposta il file nel cestino di Google Drive senza cancellazione irreversibile).
+        </div>
+        <div class="d-flex flex-column gap-3">
+      `;
+
+      duplicateGroups.forEach((dg, idx) => {
+        const prim = dg.primary;
+        const dup = dg.duplicate;
+        out += `
+          <div class="card border shadow-sm">
+            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+              <span class="text-xs fw-bold font-outfit text-dark">
+                <i class="bi bi-copy text-danger me-1"></i>Gruppo Duplicato #${idx + 1} (${dg.type === 'EXACT' ? 'Identico in Byte' : 'Stesso Documento e Periodo'})
+              </span>
+              <span class="badge ${dg.type === 'EXACT' ? 'bg-danger' : 'bg-warning text-dark'} text-xs font-monospace">${escapeHtml(dg.reason)}</span>
+            </div>
+            <div class="card-body p-2">
+              <div class="row g-2 text-xs">
+                <div class="col-md-6 border-end">
+                  <div class="fw-semibold text-success mb-1"><i class="bi bi-file-earmark-check me-1"></i>File Conservato (Originale):</div>
+                  <div class="font-monospace fw-bold">${escapeHtml(prim.name)}</div>
+                  <div class="text-muted">Cartella: <strong>${escapeHtml(prim.folderName)}</strong> | Dimensione: <strong>${prim.size || 0} B</strong></div>
+                </div>
+                <div class="col-md-6">
+                  <div class="fw-semibold text-danger mb-1"><i class="bi bi-file-earmark-x me-1"></i>File Riconosciuto Duplicato:</div>
+                  <div class="font-monospace fw-bold">${escapeHtml(dup.name)}</div>
+                  <div class="text-muted">Cartella: <strong>${escapeHtml(dup.folderName)}</strong> | Dimensione: <strong>${dup.size || 0} B</strong></div>
+                </div>
+              </div>
+              <div class="mt-2 pt-2 border-top d-flex align-items-center gap-3">
+                <span class="text-xs fw-bold text-secondary">Azione:</span>
+                <div class="form-check form-check-inline m-0">
+                  <input class="form-check-input rec-dup-action" type="radio" name="rec-dup-${idx}" id="rec-dup-trash-${idx}" value="trash" data-file-id="${escapeHtml(dup.id)}" checked onchange="updateReconcileSelectionSummary()">
+                  <label class="form-check-label text-xs text-danger fw-semibold" for="rec-dup-trash-${idx}">
+                    <i class="bi bi-trash3 me-1"></i>Cestina Duplicato
+                  </label>
+                </div>
+                <div class="form-check form-check-inline m-0">
+                  <input class="form-check-input rec-dup-action" type="radio" name="rec-dup-${idx}" id="rec-dup-archive-${idx}" value="archive" data-file-id="${escapeHtml(dup.id)}" onchange="updateReconcileSelectionSummary()">
+                  <label class="form-check-label text-xs text-secondary" for="rec-dup-archive-${idx}">
+                    <i class="bi bi-archive me-1"></i>Sposta in _Archivio
+                  </label>
+                </div>
+                <div class="form-check form-check-inline m-0">
+                  <input class="form-check-input rec-dup-action" type="radio" name="rec-dup-${idx}" id="rec-dup-keep-${idx}" value="keep" data-file-id="${escapeHtml(dup.id)}" onchange="updateReconcileSelectionSummary()">
+                  <label class="form-check-label text-xs text-dark" for="rec-dup-keep-${idx}">
+                    <i class="bi bi-check2 me-1"></i>Mantieni Entrambi
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      out += '</div>';
+      return out;
+    }
+
+    /**
+     * Renderizza il Tab 3: Sincronizzazione con il foglio 'Documenti'.
+     */
+    function renderTabSheetSync(untrackedList, orphanList, members) {
+      if (untrackedList.length === 0 && orphanList.length === 0) {
+        return `
+          <div class="alert alert-success d-flex align-items-center gap-2 m-2">
+            <i class="bi bi-check-circle-fill fs-5"></i>
+            <div>Il foglio 'Documenti' è perfettamente sincronizzato con i file presenti su Google Drive.</div>
+          </div>
+        `;
+      }
+
+      let out = '';
+
+      // Sezione File da Censire
+      if (untrackedList.length > 0) {
+        out += `
+          <h6 class="fw-bold font-outfit text-dark mt-2 mb-2"><i class="bi bi-file-earmark-plus text-primary me-2"></i>File presenti su Drive ma NON censiti nel foglio 'Documenti':</h6>
+          <div class="table-responsive border rounded mb-3">
+            <table class="table table-sm table-hover align-middle mb-0 text-xs">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 40px;" class="text-center">
+                    <input class="form-check-input" type="checkbox" id="check-all-untracked" checked onchange="toggleAllUntracked(this)">
+                  </th>
+                  <th>Nome File Drive</th>
+                  <th>Intestatario</th>
+                  <th>Tipologia</th>
+                  <th>Scadenza</th>
+                  <th>Valore (€)</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+        untrackedList.forEach((ut, idx) => {
+          const sug = ut.suggestedData || {};
+          let memberOptions = '';
+          (members || []).forEach(m => {
+            const isSel = (m.cf || '').toUpperCase() === (sug.intestatario || '').toUpperCase();
+            memberOptions += `<option value="${escapeHtml(m.cf)}" ${isSel ? 'selected' : ''}>${escapeHtml(m.name)} (${escapeHtml(m.cf)})</option>`;
+          });
+
+          out += `
+            <tr id="row-untracked-${idx}">
+              <td class="text-center">
+                <input class="form-check-input rec-check rec-untracked-check" type="checkbox" id="rec-ut-${idx}" data-idx="${idx}" checked onchange="updateReconcileSelectionSummary()">
+              </td>
+              <td>
+                <span class="font-monospace fw-bold text-dark">${escapeHtml(ut.fileName)}</span>
+                <div class="text-xs text-muted">Cartella: ${escapeHtml(ut.folderName)}</div>
+              </td>
+              <td>
+                <select class="form-select form-select-xs py-0" id="rec-ut-cf-${idx}">
+                  ${memberOptions || `<option value="${escapeHtml(sug.intestatario)}">${escapeHtml(sug.intestatario)}</option>`}
+                </select>
+              </td>
+              <td>
+                <input type="text" class="form-control form-control-xs py-0" id="rec-ut-tipo-${idx}" value="${escapeHtml(sug.tipo || 'Altro')}">
+              </td>
+              <td>
+                <input type="date" class="form-control form-control-xs py-0" id="rec-ut-scad-${idx}" value="${escapeHtml(sug.dataScadenza || '')}">
+              </td>
+              <td>
+                <input type="number" step="0.01" class="form-control form-control-xs py-0" style="width: 90px;" id="rec-ut-valore-${idx}" value="${sug.valore || ''}">
+              </td>
+            </tr>
+          `;
+        });
+        out += `
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      // Sezione Righe Orfane
+      if (orphanList.length > 0) {
+        out += `
+          <h6 class="fw-bold font-outfit text-danger mt-3 mb-2"><i class="bi bi-trash text-danger me-2"></i>Righe Orfane nel foglio 'Documenti' (File Drive inesistenti o cestinati):</h6>
+          <div class="list-group list-group-flush border rounded mb-3">
+        `;
+        orphanList.forEach((orph, idx) => {
+          out += `
+            <div class="list-group-item d-flex align-items-center justify-content-between py-2 list-group-item-danger">
+              <div class="form-check m-0">
+                <input class="form-check-input rec-check rec-orphan-check" type="checkbox" id="rec-orph-${idx}" data-doc-id="${escapeHtml(orph.docId)}" data-drive-id="${escapeHtml(orph.idDrive)}" checked onchange="updateReconcileSelectionSummary()">
+                <label class="form-check-label text-xs fw-semibold" for="rec-orph-${idx}">
+                  Elimina riga ID #${escapeHtml(orph.docId)}: <strong>${escapeHtml(orph.tipo)}</strong> (Intestatario: ${escapeHtml(orph.intestatario)})
+                  <div class="text-xs text-muted font-monospace mt-1">ID Drive non trovato: ${escapeHtml(orph.idDrive)}</div>
+                </label>
+              </div>
+              <span class="badge bg-danger">File Mancante</span>
+            </div>
+          `;
+        });
+        out += '</div>';
+      }
+
+      return out;
+    }
+
+    /**
+     * Renderizza il Tab 4: Allineamento Dati Anagrafici (IA).
+     */
+    function renderTabAnagraficaDiff(diffList) {
+      if (diffList.length === 0) {
+        return `
+          <div class="alert alert-success d-flex align-items-center gap-2 m-2">
+            <i class="bi bi-stars text-primary fs-5"></i>
+            <div>Nessuna discrepanza rilevata tra l'anagrafica dei fogli e le informazioni documentali. I dati sono allineati.</div>
+          </div>
+        `;
+      }
+
+      let out = `
+        <div class="alert alert-info py-2 text-xs mb-3">
+          <i class="bi bi-stars text-primary me-1"></i>
+          Google Gemini Flash ha rilevato le seguenti informazioni nei documenti che differiscono dai dati registrati nei fogli di calcolo. Puoi confermare l'aggiornamento o ritoccare il valore suggerito prima di applicarlo.
+        </div>
+        <div class="table-responsive border rounded mb-3">
+          <table class="table table-sm table-hover align-middle mb-0 text-xs">
+            <thead class="table-light">
+              <tr>
+                <th style="width: 40px;" class="text-center">
+                  <input class="form-check-input" type="checkbox" id="check-all-diffs" checked onchange="toggleAllDiffs(this)">
+                </th>
+                <th>Soggetto / Entità</th>
+                <th>Campo</th>
+                <th>Valore Attuale (Foglio)</th>
+                <th>Valore Rilevato nel Documento</th>
+                <th>Valore da Applicare</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      diffList.forEach((df, idx) => {
+        out += `
+          <tr id="row-diff-${idx}">
+            <td class="text-center">
+              <input class="form-check-input rec-check rec-diff-check" type="checkbox" id="rec-df-${idx}" data-idx="${idx}" checked onchange="updateReconcileSelectionSummary()">
+            </td>
+            <td>
+              <span class="fw-bold">${escapeHtml(df.entityLabel)}</span>
+              <div class="text-xs text-muted">Doc: ${escapeHtml(df.sourceDocName)}</div>
+            </td>
+            <td><span class="badge bg-light text-dark border">${escapeHtml(df.fieldLabel)}</span></td>
+            <td><del class="text-danger">${escapeHtml(df.currentValue || '(vuoto)')}</del></td>
+            <td><span class="text-success fw-bold font-monospace">${escapeHtml(df.extractedValue)}</span></td>
+            <td>
+              <input type="text" class="form-control form-control-xs py-0 px-2 fw-bold text-primary font-monospace" id="rec-df-val-${idx}" value="${escapeHtml(df.suggestedValue)}">
+            </td>
+          </tr>
+        `;
+      });
+
+      out += `
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      return out;
+    }
+
+    /**
+     * Ispeziona on-demand un singolo file Drive tramite Gemini Flash.
+     */
+    function inspectFileInlineAI(fileId, btnEl) {
+      if (!fileId || !btnEl) return;
+      const oldHtml = btnEl.innerHTML;
+      btnEl.disabled = true;
+      btnEl.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+      google.script.run
+        .withSuccessHandler(res => {
+          btnEl.disabled = false;
+          btnEl.innerHTML = oldHtml;
+          if (res && res.success && res.data) {
+            const d = res.data;
+            const summary = `Tipo: ${d.tipoDocumento} | Persona: ${d.datiPersona ? (d.datiPersona.nome + ' ' + d.datiPersona.cognome) : 'N/D'} | CF: ${d.datiPersona ? d.datiPersona.codiceFiscale : 'N/D'}`;
+            showToast('🔍 IA Gemini: ' + summary, 'success');
+            // Riesegue l'audit per includere i nuovi metadati
+            runNucleoHealthCheck(currentReconcileNucleoId, null, false);
+          } else {
+            showToast('Ispezione non riuscita: ' + ((res && res.message) || 'Errore sconosciuto'), 'warning');
+          }
+        })
+        .withFailureHandler(err => {
+          btnEl.disabled = false;
+          btnEl.innerHTML = oldHtml;
+          showToast('Errore chiamata IA: ' + (err.message || err), 'danger');
+        })
+        .inspectDriveFileWithAI(fileId);
+    }
+
+    /**
+     * Seleziona o deseleziona tutti i file non censiti.
+     */
+    function toggleAllUntracked(masterEl) {
+      document.querySelectorAll('.rec-untracked-check').forEach(chk => {
+        chk.checked = masterEl.checked;
+      });
+      updateReconcileSelectionSummary();
+    }
+
+    /**
+     * Seleziona o deseleziona tutti i diff anagrafici.
+     */
+    function toggleAllDiffs(masterEl) {
+      document.querySelectorAll('.rec-diff-check').forEach(chk => {
+        chk.checked = masterEl.checked;
+      });
+      updateReconcileSelectionSummary();
+    }
+
+    /**
+     * Aggiorna il contatore dinamico delle azioni selezionate e lo stato del bottone primario.
+     */
+    function updateReconcileSelectionSummary() {
+      let count = 0;
+      document.querySelectorAll('.rec-check:checked').forEach(() => count++);
+      document.querySelectorAll('.rec-dup-action:checked').forEach(r => {
+        if (r.value !== 'keep') count++;
+      });
+
+      const summaryEl = document.getElementById('reconcile-selection-summary');
+      const btnRec = document.getElementById('btn-reconcile-now');
+
+      if (summaryEl) {
+        summaryEl.innerHTML = count > 0
+          ? `<strong>${count}</strong> azioni selezionate per l'applicazione.`
+          : 'Nessuna azione selezionata.';
+      }
+
+      if (btnRec) {
+        btnRec.disabled = count === 0;
+        btnRec.innerHTML = `<span class="spinner-border spinner-border-sm me-1 d-none" id="spin-reconcile"></span>⚡ Applica Azioni Selezionate (${count})`;
+      }
+    }
+
+    /**
+     * Esegue il piano di riconciliazione approvato dall'utente raccogliendo tutti i valori e le selezioni correnti.
+     */
+    function executeCurrentApprovedReconciliation(btn) {
+      if (!currentReconcileNucleoId || !currentReconcileReport) return;
       const spin = document.getElementById('spin-reconcile');
       btn.disabled = true;
-      spin.classList.remove('d-none');
+      if (spin) spin.classList.remove('d-none');
+
+      const approvedPlan = {
+        missingFolderCreations: [],
+        folderRenames: [],
+        fileMoves: [],
+        fileRenames: [],
+        duplicates: [],
+        documentRegistrations: [],
+        orphanDeletions: [],
+        anagraficaUpdates: []
+      };
+
+      // 1. Cartelle mancanti
+      document.querySelectorAll('.rec-missing-folder:checked').forEach(chk => {
+        const cf = chk.getAttribute('data-cf');
+        if (cf) approvedPlan.missingFolderCreations.push({ targetMemberCF: cf });
+      });
+
+      // 2. Ridenominazione cartelle
+      document.querySelectorAll('.rec-folder-rename:checked').forEach(chk => {
+        const fId = chk.getAttribute('data-folder-id');
+        const inputEl = chk.closest('.list-group-item').querySelector('input[type="text"]');
+        const newName = inputEl ? inputEl.value.trim() : '';
+        if (fId && newName) {
+          approvedPlan.folderRenames.push({ folderId: fId, newName: newName });
+        }
+      });
+
+      // 3. Spostamento file
+      document.querySelectorAll('.rec-file-move:checked').forEach(chk => {
+        const fId = chk.getAttribute('data-file-id');
+        const targetF = chk.getAttribute('data-target-folder');
+        if (fId && targetF) {
+          approvedPlan.fileMoves.push({ fileId: fId, targetFolderId: targetF });
+        }
+      });
+
+      // 4. Ridenominazione file
+      document.querySelectorAll('.rec-file-rename:checked').forEach(chk => {
+        const fId = chk.getAttribute('data-file-id');
+        const inputEl = chk.closest('.list-group-item').querySelector('input[type="text"]');
+        const newName = inputEl ? inputEl.value.trim() : '';
+        if (fId && newName) {
+          approvedPlan.fileRenames.push({ fileId: fId, newName: newName });
+        }
+      });
+
+      // 5. Duplicati
+      document.querySelectorAll('.rec-dup-action:checked').forEach(radio => {
+        const action = radio.value;
+        const fId = radio.getAttribute('data-file-id');
+        if (fId && (action === 'trash' || action === 'archive')) {
+          approvedPlan.duplicates.push({ fileId: fId, action: action });
+        }
+      });
+
+      // 6. Censimento foglio Documenti
+      document.querySelectorAll('.rec-untracked-check:checked').forEach(chk => {
+        const idx = chk.getAttribute('data-idx');
+        const ut = (currentReconcileReport.untrackedList || [])[idx];
+        if (ut) {
+          const cfSel = document.getElementById(`rec-ut-cf-${idx}`);
+          const tipoInp = document.getElementById(`rec-ut-tipo-${idx}`);
+          const scadInp = document.getElementById(`rec-ut-scad-${idx}`);
+          const valInp = document.getElementById(`rec-ut-valore-${idx}`);
+
+          approvedPlan.documentRegistrations.push({
+            intestatario: cfSel ? cfSel.value.trim() : ut.suggestedData.intestatario,
+            tipo: tipoInp ? tipoInp.value.trim() : ut.suggestedData.tipo,
+            categoria: ut.suggestedData.categoria || 'Altro',
+            valore: valInp && valInp.value ? parseFloat(valInp.value) : null,
+            dataScadenza: scadInp ? scadInp.value : '',
+            idDrive: ut.fileId,
+            note: 'Censito da riconciliazione Drive'
+          });
+        }
+      });
+
+      // 7. Righe orfane
+      document.querySelectorAll('.rec-orphan-check:checked').forEach(chk => {
+        const docId = chk.getAttribute('data-doc-id');
+        const idDrive = chk.getAttribute('data-drive-id');
+        approvedPlan.orphanDeletions.push({ docId: docId, idDrive: idDrive });
+      });
+
+      // 8. Diff Anagrafica
+      document.querySelectorAll('.rec-diff-check:checked').forEach(chk => {
+        const idx = chk.getAttribute('data-idx');
+        const df = (currentReconcileReport.diffList || [])[idx];
+        if (df) {
+          const valInp = document.getElementById(`rec-df-val-${idx}`);
+          const appliedVal = valInp ? valInp.value.trim() : df.suggestedValue;
+          const updates = {};
+          updates[df.fieldName] = appliedVal;
+
+          approvedPlan.anagraficaUpdates.push({
+            entityType: df.entityType,
+            entityId: df.entityId,
+            updates: updates
+          });
+        }
+      });
 
       google.script.run
         .withSuccessHandler(res => {
           btn.disabled = false;
-          spin.classList.add('d-none');
+          if (spin) spin.classList.add('d-none');
           if (res && res.success) {
-            showToast('⚡ Bonifica completata con successo! Azioni applicate: ' + res.actionsApplied.length, 'success');
-            runNucleoHealthCheck(currentReconcileNucleoId, null);
+            showToast(`⚡ Bonifica applicata con successo! Azioni eseguite: ${res.actionsApplied.length}`, 'success');
+            runNucleoHealthCheck(currentReconcileNucleoId, null, false);
             reloadData();
           } else {
-            showToast('Errore durante la bonifica: ' + ((res && res.errors && res.errors.join(', ')) || 'Errore generico'), 'danger');
+            showToast('Errore durante la bonifica: ' + ((res && res.errors && res.errors.join(', ')) || 'Errore sconosciuto'), 'danger');
           }
         })
         .withFailureHandler(err => {
           btn.disabled = false;
-          spin.classList.add('d-none');
-          showToast('Errore: ' + (err.message || err), 'danger');
+          if (spin) spin.classList.add('d-none');
+          showToast('Errore RPC durante l\'applicazione: ' + (err.message || err), 'danger');
         })
-        .reconcileNucleoDrive(currentReconcileNucleoId, { useAI: true });
+        .executeDriveReconciliation(currentReconcileNucleoId, approvedPlan);
+    }
+
+    /**
+     * Mantenuta per retrocompatibilità.
+     */
+    function executeCurrentReconciliation(btn) {
+      executeCurrentApprovedReconciliation(btn);
     }
 
     /**
@@ -5803,7 +6446,7 @@
     function runArchiveHealthCheck(btn) {
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Verifica in corso...';
-      
+
       google.script.run
         .withSuccessHandler(res => {
           btn.disabled = false;

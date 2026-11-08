@@ -19,7 +19,17 @@
 * Ampliare incontri con chiamate (con relativa data e durata)
 * Aggiungi foto di intestatari e altri conponenti prendendola dai documenti
 * Aggiorna operatori
-* Creare funzioni che controllano e fanno check o fanno bulk action
+* (Fatto) Creare funzioni che controllano e fanno check o fanno bulk action
+    * (Fatto) Riconciliazione documenti e file system Google Drive con IA
+        * (Fatto) Controllare tramite OCR o IA che tipo di documenti sono e che informazioni hanno (Google Gemini Flash multimodale)
+        * (Fatto) Dargli il nome corretto secondo le specifiche (`buildDocumentFileName`)
+        * (Fatto) Controllare se ci sono documenti doppioni (notifica all'utente con scelta interattiva: cestina, archivia in _Archivio, mantieni)
+        * (Fatto) Riconciliare anche i nomi delle cartelle che potrebbero essere sbagliati (inversioni Cognome Nome, nomi mancanti, refusi con fuzzy matching `analyzeFolderName`)
+        * (Fatto) Fare in modo che i file vengano spostati nelle cartelle giuste (scope persona in cartella membro, scope nucleo nella radice con `file.moveTo`)
+        * (Fatto) Controllare che tutti i documenti siano stati caricati nel foglio "Documenti" (se non ci sono, aggiungerli con campi editabili)
+        * (Fatto) Controllare che nel foglio documenti non ci siano righe che si riferiscono a documenti che nel drive non ci sono (cancellazione previa autorizzazione)
+        * (Fatto) Riconciliare i dati del beneficiario o del nucleo con le informazioni presenti nei documenti (tabella diff interattiva con valori editabili)
+        * (Fatto) Fare in modo che il database sia coerente con Google Drive (esecuzione atomica transazionale del piano approvato)
     * (Fatto) organizzazione tutti i documenti (basandoci sul nome o su riconoscimento automatico via IA) nelle rispettive cartelle e con i relativi nomi
     * controllare beneficiari a cui manca qualcosa (documenti non caricati...)
     * fare in modo che documenti e dati caricati manualmente siano considerati

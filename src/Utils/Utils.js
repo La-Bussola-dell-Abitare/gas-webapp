@@ -230,3 +230,204 @@ function ensureHeaderIndex(sheet, headerName, searchKeys) {
   sheet.getRange(1, newColIdx).setValue(headerName);
   return newColIdx - 1;
 }
+
+/**
+ * Calcola la distanza di Levenshtein (numero minimo di operazioni di modifica) tra due stringhe.
+ * @param {string} a - Prima stringa.
+ * @param {string} b - Seconda stringa.
+ * @return {number} Distanza di modifica.
+ */
+function calculateLevenshteinDistance(a, b) {
+  const s1 = safeString(a).toLowerCase();
+  const s2 = safeString(b).toLowerCase();
+  if (s1 === s2) return 0;
+  if (!s1) return s2.length;
+  if (!s2) return s1.length;
+
+  const m = s1.length;
+  const n = s2.length;
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,      // cancellazione
+        dp[i][j - 1] + 1,      // inserimento
+        dp[i - 1][j - 1] + cost // sostituzione
+      );
+    }
+  }
+
+  return dp[m][n];
+}
+
+/**
+ * Calcola la similarità normalizzata tra due stringhe (valore tra 0.0 e 1.0).
+ * @param {string} a - Prima stringa.
+ * @param {string} b - Seconda stringa.
+ * @return {number} Indice di similarità (1.0 = stringhe identiche).
+ */
+function calculateStringSimilarity(a, b) {
+  const s1 = safeString(a).toLowerCase().trim();
+  const s2 = safeString(b).toLowerCase().trim();
+  if (s1 === s2) return 1.0;
+  const maxLen = Math.max(s1.length, s2.length);
+  if (maxLen === 0) return 1.0;
+  const dist = calculateLevenshteinDistance(s1, s2);
+  return Math.max(0, (maxLen - dist) / maxLen);
+}
+
+/**
+ * Analizza il nome di una cartella confrontandolo con il nominativo atteso di un beneficiario (Nome Cognome)
+ * o con il formato nucleo (<ID> - <Nome Cognome>).
+ * Rileva inversioni ("Cognome Nome"), nomi mancanti, refusi e variazioni di maiuscole/minuscole.
+ * 
+ * @param {string} folderName - Nome attuale della cartella su Google Drive.
+ * @param {string} expectedFirst - Nome proprio atteso.
+ * @param {string} expectedLast - Cognome atteso.
+ * @param {string|number} [nucleoId] - Se fornito, valuta il formato di cartella nucleo: "<ID> - <Nome> <Cognome>".
+ * @return {{
+ *   status: "EXACT" | "INVERTED" | "PARTIAL" | "TYPO" | "MISMATCH";
+ *   isMismatch: boolean;
+ *   canonicalName: string;
+ *   currentName: string;
+ *   similarity: number;
+ *   reason: string;
+ * }}
+ */
+function analyzeFolderName(folderName, expectedFirst, expectedLast, nucleoId = "") {
+  const rawCurrent = safeString(folderName).trim();
+  const first = normalizeProperCase(expectedFirst || "");
+  const last = normalizeProperCase(expectedLast || "");
+  const canonicalFullName = `${first} ${last}`.trim();
+
+  const isNucleoScope = !!nucleoId;
+  const cleanId = String(nucleoId).trim();
+  const canonicalTarget = isNucleoScope
+    ? (canonicalFullName ? `${cleanId} - ${canonicalFullName}` : `${cleanId} - Nucleo`)
+    : canonicalFullName;
+
+  if (!rawCurrent) {
+    return {
+      status: "MISMATCH",
+      isMismatch: true,
+      canonicalName: canonicalTarget,
+      currentName: rawCurrent,
+      similarity: 0,
+      reason: "Nome cartella vuoto."
+    };
+  }
+
+  // Se il nome coincide perfettamente (case-insensitive e spazi normalizzati)
+  if (rawCurrent.toLowerCase() === canonicalTarget.toLowerCase()) {
+    // Coincidenza esatta (se differisce solo per maiuscole/minuscole proponiamo la forma canonica)
+    const exactCase = rawCurrent === canonicalTarget;
+    return {
+      status: "EXACT",
+      isMismatch: !exactCase,
+      canonicalName: canonicalTarget,
+      currentName: rawCurrent,
+      similarity: 1.0,
+      reason: exactCase ? "Nome cartella perfettamente conforme." : "Differenza di maiuscole/minuscole."
+    };
+  }
+
+  // Estrazione stringa nominativo dalla cartella attuale
+  let currentNameToTest = rawCurrent;
+  if (isNucleoScope) {
+    // Rimuove eventuale prefisso ID (es. "12 - ", "12 ", "Nucleo 12 - ")
+    const stripped = rawCurrent.replace(/^(\s*nucleo\s*)?\d+[\s\-–—:_]*/i, "").trim();
+    if (stripped) currentNameToTest = stripped;
+  }
+
+  const currentLower = currentNameToTest.toLowerCase().replace(/[._\-]/g, " ").replace(/\s+/g, " ").trim();
+  const expectedLower = canonicalFullName.toLowerCase();
+  const invertedLower = `${last} ${first}`.toLowerCase().trim();
+
+  // 1. Verifica inversione Cognome Nome
+  if (invertedLower && currentLower === invertedLower) {
+    return {
+      status: "INVERTED",
+      isMismatch: true,
+      canonicalName: canonicalTarget,
+      currentName: rawCurrent,
+      similarity: 0.95,
+      reason: `Nominativo invertito: '${rawCurrent}' anziché '${canonicalTarget}'.`
+    };
+  }
+
+  // 2. Token set matching per rilevare ordine diverso o token mancanti
+  const currentTokens = currentLower.split(" ").filter(Boolean);
+  const expectedTokens = expectedLower.split(" ").filter(Boolean);
+
+  const matchedTokens = expectedTokens.filter(t => currentTokens.includes(t));
+  if (matchedTokens.length === expectedTokens.length && currentTokens.length === expectedTokens.length) {
+    return {
+      status: "INVERTED",
+      isMismatch: true,
+      canonicalName: canonicalTarget,
+      currentName: rawCurrent,
+      similarity: 0.9,
+      reason: `Disposizione errata dei componenti del nome: '${rawCurrent}'.`
+    };
+  }
+
+  // 3. Similarità fuzzy (refusi di battitura)
+  const sim = calculateStringSimilarity(currentNameToTest, canonicalFullName);
+  if (sim >= 0.72) {
+    return {
+      status: "TYPO",
+      isMismatch: true,
+      canonicalName: canonicalTarget,
+      currentName: rawCurrent,
+      similarity: sim,
+      reason: `Possibile errore di battitura (similarità ${Math.round(sim * 100)}%): '${rawCurrent}' -> '${canonicalTarget}'.`
+    };
+  }
+
+  // 4. Nome o cognome parziale mancante (es. fornito solo cognome o solo nome)
+  if (matchedTokens.length > 0 && currentTokens.length < expectedTokens.length) {
+    return {
+      status: "PARTIAL",
+      isMismatch: true,
+      canonicalName: canonicalTarget,
+      currentName: rawCurrent,
+      similarity: matchedTokens.length / expectedTokens.length,
+      reason: `Nominativo incompleto (manca parte del nome/cognome): '${rawCurrent}'.`
+    };
+  }
+
+  return {
+    status: "MISMATCH",
+    isMismatch: true,
+    canonicalName: canonicalTarget,
+    currentName: rawCurrent,
+    similarity: sim,
+    reason: `Disallineamento cartella: '${rawCurrent}' non corrisponde a '${canonicalTarget}'.`
+  };
+}
+
+/**
+ * Calcola l'hash MD5 esadecimale di un Blob o di un array di byte.
+ * @param {GoogleAppsScript.Base.Blob|number[]} blobOrBytes - Il Blob o i byte da elaborare.
+ * @return {string} Hash MD5 esadecimale (32 caratteri minuscoli).
+ */
+function computeFileMd5(blobOrBytes) {
+  try {
+    if (!blobOrBytes) return "";
+    const bytes = (typeof blobOrBytes.getBytes === "function") ? blobOrBytes.getBytes() : blobOrBytes;
+    if (!bytes || bytes.length === 0) return "";
+    const digest = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, bytes);
+    return digest.map(b => {
+      const v = (b < 0 ? b + 256 : b).toString(16);
+      return v.length === 1 ? "0" + v : v;
+    }).join("");
+  } catch (e) {
+    Logger.log("computeFileMd5 errore: " + e.message);
+    return "";
+  }
+}

@@ -417,68 +417,72 @@ sequenceDiagram
 
 ---
 
-## 7. Sequenza 7: Diagnostica e Riconciliazione Cartelle Drive (Auto-Healing)
+## 7. Sequenza 7: Diagnostica Avanzata e Riconciliazione Interattiva Drive con IA
 
-Descrive la procedura di audit e bonifica automatica eseguita da `DriveReconciler` per sanare i file caricati a mano nella radice del nucleo, creare cartelle mancanti e normalizzare i nomi dei file.
+Descrive la procedura di audit approfondito e bonifica controllata eseguita da `DriveReconciler` con supporto di Google Gemini Flash: individuazione di cartelle invertite (`Cognome Nome`), refusi, file fuori posto, duplicati esatti/semantici, righe orfane e allineamento anagrafico con anteprima diff prima dell'esecuzione selettiva.
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Op as Operatore Sociale
-    participant UI as Frontend.html (Modal Diagnostica)
+    participant UI as Frontend.html (Modal Diagnostica & 4 Tabs)
     participant Ctrl as Backend.js
     participant DR as DriveReconciler
-    participant DM as DriveManager
+    participant AI as DocumentIntelligence (Gemini Flash)
+    participant Utils as Utils (analyzeFolderName, computeMd5)
     participant GDrive as Google Drive
     participant DocDomain as Documents (buildDocumentFileName)
-    participant DocRepo as DocumentoRepository
-    participant SS as Google Sheets ("Documenti")
+    participant Repos as Documento / Beneficiario Repository
 
     Op->>UI: Clicca su "🔍 Diagnostica" nella card del Nucleo
-    UI->>UI: Apre modal diagnostica e avvia spinner audit
+    UI->>UI: Apre modal diagnostica ed esegue audit (opzionale switch Deep AI Scan)
     
-    UI->>Ctrl: google.script.run.auditNucleoDrive(nucleoId)
+    UI->>Ctrl: google.script.run.auditNucleoDrive(nucleoId, { deepAIScan })
     activate Ctrl
-    Ctrl->>DR: auditNucleo(nucleoId)
+    Ctrl->>DR: auditNucleo(nucleoId, options)
     activate DR
 
-    DR->>DM: getOrCreateNucleoFolder(nucleoId)
-    DR->>GDrive: Scansiona sottocartelle membri ed elenca file nella radice nucleo
-    DR->>DR: Identifica MISPLACED_FILE, MISSING_MEMBER_FOLDER, UNTRACKED_FILE
-    DR-->>Ctrl: NucleoAuditReport (status: WARNING / CRITICAL, lista anomalie)
+    DR->>GDrive: Scansiona cartella radice nucleo e sottocartelle membri
+    DR->>Utils: analyzeFolderName(folderName, nome, cognome) -> rileva inversioni / refusi
+    DR->>Utils: computeFileMd5(fileBlob) -> rileva duplicati per hash o semantica
+    
+    opt Se Deep Scan IA attivo o su richiesta
+        DR->>AI: analyzeBlobs([file.getBlob()])
+        AI-->>DR: { tipoDocumento, datiPersona, valoreISEE, date }
+        DR->>DR: Calcola discrepanze anagrafiche (ANAGRAFICA_DIFF)
+    end
+
+    DR->>DR: Rileva UNTRACKED_FILE e ORPHAN_SHEET_ROW nel foglio 'Documenti'
+    DR-->>Ctrl: NucleoAuditReport (issues, duplicateGroups, untrackedList, orphanList, diffList)
     deactivate DR
     Ctrl-->>UI: { success: true, report: auditReport }
     deactivate Ctrl
 
-    UI->>Op: Mostra elenco anomalie (es. 2 file fuori posto, 1 cartella mancante)
-    Op->>UI: Clicca su "⚡ Bonifica e Riorganizza Ora"
+    UI->>Op: Visualizza Dashboard a 4 schede con selezioni e anteprima diff editabile
+    Op->>UI: Modifica/conferma azioni (es. cestina duplicato, rinomina cartella, correggi CF)
+    Op->>UI: Clicca su "⚡ Applica Azioni Selezionate (N)"
     
-    UI->>Ctrl: google.script.run.reconcileNucleoDrive(nucleoId, { useAI: true })
+    UI->>Ctrl: google.script.run.executeDriveReconciliation(nucleoId, approvedPlan)
     activate Ctrl
-    Ctrl->>DR: reconcileNucleo(nucleoId)
+    Ctrl->>DR: executeApprovedPlan(nucleoId, approvedPlan)
     activate DR
 
-    %% Azione 1: Creazione cartelle mancanti
-    DR->>DM: getOrCreateBeneficiarioFolder(member.cf)
-    DM->>GDrive: Crea sottocartella personale "<Nome Cognome>"
-
-    %% Azione 2: Spostamento file e ridenominazione
-    DR->>GDrive: file.moveTo(memberFolder)
-    DR->>DocDomain: buildDocumentFileName(docInfo, member, ext)
-    DocDomain-->>DR: Nome standard (es. "Carta d'Identità (scad. 2034) - Franco Rossi.pdf")
-    DR->>GDrive: file.setName(standardName)
-
-    %% Azione 3: Registrazione nel foglio Documenti
-    DR->>DocRepo: add({ intestatario: member.cf, tipo: doc.name, idDrive: file.getId() })
-    DocRepo->>SS: Inserisce riga nel foglio "Documenti"
+    %% Esecuzione transazionale delle sole azioni approvate
+    DR->>GDrive: folder.setName(canonicalName) [Ridenominazione cartelle]
+    DR->>GDrive: file.moveTo(targetFolder) [Spostamento file fuori posto]
+    DR->>GDrive: file.setName(standardName) [Ridenominazione standard]
+    DR->>GDrive: file.setTrashed(true) [Cestinamento duplicati selezionati]
+    DR->>Repos: DocumentoRepository.add(...) [Censimento nuovi documenti]
+    DR->>Repos: DocumentoRepository.removeById(...) [Eliminazione righe orfane]
+    DR->>Repos: BeneficiarioRepository.updateDriveInfo(...) [Allineamento anagrafico]
 
     DR-->>Ctrl: { success: true, actionsApplied: [...azioni] }
     deactivate DR
     Ctrl-->>UI: { success: true, actionsApplied: [...azioni] }
     deactivate Ctrl
 
-    UI->>Op: Toast: "⚡ Bonifica completata con successo! (3 azioni applicate)"
-    UI->>UI: Ricarica lo stato della cartella e aggiorna l'interfaccia
+    UI->>Op: Toast successo: "⚡ Bonifica applicata con successo! (N azioni eseguite)"
+    UI->>UI: Ricarica lo stato della cartella e aggiorna il database locale
 ```
 
 ---

@@ -167,54 +167,77 @@ flowchart TD
 
 ---
 
-## 5. Attività 5: Ciclo di Diagnostica, Bonifica e Riconciliazione File System Drive
+## 5. Attività 5: Ciclo di Diagnostica Avanzata, Bonifica e Riconciliazione Drive con IA
 
-Rappresenta il processo di auto-riparazione (Auto-Healing) con cui il sistema riconcilia i file caricati manualmente fuori dalle procedure standard.
+Rappresenta il processo di auto-riparazione (Auto-Healing) e riconciliazione controllata con cui il sistema analizza il file system Drive, rileva duplicati, corregge cartelle errate o invertite tramite fuzzy matching, sincronizza il foglio 'Documenti' e allinea l'anagrafica con Google Gemini Flash.
 
 ```mermaid
 flowchart TD
     Start([Inizio: Apertura Tab Nuclei o Richiesta Operatore]) --> ClickDiag[Click su '🔍 Diagnostica' nella card del Nucleo]
-    ClickDiag --> ExecAudit[Esecuzione auditNucleoDrive sul backend]
+    ClickDiag --> ExecAudit[Esecuzione auditNucleoDrive sul backend con opzionale Deep AI Scan]
     
     subgraph AuditEngine ["Motore di Ispezione (DriveReconciler.auditNucleo)"]
         direction TB
-        InspectRoot[Scansione file presenti nella radice nucleo]
-        InspectFolders[Verifica presenza sottocartelle dei singoli membri]
-        InspectSheets[Cross-check ID file con il foglio 'Documenti']
-        InspectDates[Verifica scadenze documenti rispetto a Oggi + 60 gg]
+        InspectRoot[Scansione file e cartelle radice nucleo e sottocartelle membri]
+        FuzzyCheck[Fuzzy Matching analyzeFolderName: rileva cartelle invertite, refusi, parziali]
+        DupCheck[Deduplicazione computeFileMd5 e semantica tipo/anno]
+        InspectSheets[Cross-check bidirezionale con il foglio 'Documenti': non censiti e righe orfane]
+        AICheck[Analisi OCR multimodale Gemini Flash: estrazione metadati e diff anagrafica]
         
-        InspectRoot --> EvaluateIssues{Rilevate anomalie?}
-        InspectFolders --> EvaluateIssues
+        InspectRoot --> EvaluateIssues{Rilevate anomalie o disallineamenti?}
+        FuzzyCheck --> EvaluateIssues
+        DupCheck --> EvaluateIssues
         InspectSheets --> EvaluateIssues
-        InspectDates --> EvaluateIssues
+        AICheck --> EvaluateIssues
     end
     
     ExecAudit --> AuditEngine
     
-    EvaluateIssues -- "Nessuna anomalia" --> StatusGreen[Stato: 🟢 Conforme - Nessuna azione richiesta]
+    EvaluateIssues -- "Nessuna anomalia" --> StatusGreen[Stato: 🟢 Conforme - File e Cartelle allineati]
     StatusGreen --> CloseModal[Chiusura rapporto]
     
     EvaluateIssues -- "Anomalie rilevate" --> StatusIssues[Stato: 🟡 Warning o 🔴 Critico]
-    StatusIssues --> ShowIssuesList[Visualizzazione lista precisa: file fuori posto, cartelle mancanti, scadenze]
-    ShowIssuesList --> UserConfirm{Operatore clicca<br/>'⚡ Bonifica Ora'?}
+    StatusIssues --> DashboardTabs[Apertura Dashboard a 4 Schede Interattive]
+    
+    subgraph UserReview ["Revisione Interattiva dell'Operatore"]
+        direction TB
+        Tab1[1. File & Cartelle: Selezione spostamenti e ridenominazioni standard]
+        Tab2[2. Duplicati: Scelta per ciascuno tra Cestina, Archivia o Mantieni]
+        Tab3[3. Foglio Documenti: Campi editabili per nuovi file e conferma rimozione orfane]
+        Tab4[4. Anagrafica IA: Anteprima diff editabile tra dati documenti e fogli]
+        
+        Tab1 --> BuildPlan[Composizione del Piano Approvato approvedPlan]
+        Tab2 --> BuildPlan
+        Tab3 --> BuildPlan
+        Tab4 --> BuildPlan
+    end
+    
+    DashboardTabs --> UserReview
+    BuildPlan --> UserConfirm{Operatore clicca<br/>'⚡ Applica Azioni Selezionate'?}
     
     UserConfirm -- "Annulla" --> CloseModal
-    UserConfirm -- "Conferma Bonifica" --> RunReconcile[Esecuzione reconcileNucleoDrive sul backend]
+    UserConfirm -- "Conferma Piano" --> RunReconcile[Esecuzione executeDriveReconciliation sul backend]
     
-    subgraph HealingEngine ["Motore di Bonifica (DriveReconciler.reconcileNucleo)"]
+    subgraph HealingEngine ["Motore di Esecuzione Atomica (DriveReconciler.executeApprovedPlan)"]
         direction TB
-        CreateMissing[Creazione automatica sottocartelle personali mancanti]
-        MoveFiles[Spostamento file con file.moveTo nella cartella del membro]
+        CreateMissing[Creazione sottocartelle personali mancanti]
+        RenameFolders[Ridenominazione cartelle con nome canonico]
+        MoveFiles[Spostamento file con file.moveTo nella cartella corretta]
         RenameFiles[Ridenominazione standard secondo buildDocumentFileName]
-        RegisterSheets[Inserimento automatico righe orfane nel foglio 'Documenti']
+        HandleDups[Cestinamento o archiviazione duplicati]
+        SyncSheets[Inserimento nuovi documenti e cancellazione righe orfane]
+        UpdateAnagrafica[Aggiornamento anagrafico beneficiario e nucleo]
         
-        CreateMissing --> MoveFiles
+        CreateMissing --> RenameFolders
+        RenameFolders --> MoveFiles
         MoveFiles --> RenameFiles
-        RenameFiles --> RegisterSheets
+        RenameFiles --> HandleDups
+        HandleDups --> SyncSheets
+        SyncSheets --> UpdateAnagrafica
     end
     
     RunReconcile --> HealingEngine
     HealingEngine --> ReAudit[Rilancio audit automatico di verifica]
-    ReAudit --> NotifySuccess[Notifica Toast all'operatore con azioni applicate]
-    NotifySuccess --> End([Cartella e Fogli Sincronizzati])
+    ReAudit --> NotifySuccess[Notifica Toast con riassunto delle azioni applicate]
+    NotifySuccess --> End([Cartelle, File, Fogli e Anagrafiche Perfettamente Sincronizzati])
 ```

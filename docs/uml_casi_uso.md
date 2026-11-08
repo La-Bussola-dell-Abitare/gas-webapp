@@ -151,13 +151,15 @@ flowchart LR
   4. L'ID file viene salvato nella colonna `Firma` di `Beneficiari` e contestualmente registrato nel foglio `Documenti` (archetipo `UNICO`).
   5. La firma salvata diventa immediatamente disponibile per i template di Foglio Firme e Diario.
 
-### UC15: Diagnostica e Bonifica Cartella Drive (Drive Reconciler)
-- **Attori:** Operatore Sociale, Assistente Sociale, Coordinatore.
+### UC15: Diagnostica Avanzata e Riconciliazione Interattiva Drive con IA (Drive Reconciler)
+- **Attori:** Operatore Sociale, Assistente Sociale, Coordinatore, Google Gemini Flash.
 - **Flusso Principale:**
-  1. L'operatore apre la card di un nucleo e clicca su `🔍 Diagnostica`.
-  2. Il sistema esamina la cartella Drive del nucleo e le sottocartelle, identificando file orfani sparsi nella radice nucleo (`MISPLACED_FILE`), sottocartelle di membri mancanti (`MISSING_MEMBER_FOLDER`) o scadenze critiche.
-  3. L'operatore visualizza il rapporto con badge semaforico (🟢 Conforme, 🟡 Warning, 🔴 Critico) e clicca su `⚡ Bonifica e Riorganizza Ora`.
-  4. Il motore `DriveReconciler` crea le cartelle personali mancanti, sposta i file nella destinazione corretta con `file.moveTo`, li rinomina applicando lo standard `buildDocumentFileName` e li censisce nel foglio `Documenti`.
+  1. L'operatore apre la card di un nucleo e clicca su `🔍 Diagnostica` (con opzione per attivare l'Analisi IA Gemini Flash).
+  2. Il sistema esamina la cartella Drive del nucleo e le sottocartelle dei singoli membri, identificando cartelle invertite (`Cognome Nome`), refusi, file fuori posto nella radice nucleo (`MISPLACED_FILE`), sottocartelle mancanti, file non standard, duplicati (esatti per dimensione/hash o semantici per periodo) e righe orfane nel foglio `Documenti`.
+  3. L'operatore visualizza una dashboard a 4 schede interattive (File/Cartelle, Duplicati, Foglio Documenti, Anagrafica IA).
+  4. L'operatore personalizza le azioni: sceglie il destino dei duplicati (cestina, archivia, mantieni), ritocca eventuali nomi file o campi di censimento, ed esamina l'anteprima diff dei dati anagrafici estratti da Gemini Flash (CF, luogo nascita con provincia, ISEE).
+  5. L'operatore clicca su `⚡ Applica Azioni Selezionate (N)`.
+  6. Il motore `DriveReconciler.executeApprovedPlan` esegue in modo atomico le sole azioni approvate: crea cartelle, rinomina con `folder.setName`, sposta con `file.moveTo`, cestina con `file.setTrashed(true)`, inserisce nuovi record in `Documenti`, rimuove righe orfane e aggiorna i fogli `Beneficiari` e `Nuclei Familiari`.
 
 ### UC16: Smart Form-Filling Multi-File da Documento con IA (Google Gemini Flash)
 - **Attori:** Operatore Sociale, Assistente Sociale.

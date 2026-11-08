@@ -73,7 +73,13 @@ flowchart TD
   - Aprire la cartella personale Google Drive del singolo membro.
   - Verificare lo stato della firma autografa (badge verde o arancione) e acquisirla.
   - Modificare l'anagrafica o rimuovere il componente.
-- **Diagnostica Drive Integrata**: Il pulsante `🔍 Diagnostica` su ogni card interroga il motore `DriveReconciler`, segnalando file fuori posto nella radice, cartelle personali mancanti e scadenze critiche, con il pulsante d'azione immediata `⚡ Bonifica Ora`.
+- **Diagnostica Drive Integrata (`#modal-diagnostica-drive`)**: Il pulsante `🔍 Diagnostica` su ogni card apre una suite interattiva a 4 schede per l'audit e la riconciliazione selettiva:
+  - **Switch Deep Scan IA (Gemini Flash)**: attiva l'analisi OCR del contenuto dei documenti per estrarre metadati certi e scadenze.
+  - **Scheda 1: 📁 File & Cartelle**: rileva sottocartelle personali mancanti, cartelle con nomi invertiti (`Rossi Mario`), refusi o nomi parziali, file fuori posto (radice vs cartella personale) e file con nomi non conformi allo standard `buildDocumentFileName`, permettendo all'operatore di approvare o modificare i nomi con checkbox interattive.
+  - **Scheda 2: 📑 Gestione Duplicati**: visualizza coppie o gruppi di file identici per hash/dimensione o per documento/periodo, offrendo la scelta per ciascun duplicato tra `Cestina Duplicato`, `Sposta in _Archivio` o `Mantieni Entrambi`.
+  - **Scheda 3: 📊 Sincronizzazione Foglio 'Documenti'**: censisce con un click i file presenti su Drive ma non registrati nel foglio (con campi editabili per tipo, intestatario, scadenza e valore) ed elenca le righe orfane (file cancellati su Drive) per l'eliminazione controllata.
+  - **Scheda 4: 👤 Allineamento Dati Anagrafici (IA)**: mostra una tabella diff interattiva tra i dati estratti dai documenti con Gemini Flash e quelli registrati nei fogli *Beneficiari* e *Nuclei Familiari* (Codice Fiscale, Nome/Cognome Title Case, Luogo di Nascita con provincia, Residenza, Valore ISEE), permettendo di modificare i campi prima di applicare l'aggiornamento atomico.
+  - **Pulsante Dinamico `⚡ Applica Azioni Selezionate (N)`**: esegue in un'unica transazione solo le azioni selezionate dall'utente.
 - **Creazione Nucleo Dual-Mode (`#modal-nucleo`)**: Permette di creare un nucleo associando un beneficiario già registrato oppure censendo contestualmente un nuovo intestatario in modo atomico. Include:
   - Dropzone con Intelligenza Artificiale Gemini Flash (`#ai-smart-fill-nuc`) per caricare documenti in batch (es. CIE, ISEE, Tessera Sanitaria).
   - Autocompilazione istantanea sia dei dati anagrafici dell'intestatario che dei campi del nucleo (es. valore ISEE, residenza).

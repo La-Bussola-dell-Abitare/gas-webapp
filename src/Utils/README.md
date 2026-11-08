@@ -66,6 +66,19 @@ Fornisce funzioni ad alta affidabilità per interagire con i dati non strutturat
   Estrae in modo sicuro un campo da un array di riga controllando che l'indice sia valido e compreso nei limiti della matrice.
 - **`mapFormula(input, fn, fallbackOnError, emptyValue)`**:
   Permette di applicare una funzione scalare a matrici 2D di Google Sheets per funzioni personalizzate (es. `TITLECASE`).
+- **`calculateLevenshteinDistance(a, b)`**:
+  Calcola la distanza di modifica (Levenshtein) minima tra due stringhe per rilevare refusi e scambi di lettere.
+- **`calculateStringSimilarity(a, b)`**:
+  Restituisce un indice normalizzato di somiglianza tra $0.0$ e $1.0$ basato sulla distanza di Levenshtein e sulla lunghezza massima delle stringhe.
+- **`analyzeFolderName(folderName, expectedFirst, expectedLast, nucleoId)`**:
+  Analizza la nomenclatura di una cartella confrontandola con i nominativi anagrafici attesi, classificando lo stato in:
+  - `EXACT`: perfetta conformità formale (o solo differenza di maiuscole/minuscole);
+  - `INVERTED`: nominativo invertito (`Cognome Nome` invece di `Nome Cognome`);
+  - `TYPO`: presenza di refusi di battitura con similarità $\ge 0.72$;
+  - `PARTIAL`: nome o cognome incompleto (fornito solo un componente);
+  - `MISMATCH`: totale disallineamento rispetto al nominativo atteso.
+- **`computeFileMd5(blobOrBytes)`**:
+  Calcola l'hash digest MD5 a 32 caratteri esadecimali di un file o blob per la deduplicazione esatta dei file su Drive.
 
 ---
 

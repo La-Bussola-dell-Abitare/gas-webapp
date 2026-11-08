@@ -981,15 +981,17 @@ function removeDocumento(id) {
 
 /**
  * Esegue l'audit diagnostico di conformità Drive e scadenze per un singolo nucleo familiare.
+ * Supporta l'opzione deepAIScan per l'ispezione OCR multimodale con Google Gemini Flash.
  * @param {string|number} nucleoId - ID del nucleo da analizzare.
+ * @param {Object} [options] - Opzioni di scansione (es. { deepAIScan: boolean, maxAIFiles: number }).
  * @return {Record<string, any>} Report con stato e lista anomalie.
  */
-function auditNucleoDrive(nucleoId) {
+function auditNucleoDrive(nucleoId, options) {
   try {
     if (typeof DriveReconciler === "undefined") {
       throw new Error("Modulo DriveReconciler non disponibile.");
     }
-    return { success: true, report: DriveReconciler.auditNucleo(nucleoId) };
+    return { success: true, report: DriveReconciler.auditNucleo(nucleoId, options) };
   } catch (err) {
     Logger.log("Errore auditNucleoDrive: " + (err instanceof Error ? err.message : String(err)));
     return { success: false, message: err instanceof Error ? err.message : String(err) };
@@ -997,7 +999,43 @@ function auditNucleoDrive(nucleoId) {
 }
 
 /**
- * Esegue la bonifica e riconciliazione automatica delle cartelle e dei documenti di un nucleo.
+ * Esegue l'ispezione OCR/IA di un singolo file su Drive tramite Google Gemini Flash.
+ * @param {string} fileId - ID del file Google Drive da ispezionare.
+ * @return {Record<string, any>} Dati estratti dal documento.
+ */
+function inspectDriveFileWithAI(fileId) {
+  try {
+    if (typeof DriveReconciler === "undefined") {
+      throw new Error("Modulo DriveReconciler non disponibile.");
+    }
+    return DriveReconciler.inspectFileWithAI(fileId);
+  } catch (err) {
+    Logger.log("Errore inspectDriveFileWithAI: " + (err instanceof Error ? err.message : String(err)));
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Esegue il piano di riconciliazione e bonifica approvato selettivamente dall'operatore.
+ * @param {string|number} nucleoId - ID del nucleo familiare.
+ * @param {Object} approvedPlan - Il piano delle azioni selezionate nel frontend.
+ * @return {{ success: boolean; actionsApplied: string[]; errors: string[] }}
+ */
+function executeDriveReconciliation(nucleoId, approvedPlan) {
+  try {
+    if (typeof DriveReconciler === "undefined") {
+      throw new Error("Modulo DriveReconciler non disponibile.");
+    }
+    return DriveReconciler.executeApprovedPlan(nucleoId, approvedPlan);
+  } catch (err) {
+    Logger.log("Errore executeDriveReconciliation: " + (err instanceof Error ? err.message : String(err)));
+    return { success: false, actionsApplied: [], errors: [err instanceof Error ? err.message : String(err)] };
+  }
+}
+
+/**
+ * Esegue la bonifica e riconciliazione delle cartelle e dei documenti di un nucleo.
+ * Mantenuta per retrocompatibilità.
  * @param {string|number} nucleoId - ID del nucleo familiare.
  * @param {Object} [options] - Opzioni di riconciliazione.
  * @return {{ success: boolean; actionsApplied: string[]; errors: string[] }}
@@ -1011,6 +1049,22 @@ function reconcileNucleoDrive(nucleoId, options) {
   } catch (err) {
     Logger.log("Errore reconcileNucleoDrive: " + (err instanceof Error ? err.message : String(err)));
     return { success: false, actionsApplied: [], errors: [err instanceof Error ? err.message : String(err)] };
+  }
+}
+
+/**
+ * Esegue l'audit diagnostico dell'intero archivio Drive su tutti i nuclei censiti.
+ * @return {Record<string, any>} Sintesi globale dell'archivio.
+ */
+function auditArchive() {
+  try {
+    if (typeof DriveReconciler === "undefined") {
+      throw new Error("Modulo DriveReconciler non disponibile.");
+    }
+    return DriveReconciler.auditArchive();
+  } catch (err) {
+    Logger.log("Errore auditArchive: " + (err instanceof Error ? err.message : String(err)));
+    return { totalNuclei: 0, healthyNuclei: 0, warningNuclei: 0, criticalNuclei: 0, reports: [] };
   }
 }
 

@@ -2,26 +2,28 @@
 
 ## 1. Responsabilità Architetturale
 
-La cartella `src/Service/GDrive` governa l'alberatura, la catalogazione, l'archiviazione e la bonifica automatica dei file e delle cartelle su Google Drive.
+La cartella [`src/Service/GDrive`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/GDrive) governa l'alberatura, la catalogazione, l'archiviazione e la bonifica automatica e assistita da intelligenza artificiale dei file e delle cartelle su Google Drive.
 
-### Struttura dell'Alberatura su Google Drive:
-Tutti i file risiedono all'interno della cartella radice ufficiale configurata in `CONFIG.FOLDER_BENEFICIARI_ROOT_ID` (`1cBAWWPnRZNhj1xubIM89inMehvB-sFiE`):
+### Struttura dell'Alberatura Ufficiale su Google Drive:
+Tutti i file risiedono all'interno della cartella radice configurata in `CONFIG.FOLDER_BENEFICIARI_ROOT_ID`:
 
 ```text
 📁 Cartella Radice Beneficiari (CONFIG.FOLDER_BENEFICIARI_ROOT_ID)
 │
-├── 📁 12 - Franco Rossi (Cartella Nucleo Familiare #12)
-│   ├── 📄 Attestazione ISEE 2026 - Franco Rossi.pdf (Documento Nucleo)
-│   ├── 📄 Contratto Locazione 2024 - Nucleo #12 Rossi.pdf (Documento Nucleo)
+├── 📁 12 - Mario Rossi (Cartella Nucleo Familiare #12: "<ID> - <Nome Cognome Intestatario>")
+│   ├── 📄 Attestazione ISEE (2026) - Famiglia Rossi.pdf (Scope Nucleo)
+│   ├── 📄 Contratto di Locazione (2024) - Nucleo #12.pdf (Scope Nucleo)
 │   │
-│   ├── 📁 Franco Rossi (Sottocartella Personale Intestatario)
-│   │   ├── 🖼️ Firma Franco Rossi.png
-│   │   ├── 📄 Carta d'Identità (scad. 2034) - Franco Rossi.pdf
-│   │   └── 📄 Patente di Guida (scad. 2030) - Franco Rossi.pdf
+│   ├── 📁 Mario Rossi (Sottocartella Personale Intestatario: "<Nome Cognome>")
+│   │   ├── 🖼️ Firma Autografa - Mario Rossi.png
+│   │   ├── 📄 Carta d'Identità (scad. 2034) - Mario Rossi.pdf
+│   │   └── 📄 Patente di Guida (scad. 2030) - Mario Rossi.pdf
 │   │
-│   └── 📁 Maria Bianchi (Sottocartella Personale Coniuge)
-│       ├── 📄 Carta d'Identità (scad. 2031) - Maria Bianchi.pdf
-│       └── 📄 Permesso di Soggiorno (scad. 2027) - Maria Bianchi.pdf
+│   ├── 📁 Giulia Bianchi (Sottocartella Personale Coniuge: "<Nome Cognome>")
+│   │   ├── 📄 Carta d'Identità (scad. 2031) - Giulia Bianchi.pdf
+│   │   └── 📄 Permesso di Soggiorno (scad. 2027) - Giulia Bianchi.pdf
+│   │
+│   └── 📁 _Archivio (Sottocartella opzionale per file duplicati o dismessi)
 │
 └── 📁 105 - Ahmed Ben Ali (Cartella Nucleo Familiare #105)
     └── ...
@@ -29,46 +31,89 @@ Tutti i file risiedono all'interno della cartella radice ufficiale configurata i
 
 ---
 
-## 2. File Presenti
+## 2. File del Modulo
 
-### `DriveManager.js` — Gestione Strutturata di Cartelle e File
-- **`getOrCreateNucleoFolder(nucleoId, intestatarioNome)`**:
-  Individua la cartella del nucleo tramite regex resiliente (`^\s*<id>([\s\-–—]|$)`). Se non esiste, la crea nella root con il nome standard `[id] - [Nome Cognome Intestatario]` e restituisce `{ id, url, name }`.
-- **`getOrCreateBeneficiarioFolder(cf, fallbackNucleoId, fallbackNome)`**:
-  Individua il nucleo di appartenenza del beneficiario, apre la cartella del nucleo e verifica l'esistenza della sottocartella personale `<Nome Cognome>`. Se assente, la crea e ne aggiorna l'ID nel foglio `Beneficiari`. Include fallback parametrici per operare in modo atomico anche quando il record beneficiario è stato appena inserito nello stesso thread di esecuzione.
-- **`saveBeneficiarySignature(cf, base64Data)`**:
-  1. Decodifica la stringa Base64 in blob immagine PNG trasparente.
-  2. Rimuove eventuali file di firma obsoleti presenti nella cartella personale per evitare duplicazioni.
-  3. Crea il nuovo file `Firma <Nome> <Cognome>.png`.
-  4. Memorizza l'ID del file nella colonna `Firma` di `Beneficiari`.
-  5. Sincronizza o inserisce contestualmente il record nel foglio relazionale `Documenti` (tipologia *"Firma Autografa"*, archetipo `UNICO`).
-- **`saveDocumentFile(cf, docPayload, nucleoId)`**:
-  Archivia fisicamente un file documento caricato dalla Web App:
-  1. Risolve l'alberatura Drive di destinazione (sottocartella personale per documenti di identità, cartella del nucleo per ISEE e contratti di alloggio).
-  2. Calcola la denominazione standardizzata tramite `buildDocumentFileName` (da `documents.js`) preservando l'estensione originaria.
-  3. Crea il file su Google Drive (`createFile`).
-  4. Registra automaticamente il record nel foglio relazionale `Documenti` (con ID incrementale, CF intestatario, tipo, scadenza, valore economico € e link Drive) eseguendo un `SpreadsheetApp.flush()` immediato per rendere il record subito disponibile.
-- **`scanBeneficiarioDocuments(cf)`** e **`scanNucleoDocuments(nucleoId)`**:
-  Scansionano in tempo reale i file archiviati nella cartella, categorizzandoli tramite il catalogo SSOT `findDocumentType` e arricchendoli con icone, emoji, scadenze e flag economici.
+### 2.1 `DriveManager.js` — Gestione Operativa di Cartelle, Firme e Documenti
+- **`getOrCreateNucleoFolder(nucleoId, intestatarioNome)`**: Fast-path O(1) con cache `idCartella` nel foglio *Nuclei Familiari*, fallback di ricerca con regex tollerante (`^\s*<id>([\s\-–—]|$)`), e fallback di creazione `[id] - [Nome Cognome]`.
+- **`getOrCreateBeneficiarioFolder(cf, fallbackNucleoId, fallbackNome)`**: Individua o crea la sottocartella personale `<Nome Cognome>` all'interno della cartella del nucleo, aggiornando la colonna `idCartella` in *Beneficiari*.
+- **`saveBeneficiarySignature(cf, base64Data)`**: Decodifica il canvas PNG trasparente, archivia `Firma <Nome> <Cognome>.png`, elimina firme obsolete e registra il record nel foglio *Documenti* (archetipo `UNICO`).
+- **`saveDocumentFile(cf, docPayload, nucleoId)`**: Archivia il file caricato rispettando lo scope (`persona` nella cartella personale, `nucleo` nella radice del nucleo), applica `buildDocumentFileName`, scrive nel foglio relazionale *Documenti* e chiama `SpreadsheetApp.flush()`.
+- **`scanBeneficiarioDocuments(cf)`** e **`scanNucleoDocuments(nucleoId)`**: Scansione in tempo reale e arricchimento con metadati di dominio SSOT.
+
+### 2.2 `DriveReconciler.js` — Motore di Diagnostica Avanzata e Riconciliazione IA
+- **`auditNucleo(nucleoId, options)`**:
+  Esegue la scansione completa della cartella radice e delle sottocartelle dei componenti del nucleo, incrociando i file con il foglio *Documenti* e l'anagrafica. Rileva:
+  1. `FOLDER_NAME_MISMATCH`: cartelle con nominativi invertiti (`Rossi Mario`), refusi o nomi parziali (`analyzeFolderName`).
+  2. `MISSING_MEMBER_FOLDER`: componenti censiti privi di sottocartella personale.
+  3. `MISPLACED_FILE`: documenti personali archiviati nella radice nucleo o nella cartella di un altro componente, o documenti di nucleo archiviati dentro la cartella di un singolo membro.
+  4. `NON_STANDARD_FILENAME`: file con nomi non conformi alla convenzione ufficiale [`buildDocumentFileName`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Domain/documents.js).
+  5. `DUPLICATE_FILE`: duplicati esatti per dimensione in byte/hash e duplicati semantici (stesso documento/anno per lo stesso soggetto).
+  6. `UNTRACKED_FILE`: file presenti su Drive ma assenti nel foglio *Documenti*.
+  7. `ORPHAN_SHEET_ROW`: righe nel foglio *Documenti* con ID Drive non più esistente o cestinato su Drive.
+  8. `ANAGRAFICA_DIFF`: discrepanze tra i dati anagrafici nei fogli e quelli estratti dal contenuto del documento tramite Google Gemini Flash.
+  9. `EXPIRED_DOCUMENT`: documenti scaduti o in scadenza entro 60 giorni.
+- **`inspectFileWithAI(fileId)`**: Ispezione OCR e semantica on-demand di un singolo file Drive tramite Google Gemini Flash multimodale ([`DocumentIntelligence.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/Document/DocumentIntelligence.js)).
+- **`executeApprovedPlan(nucleoId, approvedPlan)`**:
+  Esecuzione transazionale delle sole azioni approvate o personalizzate dall'operatore nella modale interattiva (creazione cartelle, ridenominazioni, spostamenti con `file.moveTo`, cestinamento duplicati, inserimento documenti e aggiornamento anagrafico).
+- **`reconcileNucleo(nucleoId, options)`**: Wrapper di retrocompatibilità che esegue l'audit rapido e applica le bonifiche standard o il piano approvato.
+- **`auditArchive()`**: Scansione sintetica globale su tutti i nuclei censiti.
 
 ---
 
-### `DriveReconciler.js` — Motore di Diagnostica e Bonifica Automatica (Auto-Healing)
-Risolve il debito informativo accumulato a causa di inserimenti o caricamenti manuali diretti su Google Drive senza passare dal gestionale.
+## 3. Scelte Architetturali Adottate
 
-- **`auditNucleo(nucleoId)` (Diagnosi)**:
-  Esegue un'ispezione approfondita della cartella del nucleo e segnala:
-  - `MISPLACED_FILE`: file di singoli membri (es. `Carta Identita Franco.pdf` o `Firma Franco.png`) caricati erroneamente nella radice del nucleo anziché nella cartella personale.
-  - `MISSING_MEMBER_FOLDER`: componenti registrati nel nucleo privi della rispettiva sottocartella personale.
-  - `UNTRACKED_FILE`: file presenti su Drive ma non registrati nel foglio `Documenti`.
-  - `EXPIRED_DOCUMENT`: documenti scaduti o in scadenza entro 60 giorni.
-  - Assegna uno stato diagnostico al nucleo: `HEALTHY` (🟢), `WARNING` (🟡) o `CRITICAL` (🔴).
+1. **Workflow a Due Fasi (Audit $\rightarrow$ Approvazione Selettiva $\rightarrow$ Esecuzione Atomica)**:
+   Invece di eseguire modifiche distruttive immediate o script "ciechi", il sistema calcola prima un report diagnostico esaustivo (`auditNucleo`), lo presenta in una dashboard interattiva a 4 schede, e invia al backend solo il piano di modifiche esplicitamente marcate dall'utente (`executeApprovedPlan`).
+2. **Architettura Ibrida Fast Audit + Deep AI Scan On-Demand**:
+   La scansione ordinaria è istantanea perché basata sui metadati di Drive e sulle regex di dominio (`findDocumentType`), senza consumo di quota né rischi di timeout. Quando l'operatore attiva lo switch *"Analisi IA Gemini Flash"* o clicca *"IA"* su un singolo file, viene invocata l'API multimodale di Gemini Flash per estrarre con certezza dati anagrafici e scadenze.
+3. **Fuzzy Matching e Token-Set Analysis (`analyzeFolderName`)**:
+   L'analisi delle cartelle utilizza una combinazione di token matching e distanza di Levenshtein normalizzata (`calculateStringSimilarity`), distinguendo con precisione le inversioni (`INVERTED`), i refusi di battitura (`TYPO`) e i nomi parziali (`PARTIAL`).
+4. **Deduplicazione Multi-Criterio**:
+   I duplicati vengono individuati sia tramite confronto di dimensione esatta/hash MD5 (`computeFileMd5`), sia per identità semantica (stesso soggetto + stessa tipologia documento + stesso anno). L'operatore può scegliere per ciascun duplicato se cestinarlo, spostarlo in una cartella protetta `_Archivio` o mantenerlo.
 
-- **`reconcileNucleo(nucleoId, options)` (Bonifica ed Esecuzione)**:
-  1. **Crea le cartelle mancanti** per ciascun membro.
-  2. **Sposta i file fuori posto** dalla radice del nucleo alla cartella del membro legittimo (utilizzando l'API nativa `file.moveTo`).
-  3. **Rinomina i file** applicando la convenzione ufficiale `buildDocumentFileName` (es. da `scan01.pdf` a `Carta d'Identità (scad. 2034) - Franco Rossi.pdf`).
-  4. **Registra automaticamente** i file non tracciati nel foglio `Documenti`.
+---
 
-- **`auditArchive()`**:
-  Esegue l'audit diagnostico massivo su tutti i nuclei censiti per il cruscotto di conformità generale.
+## 4. Motivazioni e Alternative Scartate
+
+- **Perché non eseguire la bonifica completamente automatica senza conferma utente?**
+  *Scartata*: L'eliminazione automatica di file o la sovrascrittura di anagrafiche senza revisione umana comporta gravi rischi di perdita accidentale di dati, specie in contesti con file denominati in modo ambiguo (`doc01.pdf`). L'anteprima diff consente all'operatore di verificare e ritoccare ogni singolo valore.
+- **Perché non scansionare tutti i file di default con Gemini Flash?**
+  *Scartata*: Google Apps Script ha un limite di esecuzione di 6 minuti per invocazione RPC e quote UrlFetchApp. L'analisi OCR di decine di file contemporanei rallenterebbe la UI. L'approccio ibrido (Fast Audit di default + Deep AI opzionale/on-demand con limite `maxAIFiles: 5`) garantisce reattività istantanea e scalabilità.
+- **Perché usare `file.moveTo` invece di cancellazione e ricreazione?**
+  *Motivazione*: `file.moveTo` preserva l'ID univoco del file Google Drive, la cronologia delle versioni e le autorizzazioni di condivisione, evitando di rompere i collegamenti già registrati.
+
+---
+
+## 5. Esempi di Utilizzo
+
+```javascript
+// 1. Esecuzione Audit Diagnostico Rapido
+const rep = DriveReconciler.auditNucleo(12, { deepAIScan: false });
+Logger.log("Anomalie rilevate: " + rep.issues.length);
+
+// 2. Ispezione on-demand di un file Drive con Google Gemini Flash
+const fileInfo = DriveReconciler.inspectFileWithAI("1cBAWWPnRZNhj1xubIM89inMehvB-sFiE");
+Logger.log("Tipo rilevato da IA: " + fileInfo.data.tipoDocumento);
+
+// 3. Esecuzione Piano di Bonifica Approvato dall'Operatore
+const approvedPlan = {
+  folderRenames: [{ folderId: "fld123", newName: "Mario Rossi" }],
+  fileMoves: [{ fileId: "file456", targetFolderId: "fld123" }],
+  fileRenames: [{ fileId: "file456", newName: "Carta d'Identità (scad. 2034) - Mario Rossi.pdf" }],
+  duplicates: [{ fileId: "file789", action: "trash" }],
+  documentRegistrations: [{
+    intestatario: "RSSMRA80A01H501Z",
+    tipo: "Carta d'Identità",
+    categoria: "Anagrafica",
+    idDrive: "file456",
+    dataScadenza: "2034-05-10"
+  }],
+  anagraficaUpdates: [{
+    entityType: "BENEFICIARIO",
+    entityId: "RSSMRA80A01H501Z",
+    updates: { luogoNascita: "Roma (RM)" }
+  }]
+};
+const res = DriveReconciler.executeApprovedPlan(12, approvedPlan);
+Logger.log("Azioni applicate con successo: " + res.actionsApplied.length);
+```
