@@ -263,3 +263,228 @@ sequenceDiagram
 
     UI->>Coord: Mostra notifica di conferma operazione eseguita
 ```
+
+
+---
+
+## 5. Sequenza 5: Acquisizione Firma Digitale Beneficiario su Canvas HTML5
+
+Descrive il flusso con cui l'operatore fa apporre la firma autografa al beneficiario direttamente su schermo touch o con mouse/penna, procedendo al salvataggio in formato PNG trasparente nella cartella Drive personale e alla sincronizzazione con i fogli 'Beneficiari' e 'Documenti'.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Ben as Beneficiario
+    actor Op as Operatore di Sportello
+    participant UI as Frontend.html (Modal Firma Canvas)
+    participant Ctrl as Backend.js
+    participant DM as DriveManager
+    participant GDrive as Google Drive (Folder Personale)
+    participant BenRepo as BeneficiarioRepository
+    participant DocRepo as DocumentoRepository
+    participant SS as Google Sheets ("Beneficiari" & "Documenti")
+
+    Op->>UI: Clicca su "✍️ Firma" nella scheda o nel nucleo
+    UI->>UI: openSignatureModal(cf)
+    UI->>Ben: Mostra Canvas HTML5 con linea base di firma
+    
+    Ben->>UI: Disegna firma con touch, penna o mouse (PointerEvents)
+    Op->>UI: Clicca su "💾 Salva Firma nel Drive"
+    
+    UI->>UI: canvas.toDataURL("image/png") -> base64Data
+    UI->>Ctrl: google.script.run.saveBeneficiarySignature(cf, base64Data)
+    activate Ctrl
+
+    Ctrl->>DM: saveBeneficiarySignature(cf, base64Data)
+    activate DM
+
+    DM->>DM: getOrCreateBeneficiarioFolder(cf)
+    DM->>GDrive: Cerca sottocartella personale "<Nome Cognome>" nel nucleo
+    GDrive-->>DM: Istanza Folder
+
+    DM->>DM: Utilities.base64Decode(cleanBase64)
+    DM->>GDrive: Rimuove eventuali file "Firma *.png" precedenti (anti-duplicati)
+    DM->>GDrive: folder.createFile(blob, "Firma Franco Rossi.png", "image/png")
+    GDrive-->>DM: newFile (fileId, fileUrl)
+
+    %% Aggiornamento foglio Beneficiari
+    DM->>BenRepo: updateDriveInfo(cf, { firma: fileId })
+    activate BenRepo
+    BenRepo->>SS: Scrive fileId nella colonna "Firma" del foglio "Beneficiari"
+    deactivate BenRepo
+
+    %% Sincronizzazione foglio Documenti
+    DM->>DocRepo: add({ intestatario: cf, tipo: "Firma Autografa", idDrive: fileId })
+    activate DocRepo
+    DocRepo->>SS: Inserisce/aggiorna riga nel foglio "Documenti" (archetipo UNICO)
+    deactivate DocRepo
+
+    DM-->>Ctrl: { success: true, fileId: fileId, fileUrl: fileUrl }
+    deactivate DM
+
+    Ctrl-->>UI: { success: true, fileId: fileId, fileUrl: fileUrl }
+    deactivate Ctrl
+
+    UI->>UI: Aggiorna badge stato ("Archiviata 🟢"), anteprima e ricarica i dati
+    UI->>Op: Mostra Toast: "Firma autografa salvata con successo!"
+```
+
+---
+
+## 6. Sequenza 6: Smart Form-Filling & Document Intelligence con Google Gemini Flash
+
+Illustra l'interazione tra l'area di rilascio documenti (drag & drop), il servizio di Computer Vision multimodale Gemini Flash (`gemini-3.8-flash`) e l'autocompilazione guidata dei campi anagrafici e documentali.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Op as Operatore di Sportello
+    participant UI as Frontend.html (Dropzone IA)
+    participant Ctrl as Backend.js
+    participant DI as DocumentIntelligence
+    participant Gemini as Google Gemini API (gemini-3.8-flash)
+    participant DocDomain as Documents (SSOT)
+
+    Op->>UI: Trascina foto o PDF (es. Carta d'Identità o Permesso di Soggiorno)
+    UI->>UI: FileReader legge il file come DataURL (Base64)
+    UI->>UI: Mostra spinner "Analisi visiva in corso con Gemini Flash (~1 sec)..."
+    
+    UI->>Ctrl: google.script.run.smartClassifyDocument(base64Data, mimeType, fileName)
+    activate Ctrl
+
+    Ctrl->>DI: smartClassifyBase64(base64Data, mimeType, fileName)
+    activate DI
+
+    DI->>DI: Verifica disponibilità API Key da ScriptProperties (GEMINI_API_KEY)
+    DI->>Gemini: UrlFetchApp.fetch(POST /models/gemini-3.8-flash:generateContent)
+    Note over DI,Gemini: Payload multimodale (Base64) + Schema JSON vincolato (response_mime_type: application/json)
+    
+    Gemini-->>DI: JSON strutturato { tipoDocumento, datiPersona, datiDocumento }
+    
+    DI->>DocDomain: findDocumentType(tipoDocumento)
+    DocDomain-->>DI: Record di dominio (name, categoria, archetipo, icona, emoji)
+    
+    DI-->>Ctrl: { success: true, data: { tipoDocumento, categoria, datiPersona, datiDocumento } }
+    deactivate DI
+
+    Ctrl-->>UI: Risposta con dati estratti
+    deactivate Ctrl
+
+    UI->>UI: Popola input form: Nome, Cognome, CF, Data Nascita, Luogo, Sesso, Residenza
+    UI->>UI: Seleziona automaticamente Cittadinanza con relativa bandierina grafica
+    UI->>UI: Spunta automaticamente il checkbox del documento riconosciuto (es. CIE / PdS)
+    UI->>Op: Toast: "✨ Carta d'Identità riconosciuta con successo! Campi compilati."
+    Op->>UI: Verifica visiva dei dati precompilati e clicca su "Salva Membro"
+```
+
+---
+
+## 7. Sequenza 7: Diagnostica e Riconciliazione Cartelle Drive (Auto-Healing)
+
+Descrive la procedura di audit e bonifica automatica eseguita da `DriveReconciler` per sanare i file caricati a mano nella radice del nucleo, creare cartelle mancanti e normalizzare i nomi dei file.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Op as Operatore Sociale
+    participant UI as Frontend.html (Modal Diagnostica)
+    participant Ctrl as Backend.js
+    participant DR as DriveReconciler
+    participant DM as DriveManager
+    participant GDrive as Google Drive
+    participant DocDomain as Documents (buildDocumentFileName)
+    participant DocRepo as DocumentoRepository
+    participant SS as Google Sheets ("Documenti")
+
+    Op->>UI: Clicca su "🔍 Diagnostica" nella card del Nucleo
+    UI->>UI: Apre modal diagnostica e avvia spinner audit
+    
+    UI->>Ctrl: google.script.run.auditNucleoDrive(nucleoId)
+    activate Ctrl
+    Ctrl->>DR: auditNucleo(nucleoId)
+    activate DR
+
+    DR->>DM: getOrCreateNucleoFolder(nucleoId)
+    DR->>GDrive: Scansiona sottocartelle membri ed elenca file nella radice nucleo
+    DR->>DR: Identifica MISPLACED_FILE, MISSING_MEMBER_FOLDER, UNTRACKED_FILE
+    DR-->>Ctrl: NucleoAuditReport (status: WARNING / CRITICAL, lista anomalie)
+    deactivate DR
+    Ctrl-->>UI: { success: true, report: auditReport }
+    deactivate Ctrl
+
+    UI->>Op: Mostra elenco anomalie (es. 2 file fuori posto, 1 cartella mancante)
+    Op->>UI: Clicca su "⚡ Bonifica e Riorganizza Ora"
+    
+    UI->>Ctrl: google.script.run.reconcileNucleoDrive(nucleoId, { useAI: true })
+    activate Ctrl
+    Ctrl->>DR: reconcileNucleo(nucleoId)
+    activate DR
+
+    %% Azione 1: Creazione cartelle mancanti
+    DR->>DM: getOrCreateBeneficiarioFolder(member.cf)
+    DM->>GDrive: Crea sottocartella personale "<Nome Cognome>"
+
+    %% Azione 2: Spostamento file e ridenominazione
+    DR->>GDrive: file.moveTo(memberFolder)
+    DR->>DocDomain: buildDocumentFileName(docInfo, member, ext)
+    DocDomain-->>DR: Nome standard (es. "Carta d'Identità (scad. 2034) - Franco Rossi.pdf")
+    DR->>GDrive: file.setName(standardName)
+
+    %% Azione 3: Registrazione nel foglio Documenti
+    DR->>DocRepo: add({ intestatario: member.cf, tipo: doc.name, idDrive: file.getId() })
+    DocRepo->>SS: Inserisce riga nel foglio "Documenti"
+
+    DR-->>Ctrl: { success: true, actionsApplied: [...azioni] }
+    deactivate DR
+    Ctrl-->>UI: { success: true, actionsApplied: [...azioni] }
+    deactivate Ctrl
+
+    UI->>Op: Toast: "⚡ Bonifica completata con successo! (3 azioni applicate)"
+    UI->>UI: Ricarica lo stato della cartella e aggiorna l'interfaccia
+```
+
+---
+
+## 8. Sequenza 8: Gestione del Fascicolo Documentale e Tracciamento Scadenze Relazionale
+
+Mostra il ciclo di registrazione e monitoraggio dei documenti e delle relative scadenze (ISEE con valore in €, titoli di soggiorno con data scadenza, permessi).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Op as Operatore di Sportello
+    participant UI as Frontend.html (Tab Documenti / Modal Ben)
+    participant Ctrl as Backend.js
+    participant DocRepo as DocumentoRepository
+    participant DocModel as Documento
+    participant SS as Google Sheets ("Documenti")
+
+    Op->>UI: Clicca su "+ Registra Documento"
+    UI->>UI: openDocumentoModal(cf, docId)
+    UI->>UI: Popola dropdown tipologie da catalogo SSOT Documents
+    
+    Op->>UI: Seleziona tipo (es. "Attestazione ISEE"), inserisce Valore = 8500.50 e Scadenza = "2026-12-31"
+    Op->>UI: Clicca su "Salva Documento"
+    
+    UI->>Ctrl: google.script.run.submitDocumento(payload)
+    activate Ctrl
+
+    Ctrl->>DocRepo: add(payload)
+    activate DocRepo
+
+    DocRepo->>DocRepo: generateNextId() (se nuovo record -> progressivo 1..N)
+    DocRepo->>DocModel: new Documento(data)
+    DocModel->>DocModel: getStatoScadenza() -> calcola "VALIDO", "IN_SCADENZA" o "SCADUTO"
+    
+    DocRepo->>SS: appendRow([id, intestatario, tipo, categoria, valore, dataEmissione, dataScadenza, idDrive, note, dataInserimento])
+    SS-->>DocRepo: Conferma scrittura riga
+    
+    DocRepo-->>Ctrl: { success: true, data: docModel.toObject() }
+    deactivate DocRepo
+
+    Ctrl-->>UI: { success: true, data: savedDoc }
+    deactivate Ctrl
+
+    UI->>UI: Aggiorna tabella documenti con badge semaforico colorato (🟢 / 🟡 / 🔴)
+    UI->>Op: Mostra Toast: "Documento registrato con successo!"
+```

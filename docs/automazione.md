@@ -31,3 +31,11 @@ Ogni volta che una nuova riga viene aggiunta alla tabella "Incontri con operator
 * Controllare che due orari di ricevimento per lo stesso operatore non si sovrappongano
 * Controllare 0 \< (ora fine \- ora inizio) \< 3
 * Controllare che orario di ricevimento non sfori orario operatore
+
+---
+
+## 5. Riconciliazione Periodica del File System Drive e Health Check
+Il sistema dispone del motore automatico `DriveReconciler.js` per garantire l'allineamento continuo tra Google Drive e Fogli Google:
+- **Audit Continuo**: ispezione dei nuclei alla ricerca di file sparsi nella radice nucleo, cartelle di membri mancanti e file non tracciati.
+- **Auto-Healing JIT (Just In Time)**: all'apertura della scheda nucleo o su richiesta tramite il pulsante `⚡ Bonifica e Riorganizza Ora`, il sistema crea le sottocartelle dei componenti, sposta i file con `file.moveTo`, li rinomina secondo la convenzione `buildDocumentFileName` e inserisce le righe mancanti nel foglio `Documenti`.
+- **Trigger Periodico**: è possibile impostare un trigger a tempo in Apps Script (es. settimanale o mensile) che invoca `DriveReconciler.auditArchive()` notificando eventuali criticità agli operatori.

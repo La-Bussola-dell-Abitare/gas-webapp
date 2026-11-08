@@ -7,10 +7,10 @@ Documentazione formale dei casi d'uso del software gestionale per lo sportello s
 ## 1. Mappa Generale dei Casi d'Uso
 
 Il sistema prevede quattro attori principali (umani e sistemici):
-1. **Operatore Sociale (1° Livello - Front Office):** Gestisce l'accoglienza libera, l'ascolto dei bisogni, la registrazione dei colloqui di primo contatto e l'invio al secondo livello.
-2. **Assistente Sociale (2° Livello - Specialistico):** Riceve su appuntamento, prende in carico i casi complessi, definisce i piani personalizzati e compila le anagrafiche approfondite.
-3. **Coordinatore di Sportello:** Monitora l'andamento del servizio, verifica la conformità documentale e supervisiona il monitoraggio ministeriale/municipale.
-4. **Google Workspace (Attore Sistemico / Backend):** Fornisce i servizi cloud per la persistenza tabellare (Sheets), la generazione di documenti (Docs) e l'archiviazione (Drive).
+1. **Operatore Sociale (1° Livello - Front Office):** Gestisce l'accoglienza libera, l'ascolto dei bisogni, la registrazione dei colloqui di primo contatto, l'acquisizione della firma e l'invio al secondo livello.
+2. **Assistente Sociale (2° Livello - Specialistico):** Riceve su appuntamento, prende in carico i casi complessi, definisce i piani personalizzati, gestisce il fascicolo documentale e verifica le scadenze.
+3. **Coordinatore di Sportello:** Monitora l'andamento del servizio, verifica la conformità documentale, supervisiona la bonifica Drive e il monitoraggio ministeriale/municipale.
+4. **Google Workspace & Google Gemini (Attori Sistemici / Backend):** Forniscono i servizi cloud per la persistenza tabellare (Sheets), la generazione di documenti (Docs), l'archiviazione gerarchica (Drive) e la Computer Vision multimodale con IA (Gemini Flash).
 
 ```mermaid
 flowchart LR
@@ -38,11 +38,18 @@ flowchart LR
             UC07(["UC07: Decodifica CF e Dati Anagrafici"])
         end
 
-        subgraph ModuloDocumentale ["Gestione Documentale e Stampa"]
+        subgraph ModuloDocumentale ["Modulistica Ufficiale"]
             UC08(["UC08: Genera Scheda di Segnalazione"])
             UC09(["UC09: Genera Foglio Firme"])
             UC10(["UC10: Genera Diario Giornaliero"])
             UC11(["UC11: Aggiungi a Monitoraggio Ufficiale"])
+        end
+
+        subgraph ModuloFascicolo ["Fascicolo Digitale e Diagnostica"]
+            UC14(["UC14: Acquisizione Firma Digitale (Canvas)"])
+            UC15(["UC15: Diagnostica e Bonifica Cartella Drive"])
+            UC16(["UC16: Smart Form-Filling con IA (Gemini)"])
+            UC17(["UC17: Gestione Fascicolo & Scadenze"])
         end
 
         subgraph ModuloAppuntamenti ["Agenda e Presenze"]
@@ -51,9 +58,10 @@ flowchart LR
         end
     end
 
-    %% ATTORE SISTEMICO
-    subgraph AttoriSistemici ["Servizi Esterni"]
+    %% ATTORI SISTEMICI
+    subgraph AttoriSistemici ["Servizi Cloud Esterni"]
         GW[("Google Workspace APIs<br/>(Sheets, Docs, Drive)")]
+        AI[("Google Gemini Flash<br/>(Vision & OCR Multimodale)")]
     end
 
     %% RELAZIONI ATTORI -> CASI D'USO
@@ -67,6 +75,10 @@ flowchart LR
     Op --> UC10
     Op --> UC11
     Op --> UC12
+    Op --> UC14
+    Op --> UC15
+    Op --> UC16
+    Op --> UC17
 
     Ass --> UC02
     Ass --> UC03
@@ -78,15 +90,26 @@ flowchart LR
     Ass --> UC11
     Ass --> UC12
     Ass --> UC13
+    Ass --> UC14
+    Ass --> UC15
+    Ass --> UC16
+    Ass --> UC17
 
     Coord --> UC04
     Coord --> UC11
     Coord --> UC13
+    Coord --> UC15
+    Coord --> UC17
 
     %% RELAZIONI TRA CASI D'USO
     UC01 -.->|"<<extend>>"| UC08
     UC05 -.->|"<<include>>"| UC07
     UC06 -.->|"<<include>>"| UC07
+    UC06 -.->|"<<extend>>"| UC16
+    UC05 -.->|"<<extend>>"| UC15
+    UC06 -.->|"<<include>>"| UC14
+    UC14 -.->|"<<include>>"| UC17
+    UC16 -.->|"<<include>>"| UC17
     UC01 -.->|"<<include>>"| UC09
     UC02 -.->|"<<include>>"| UC09
 
@@ -98,98 +121,56 @@ flowchart LR
     UC09 --> GW
     UC10 --> GW
     UC11 --> GW
+    UC14 --> GW
+    UC15 --> GW
+    UC17 --> GW
+    UC16 --> AI
+    UC16 --> GW
 ```
 
 ---
 
-## 2. Descrizione Dettagliata dei Principali Casi d'Uso
+## 2. Descrizione Dettagliata dei Casi d'Uso
 
 ### UC01: Registrazione Incontro di Primo Livello
 - **Attore Primario:** Operatore Sociale.
-- **Precondizioni:** L'operatore ha aperto la Web App o la Sidebar su Google Sheets e ha selezionato la scheda "Incontri e Visite".
+- **Flusso:** L'operatore inserisce beneficiario, data, orari e bisogni rilevati. Se il caso richiede supporto specialistico, attiva il flag di segnalazione al secondo livello.
+
+### UC05: Registrazione e Modifica Nucleo Familiare
+- **Attori:** Operatore Sociale, Assistente Sociale.
+- **Flusso:** Gestione in modalità Dual-Mode: creazione atomica di nuovo nucleo e intestatario con Script Lock oppure associazione a un beneficiario già registrato. Assegna l'ID progressivo incrementale e individua o crea la cartella Google Drive `<id> - <Intestatario>`.
+
+### UC14: Acquisizione Firma Digitale Beneficiario (Canvas HTML5)
+- **Attori:** Beneficiario (firmatario), Operatore Sociale / Assistente Sociale.
+- **Precondizioni:** L'operatore apre la modale di firma per il beneficiario.
 - **Flusso Principale:**
-  1. L'operatore inserisce il nome del beneficiario (avvalendosi dell'autocompletamento con codice fiscale).
-  2. Seleziona il proprio nominativo dall'elenco degli operatori accreditati.
-  3. Imposta la tipologia su "Primo Livello (Operatore)".
-  4. Inserisce la data dell'incontro, l'orario di inizio e di fine.
-  5. Seleziona l'attività svolta (es. accoglienza, orientamento, supporto burocratico) e digita la descrizione sintetica del colloquio.
-  6. Valuta se il caso richiede invio al secondo livello (interruttore "Richiede Segnalazione").
-  7. Invia il form.
-  8. Il sistema valida i campi obbligatori, memorizza la riga nel foglio Google *"Incontri con operatore"* e aggiorna la tabella in tempo reale.
-- **Estensioni (<<extend>>):**
-  - Se "Richiede Segnalazione" è impostato su "Sì", il sistema abilita la compilazione e generazione contestuale della Scheda di Segnalazione (UC08).
-- **Postcondizioni:** L'incontro è registrato nel foglio e disponibile per la rendicontazione oraria del Foglio Firme mensile.
+  1. Il cittadino appone la propria firma sul Canvas interattivo (utilizzando dita su touchscreen, mouse o penna stylus).
+  2. L'operatore clicca su "Salva Firma nel Drive".
+  3. Il sistema converte il canvas in PNG trasparente, rimuove eventuali vecchie firme dalla sottocartella personale del membro in Drive e carica il nuovo file `Firma [Nome] [Cognome].png`.
+  4. L'ID file viene salvato nella colonna `Firma` di `Beneficiari` e contestualmente registrato nel foglio `Documenti` (archetipo `UNICO`).
+  5. La firma salvata diventa immediatamente disponibile per i template di Foglio Firme e Diario.
 
----
-
-### UC05: Registrazione / Modifica Nucleo Familiare
-- **Attore Primario:** Operatore Sociale / Assistente Sociale.
-- **Precondizioni:** Accesso alla scheda "Nuclei e Persone".
+### UC15: Diagnostica e Bonifica Cartella Drive (Drive Reconciler)
+- **Attori:** Operatore Sociale, Assistente Sociale, Coordinatore.
 - **Flusso Principale:**
-  1. L'utente inserisce il Codice Fiscale dell'intestatario della scheda.
-  2. Il sistema esegue la decodifica istantanea del CF (UC07), ricavando sesso, data di nascita e comune/stato di nascita.
-  3. L'utente compila i dati economici (valore ISEE), l'indirizzo di residenza e l'eventuale domicilio effettivo.
-  4. Vengono descritti la problematica del caso, gli obiettivi di progettualità personalizzata, la tipologia di richiesta e la sistemazione abitativa attuale (da elenco tipizzato: locazione, casa rifugio, senza dimora, ecc.).
-  5. Viene specificato il riferimento dei servizi sociali (assistente sociale) e del medico di base.
-  6. In fase di invio:
-     - Se è un **nuovo nucleo**: il sistema calcola automaticamente il prossimo ID progressivo numerico (`generateNextId`) e scrive la riga nel foglio *"Nuclei Familiari"*.
-     - Se è una **modifica**: il sistema individua la riga dell'ID esistente e ne sovrascrive i campi.
-- **Postcondizioni:** Il nucleo è memorizzato ed è possibile associarvi i singoli componenti familiari.
+  1. L'operatore apre la card di un nucleo e clicca su `🔍 Diagnostica`.
+  2. Il sistema esamina la cartella Drive del nucleo e le sottocartelle, identificando file orfani sparsi nella radice nucleo (`MISPLACED_FILE`), sottocartelle di membri mancanti (`MISSING_MEMBER_FOLDER`) o scadenze critiche.
+  3. L'operatore visualizza il rapporto con badge semaforico (🟢 Conforme, 🟡 Warning, 🔴 Critico) e clicca su `⚡ Bonifica e Riorganizza Ora`.
+  4. Il motore `DriveReconciler` crea le cartelle personali mancanti, sposta i file nella destinazione corretta con `file.moveTo`, li rinomina applicando lo standard `buildDocumentFileName` e li censisce nel foglio `Documenti`.
 
----
-
-### UC07: Decodifica e Validazione Codice Fiscale
-- **Attori:** Sistema (innescato dall'operatore durante l'inserimento).
+### UC16: Smart Form-Filling da Documento con IA (Google Gemini Flash)
+- **Attori:** Operatore Sociale, Assistente Sociale.
 - **Flusso Principale:**
-  1. L'utente digita o incolla una stringa di 16 caratteri alfanumerici.
-  2. Il sistema verifica la correttezza formale della sequenza tramite espressione regolare.
-  3. Viene risolta l'eventuale omocodia sostituendo le lettere con i rispettivi numeri originari.
-  4. Viene calcolato il carattere di controllo (CIN) mediante l'algoritmo ministeriale a pesi alternati (pari/dispari).
-  5. Se valido, vengono estratti:
-     - Giorno, mese e anno di nascita (con scarto secolare `> 40` per il genere femminile).
-     - Genere ('M' o 'F').
-     - Codice catastale Belfiore (4 caratteri) del comune o dello stato estero.
-  6. Il sistema decodifica il nome del comune o stato estero consultando la cache interna (`CacheService`) o le tabelle catastali.
-  7. I campi del form (data nascita, genere, comune) vengono popolati automaticamente.
+  1. In fase di compilazione della scheda beneficiario, l'operatore trascina una scansione PDF o foto (CIE, Permesso di Soggiorno, Patente, ISEE) nella dropzone con icona ✨.
+  2. Il frontend converte il file in Base64 e chiama `smartClassifyDocument`.
+  3. Il backend invoca `gemini-3.8-flash` forzando lo schema JSON strutturato.
+  4. In ~1-2 secondi i campi anagrafici (Nome, Cognome, CF, Data Nascita, Luogo, Sesso, Residenza) e documentali si autocompilano, selezionando anche la bandierina della cittadinanza e spuntando i documenti posseduti.
+  5. L'operatore effettua un rapido controllo visivo e salva con un click.
 
----
-
-### UC08: Generazione Scheda di Segnalazione
-- **Attore Primario:** Operatore Sociale.
-- **Precondizioni:** L'incontro evidenzia bisogni complessi da trasferire all'assistente sociale di secondo livello.
+### UC17: Gestione Fascicolo Documentale e Tracciamento Scadenze
+- **Attori:** Operatore Sociale, Assistente Sociale, Coordinatore.
 - **Flusso Principale:**
-  1. L'operatore compila i recapiti dell'inviante, i dati del beneficiario e la sintesi del bisogno.
-  2. Spunta le caselle relative alla presa in carico richiesta (es. iscrizione, emergenza abitativa, accompagnamento).
-  3. Seleziona la firma digitale o allega la firma autografa.
-  4. Il sistema recupera il template Google Docs configurato (`CONFIG.ID_TEMPLATESCHEDASEGNALAZIONE`) e ne crea una copia nella cartella dedicata su Drive.
-  5. Vengono sostituiti tutti i segnaposto `{tag}`, spuntate le caselle `[x]` e incorporata l'immagine della firma.
-  6. Il file viene rinominato secondo lo standard:  
-     `Scheda segnalazione <ID_Nucleo> (<Nome Intestatario>) <- <Nome Inviante>`.
-  7. L'operatore riceve il link per aprire il documento Google Docs o scaricare direttamente la versione PDF.
-
----
-
-### UC09: Generazione Foglio Firme Individuale
-- **Attore Primario:** Operatore Sociale / Assistente Sociale.
-- **Precondizioni:** Sono stati registrati incontri tra un determinato operatore e un beneficiario nel corso del mese.
-- **Flusso Principale:**
-  1. L'utente seleziona l'operatore, il beneficiario e il mese/anno di riferimento (es. "2026-07").
-  2. Il sistema cerca se esiste già un foglio firme per la terna specificata su Google Drive.
-  3. Se non esiste:
-     - Duplica il template Google Docs (`CONFIG.FOGLIFIRME.TEMPLATE_ID`) nella cartella preposta.
-     - Assegna al file il nome standard `AAAA-MM Nome Beneficiario (Nome Operatore)`.
-     - Imposta le proprietà personalizzate di Drive per consentire la successiva ricerca rapida.
-     - Sostituisce i segnaposto di testata (`{data}`, `{operatore}`, `{cliente}`).
-  4. L'utente ottiene il link diretto al documento per la firma e la stampa.
-
----
-
-### UC11: Aggiunta Riga al Monitoraggio Ufficiale
-- **Attori:** Operatore Sociale / Assistente Sociale / Coordinatore.
-- **Precondizioni:** È avvenuto un accesso allo sportello con presa in carico.
-- **Flusso Principale:**
-  1. L'operatore seleziona l'incontro o inserisce operatore e beneficiario.
-  2. Il sistema cerca la corrispondenza anagrafica dell'operatore nel foglio *"Operatori"* per estrarne qualifica, ruolo e tipologia.
-  3. Cerca il beneficiario nel foglio *"Beneficiari"* tramite Codice Fiscale, ricavando sesso, cittadinanza, condizione occupazionale e titolo di studio.
-  4. Calcola l'età anagrafica esatta alla data corrente.
-  5. Accoda una riga strutturata nel foglio *"Monitoraggio Ufficiale"* (o *"MONITORAGGIO UFFICIALE ACCESSI GIORNALIERI"*), valorizzando anche i parametri costanti di progetto (Municipio XI, Annualità QSFP, CIG, Titolo Progetto).
+  1. L'operatore consulta la scheda del beneficiario o la tabella generale in `tab-documenti`.
+  2. Il sistema calcola dinamicamente lo stato di validità semaforico (🔴 Scaduto, 🟡 In Scadenza entro 60 gg, 🟢 Valido, ⚪ Permanente).
+  3. L'operatore registra nuovi documenti o aggiorna quelli esistenti con importi economici in € (ISEE, affitto) e date di rilascio/scadenza.
+  4. Il sistema assegna l'ID progressivo numerico da 1 e mantiene il fascicolo perfettamente sincronizzato con Google Drive.

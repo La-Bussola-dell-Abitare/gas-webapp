@@ -123,3 +123,94 @@ flowchart TD
         ExportReport --> EndMonth([Archiviazione Mese])
     end
 ```
+
+
+---
+
+## 4. Attività 4: Processo di Onboarding e Compilazione Rapida con Smart Document Intelligence (IA)
+
+Descrive il flusso operatore supportato dall'Intelligenza Artificiale multimodale (`gemini-3.8-flash`) per l'estrazione e il popolamento istantaneo dell'anagrafica da foto o scansioni dei documenti.
+
+```mermaid
+flowchart TD
+    Start([Inizio: Nuovo Beneficiario allo Sportello]) --> OpenModal[Operatore apre Modale 'Aggiungi / Modifica Membro']
+    OpenModal --> Choice{L'operatore ha a disposizione<br/>un documento scansionato/foto?}
+    
+    %% Flusso Manuale
+    Choice -- "No (Inserimento Manuale)" --> ManualInput[Digitazione manuale Codice Fiscale, Nome, Cognome, Dati Nascita]
+    ManualInput --> DecodeCF[Decodifica deterministica automatica CF]
+    
+    %% Flusso con IA
+    Choice -- "Sì (CIE, PdS, ISEE, Patente)" --> DragDrop[Operatore trascina il file nella dropzone IA ✨]
+    DragDrop --> CallGemini[Chiamata RPC: smartClassifyDocument -> Gemini Flash 3.8]
+    CallGemini --> ParseJSON[Estrazione multimodale con Schema JSON forzato]
+    ParseJSON --> Autofill[Autocompilazione campi anagrafici, residenza e bandierina cittadinanza]
+    Autofill --> AutoCheck[Spunta automatica dei checkbox documenti posseduti]
+    
+    DecodeCF --> CheckData
+    AutoCheck --> CheckData[Operatore controlla a colpo d'occhio l'accuratezza dei dati]
+    
+    CheckData --> SignRequired{È richiesta l'acquisizione<br/>della firma autografa?}
+    SignRequired -- "Sì" --> OpenCanvas[Apertura Canvas HTML5 W3C PointerEvents]
+    OpenCanvas --> SignDraw[Beneficiario firma su schermo touch o penna stylus]
+    SignDraw --> SaveSig[Salvataggio PNG trasparente nella cartella personale Drive]
+    SaveSig --> SaveMember
+    SignRequired -- "No / Già Acquisita" --> SaveMember
+    
+    SaveMember[Salvataggio record nel foglio 'Beneficiari'] --> SyncDoc[Sincronizzazione automatica nel foglio 'Documenti']
+    SyncDoc --> End([Fine Onboarding Membro])
+```
+
+---
+
+## 5. Attività 5: Ciclo di Diagnostica, Bonifica e Riconciliazione File System Drive
+
+Rappresenta il processo di auto-riparazione (Auto-Healing) con cui il sistema riconcilia i file caricati manualmente fuori dalle procedure standard.
+
+```mermaid
+flowchart TD
+    Start([Inizio: Apertura Tab Nuclei o Richiesta Operatore]) --> ClickDiag[Click su '🔍 Diagnostica' nella card del Nucleo]
+    ClickDiag --> ExecAudit[Esecuzione auditNucleoDrive sul backend]
+    
+    subgraph AuditEngine ["Motore di Ispezione (DriveReconciler.auditNucleo)"]
+        direction TB
+        InspectRoot[Scansione file presenti nella radice nucleo]
+        InspectFolders[Verifica presenza sottocartelle dei singoli membri]
+        InspectSheets[Cross-check ID file con il foglio 'Documenti']
+        InspectDates[Verifica scadenze documenti rispetto a Oggi + 60 gg]
+        
+        InspectRoot --> EvaluateIssues{Rilevate anomalie?}
+        InspectFolders --> EvaluateIssues
+        InspectSheets --> EvaluateIssues
+        InspectDates --> EvaluateIssues
+    end
+    
+    ExecAudit --> AuditEngine
+    
+    EvaluateIssues -- "Nessuna anomalia" --> StatusGreen[Stato: 🟢 Conforme - Nessuna azione richiesta]
+    StatusGreen --> CloseModal[Chiusura rapporto]
+    
+    EvaluateIssues -- "Anomalie rilevate" --> StatusIssues[Stato: 🟡 Warning o 🔴 Critico]
+    StatusIssues --> ShowIssuesList[Visualizzazione lista precisa: file fuori posto, cartelle mancanti, scadenze]
+    ShowIssuesList --> UserConfirm{Operatore clicca<br/>'⚡ Bonifica Ora'?}
+    
+    UserConfirm -- "Annulla" --> CloseModal
+    UserConfirm -- "Conferma Bonifica" --> RunReconcile[Esecuzione reconcileNucleoDrive sul backend]
+    
+    subgraph HealingEngine ["Motore di Bonifica (DriveReconciler.reconcileNucleo)"]
+        direction TB
+        CreateMissing[Creazione automatica sottocartelle personali mancanti]
+        MoveFiles[Spostamento file con file.moveTo nella cartella del membro]
+        RenameFiles[Ridenominazione standard secondo buildDocumentFileName]
+        RegisterSheets[Inserimento automatico righe orfane nel foglio 'Documenti']
+        
+        CreateMissing --> MoveFiles
+        MoveFiles --> RenameFiles
+        RenameFiles --> RegisterSheets
+    end
+    
+    RunReconcile --> HealingEngine
+    HealingEngine --> ReAudit[Rilancio audit automatico di verifica]
+    ReAudit --> NotifySuccess[Notifica Toast all'operatore con azioni applicate]
+    NotifySuccess --> End([Cartella e Fogli Sincronizzati])
+```

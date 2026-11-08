@@ -90,21 +90,27 @@ Le assistenti sociali:
 
 ---
 
-### Gestione della Documentazione
+### Gestione della Documentazione e Google Drive
 
-Per ogni nucleo beneficiario viene creata una cartella Drive con nome:
+Per ogni nucleo beneficiario viene creata una cartella Drive all'interno della radice `CONFIG.FOLDER_BENEFICIARI_ROOT_ID` con denominazione standardizzata:
 
+```text
+[idNucleo] - [Nome Cognome Intestatario]
+(es. 12 - Franco Rossi, 105 - Ahmed Ben Ali)
 ```
-ID progressivo + Nome + Cognome
-(es. 003 – Mario Rossi)
-```
 
-All’interno vengono inseriti:
-- Documento di identità
-- Scheda anagrafica beneficiario
-- Scheda di segnalazione
-- Eventuali documenti aggiuntivi (foto, scansioni, note)
-- Cartelle eventuali altri componenti nucleo con relativi documenti 
+All'interno della cartella del nucleo:
+- Risiedono i documenti di pertinenza del nucleo (es. `Attestazione ISEE 2026 - Franco Rossi.pdf`, `Contratto Locazione 2024 - Nucleo #12 Rossi.pdf`).
+- Viene creata una **sottocartella personale** per ogni componente censito, denominata `<Nome Cognome>` (es. `Franco Rossi`, `Maria Bianchi`).
+- Nella sottocartella personale risiedono:
+  - `Firma [Nome] [Cognome].png` (firma autografa acquisita digitalmente)
+  - Documenti individuali con naming standard: `Carta d'Identità (scad. 2034) - Franco Rossi.pdf`, `Permesso Soggiorno (scad. 2027) - Ahmed Ben Ali.pdf`.
+- Tutti i documenti sono censiti nel foglio Google relazionale **`Documenti`** con calcolo automatico dello stato di validità semaforico (🔴 Scaduto, 🟡 In Scadenza, 🟢 Valido, ⚪ Permanente).
+
+### Acquisizione della Firma e Smart Onboarding con IA:
+- **Firma Autografa Digitale**: acquisita direttamente su tablet o touchscreen tramite il Canvas W3C PointerEvents nella Web App, salvata come PNG trasparente in Drive e riutilizzata per compilare automaticamente Fogli Firme e Diari.
+- **Smart Form-Filling con IA (Gemini Flash)**: caricando la foto o il PDF della Carta d'Identità, Permesso di Soggiorno o ISEE, il sistema estrae in ~1 secondo tutti i dati anagrafici e del documento, precompilando la scheda per la verifica dell'operatore.
+- **Motore di Riconciliazione (Drive Reconciler)**: rileva automaticamente eventuali file caricati a mano fuori posto, li sposta nella cartella corretta del membro, li rinomina secondo lo standard e li registra nel foglio `Documenti`.
 
 ---
 

@@ -1,6 +1,6 @@
 # Diagramma UML delle Classi (Class Diagram)
 
-Documentazione dell'architettura Object-Oriented (OOP) del sistema **"La Bussola dell'Abitare"**, organizzata secondo il pattern **MVC (Model-View-Controller)** e **Repository Pattern**.
+Documentazione dell'architettura Object-Oriented (OOP) del sistema **"La Bussola dell'Abitare"**, organizzata secondo i pattern **MVC (Model-View-Controller)**, **Repository Pattern** e **Domain-Driven Design (DDD)**.
 
 ---
 
@@ -11,9 +11,36 @@ classDiagram
     direction TB
 
     %% =========================================================================
+    %% DOMAIN LAYER (SINGLE SOURCE OF TRUTH)
+    %% =========================================================================
+    class Countries {
+        <<SSOT Domain>>
+        +CountryRecord[] Countries
+        +CountryRecord[] CountryByName
+        +CountryRecord[] CountryByISO
+        +CountryRecord[] CountryByPhone
+        +findCountry(query)$ CountryRecord
+        +findCountryByPhone(phone)$ CountryRecord
+        +normalizeCountryName(name)$ string
+        +filterCountries(query)$ CountryRecord[]
+    }
+
+    class DocumentsCatalog {
+        <<SSOT Domain>>
+        +DocumentRecord[] Documents
+        +DocumentRecord[] DocumentById
+        +DocumentRecord[] DocumentByName
+        +findDocumentType(query)$ DocumentRecord
+        +buildDocumentFileName(doc, persona, ext)$ string
+        +getDocumentCategories()$ string[]
+        +getDocumentsByCategory(categoria)$ DocumentRecord[]
+    }
+
+    %% =========================================================================
     %% MODELLO PERSONA ED EREDITARIETÀ
     %% =========================================================================
     class Person {
+        <<abstract>>
         +string name
         +string surname
         +Date birthDate
@@ -42,6 +69,8 @@ classDiagram
         +string rapportoIntestatario
         +string statoCivile
         +number annoArrivo
+        +string idCartella
+        +string firma
         +PersonDocuments documents
         +get cartaIdentita() string
         +get passaporto() boolean
@@ -49,20 +78,19 @@ classDiagram
         +get permessoSoggiorno() boolean
         +get tesseraSanitaria() boolean
         +fromRow(row, idx)$ Beneficiario
-        +getAll()$ Beneficiario[]
-        +add(data)$ Object
-        +removeByCF(cf)$ Object
     }
 
     class Operatore {
         +string operatore
         +string qualifica
         +string ruolo
+        +string email
         +fromRow(row, idx)$ Operatore
     }
 
     Person <|-- Beneficiario : extends
     Person <|-- Operatore : extends
+    Beneficiario --> Countries : citizenship
 
     %% =========================================================================
     %% VALUE OBJECTS E GEOGRAFIA
@@ -105,7 +133,7 @@ classDiagram
     Beneficiario "1" *-- "0..1" Address : domicilio
 
     %% =========================================================================
-    %% NUCLEO FAMILIARE E INCONTRO
+    %% NUCLEO FAMILIARE E FASCICOLO DOCUMENTALE
     %% =========================================================================
     class NucleoFamiliare {
         +string id
@@ -120,11 +148,39 @@ classDiagram
         +string tipologiaAbitazione
         +string assistenteSociale
         +string medicoDiBase
+        +string idCartella
         +getAll()$ NucleoFamiliare[]
         +generateNextId()$ string
         +add(data)$ Object
+        +updateDriveInfo(id, updates)$ void
     }
 
+    class Documento {
+        +number id
+        +string intestatario
+        +string tipo
+        +string categoria
+        +number valore
+        +string dataEmissione
+        +string dataScadenza
+        +string idDrive
+        +string note
+        +string dataInserimento
+        +getStatoScadenza(refDate)$ DocumentoStatoScadenza
+        +getGiorniAllaScadenza(refDate)$ number
+        +getUrlDrive()$ string
+        +getDocRecord()$ DocumentRecord
+        +toObject()$ Object
+        +fromRow(row, idx)$ Documento
+    }
+
+    NucleoFamiliare "1" o-- "0..*" Beneficiario : componenti
+    Beneficiario "1" -- "0..*" Documento : intestatario (CF)
+    Documento --> DocumentsCatalog : tipo/archetipo
+
+    %% =========================================================================
+    %% INCONTRI E MODULISTICA GOOGLE DOCS
+    %% =========================================================================
     class Incontro {
         +string beneficiario
         +string operatore
@@ -140,13 +196,6 @@ classDiagram
         +fromRow(row, idx, tipo)$ Incontro
     }
 
-    NucleoFamiliare "1" o-- "0..*" Beneficiario : componenti
-    Incontro "0..*" --> "1" Beneficiario : beneficiario
-    Incontro "0..*" --> "1" Operatore : operatore
-
-    %% =========================================================================
-    %% DOCUMENTI GOOGLE DOCS / DRIVE
-    %% =========================================================================
     class FoglioFirme {
         +string operator
         +string client
@@ -170,6 +219,9 @@ classDiagram
         +getPdfBlob() Blob
     }
 
+    Incontro "0..*" --> "1" Beneficiario : beneficiario
+    Incontro "0..*" --> "1" Operatore : operatore
+
     %% =========================================================================
     %% REPOSITORY LAYER (PERSISTENZA)
     %% =========================================================================
@@ -177,6 +229,20 @@ classDiagram
         +getAll()$ Beneficiario[]
         +add(data)$ Object
         +removeByCF(cf)$ Object
+        +updateDriveInfo(cf, updates)$ void
+        -_getColIndexes(headers)$ Object
+    }
+
+    class DocumentoRepository {
+        +getSheet()$ Sheet
+        +generateNextId()$ number
+        +getAll()$ Documento[]
+        +getByCF(cf)$ Documento[]
+        +getById(id)$ Documento
+        +add(data)$ Object
+        +removeById(id)$ Object
+        +removeByDriveId(driveId)$ Object
+        +getScadenzeCritiche(days)$ Documento[]
         -_getColIndexes(headers)$ Object
     }
 
@@ -195,57 +261,71 @@ classDiagram
         -_getColIndexes(headers, tipo)$ Object
     }
 
-    class FoglioFirmeRepository {
-        +get(foglioFirme, client, date)$ FoglioFirme
-        +create(operator, client, date)$ FoglioFirme
-        +appendRow(docId, rowData)$ void
-    }
-
-    class DiarioGiornalieroRepository {
-        +create(dateStr)$ DiarioGiornaliero
+    class LookupRepository {
+        +getAll(forceRefresh)$ Object
+        +getDefaults()$ Object
     }
 
     BeneficiarioRepository ..> Beneficiario : gestisce
+    DocumentoRepository ..> Documento : gestisce
     OperatoreRepository ..> Operatore : gestisce
     IncontroRepository ..> Incontro : gestisce
-    FoglioFirmeRepository ..> FoglioFirme : gestisce
-    DiarioGiornalieroRepository ..> DiarioGiornaliero : gestisce
-
-    class LookupRepository {
-        +getNamedRangeValues(rangeName)$ string[]
-        +getAll(forceRefresh)$ Object
-        +getDefaults()$ Object
-        +clearCache()$ void
-    }
 
     %% =========================================================================
-    %% CONTROLLER E SERVICES
+    %% SERVICE LAYER (DRIVE, IA, BONIFICA)
+    %% =========================================================================
+    class DriveManager {
+        +getOrCreateNucleoFolder(id, name)$ Object
+        +getOrCreateBeneficiarioFolder(cf)$ Object
+        +saveBeneficiarySignature(cf, base64)$ Object
+        +scanBeneficiarioDocuments(cf)$ Object
+        +scanNucleoDocuments(id)$ Object
+    }
+
+    class DriveReconciler {
+        +auditNucleo(nucleoId)$ NucleoAuditReport
+        +reconcileNucleo(nucleoId, options)$ Object
+        +auditArchive()$ Object
+    }
+
+    class DocumentIntelligence {
+        +isAvailable()$ boolean
+        +analyzeBlob(blob)$ Object
+        +smartClassifyBase64(base64, mime, name)$ Object
+    }
+
+    DriveReconciler ..> DriveManager : sposta/crea
+    DriveReconciler ..> DocumentoRepository : censisce
+    DriveReconciler ..> DocumentIntelligence : OCR/Vision
+    DriveManager ..> DocumentoRepository : registra firma
+
+    %% =========================================================================
+    %% CONTROLLER
     %% =========================================================================
     class BackendController {
         +doGet(e) HtmlOutput
-        +getBeneficiariObjects() Object[]
+        +getInitialAppData(forceRefresh) Object
         +submitBeneficiary(data) Object
-        +getOperatorsList() string[]
-        +getMeetingsList() Object[]
-        +submitMeeting(data) Object
-        +getNucleiObjects() Object[]
-        +submitNucleo(data) Object
+        +removeBeneficiary(cf) Object
         +submitNucleoCompleto(payload) Object
-        +getFormLookups(forceRefresh) Object
-        +decodeCF(cf) Object
-        +generateFoglioFirmeDoc(op, cl, d) Object
-        +generateSchedaSegnalazioneDoc(data) Object
-        +generateDiarioGiornalieroDoc(d) Object
-        +addRigaMonitoraggio(data) Object
+        +getDocumentiObjects(cf) Object[]
+        +submitDocumento(data) Object
+        +removeDocumento(id) Object
+        +saveBeneficiarySignature(cf, base64) Object
+        +auditNucleoDrive(nucleoId) Object
+        +reconcileNucleoDrive(nucleoId, options) Object
+        +smartClassifyDocument(base64, mime, name) Object
+        +checkGeminiStatus() Object
     }
 
     BackendController ..> BeneficiarioRepository
+    BackendController ..> DocumentoRepository
     BackendController ..> OperatoreRepository
     BackendController ..> IncontroRepository
     BackendController ..> NucleoFamiliare
-    BackendController ..> SchedaSegnalazione
-    BackendController ..> FoglioFirmeRepository
-    BackendController ..> DiarioGiornalieroRepository
+    BackendController ..> DriveManager
+    BackendController ..> DriveReconciler
+    BackendController ..> DocumentIntelligence
     BackendController ..> LookupRepository
 ```
 
@@ -253,35 +333,41 @@ classDiagram
 
 ## 2. Descrizione Dettagliata dei Modelli
 
-### 2.1 Modello `Person` e Gerarchia di Ereditarietà
-- **[`Person`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Person/0_Person.js):** Modello base astratto per qualsiasi persona fisica trattata dallo sportello. Raccoglie gli attributi anagrafici essenziali (nome, cognome, data e comune di nascita, codice fiscale, contatti telefonici ed e-mail, cittadinanza e ID Drive della firma autografa digitalizzata). Fornisce proprietà alias con getter in lingua italiana (`nome`, `cognome`, `cf`, `dataNascita`, `luogoNascita`) per mantenere la piena retrocompatibilità con i vecchi script.
-- **[`Beneficiario`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Person/Beneficiari/Beneficiario.js):** Estende `Person` aggiungendo i metadati di presa in carico: ID del nucleo familiare di appartenenza, stato occupazionale (`WorkStatus`), titolo di studio (`ISCED`/`EQF`), indirizzo di residenza e di domicilio effettivo (modellate con la classe `Address`), ente o assistente sociale di riferimento, grado di parentela rispetto all'intestatario (`Relations`) e l'oggetto strutturato `documents` contenente la disponibilità dei titoli di identità e soggiorno (carta d'identità, passaporto, patente, permesso di soggiorno, tessera sanitaria).
-- **[`Operatore`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Person/Operatori/Operatore.js):** Estende `Person` aggiungendo la qualifica professionale (es. "Operatore Sociale", "Assistente Sociale"), il ruolo operativo assegnato (es. "Accoglienza", "Front Office", "Secondo Livello") e la sigla operatore. Include il metodo factory statico `fromRow(row, idx)` per l'idratazione istantanea da Google Sheets.
+### 2.1 Catalogo di Dominio (SSOT)
+- **[`Countries`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Domain/country.js):** Catalogo immutabile di 196 nazioni che unifica denominazioni italiane, cittadinanze al singolare, codici ISO a due lettere, prefissi telefonici internazionali e bandiere emoji/SVG.
+- **[`DocumentsCatalog`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Domain/documents.js):** Catalogo immutabile di 20 tipologie documentali con 5 archetipi temporali (`SCADENZA`, `ANNUALE`, `PERIODICO`, `CONTRATTO`, `UNICO`), regex di matching, scope (*persona*, *nucleo*, *entrambi*) e naming engine `buildDocumentFileName`.
 
 ---
 
-### 2.2 Value Objects e Componenti Geografici
-- **[`CodiceFiscale`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/CodiceFiscale.js):** Incapsula la logica deterministica del Codice Fiscale italiano secondo il D.M. 23/12/1976.
-  - Implementa la normalizzazione delle omocodie (`_decodificaOmocodia`) sostituendo le lettere con le cifre originali nelle posizioni numeriche.
-  - Calcola il carattere di controllo CIN (`_calcolaCarattereControllo`) sommando i valori ponderati per le posizioni pari e dispari.
-  - Decodifica il comune o stato estero di nascita interrogando i codici Belfiore (H501 per Roma, Z112 per Romania, ecc.) con caching locale su `CacheService`.
-- **[`City`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Places/0_City.js):** Rappresenta un'entità geografica. Tramite cache e chiamate a servizi pubblici (comuni-json e OpenStreetMap Nominatim), risolve provincia, lista dei CAP ammessi, codice catastale e nazione.
-- **[`Address`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Places/Address.js):** Associa via e civico (`street`) all'oggetto `City` e al `postalCode` (CAP).
+### 2.2 Modello `Person` e Gerarchia di Ereditarietà
+- **[`Person`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Person/0_Person.js):** Modello base astratto per qualsiasi persona fisica. Gestisce anagrafica universale (nome, cognome, data di nascita, codice fiscale, contatti, cittadinanza e firma).
+- **[`Beneficiario`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Person/Beneficiari/Beneficiario.js):** Estende `Person` aggiungendo ID nucleo, stato occupazionale, titolo di studio, residenza/domicilio, presa in carico dei servizi sociali, parentela con l'intestatario, stato civile, anno arrivo in Italia, `idCartella` personale Drive e ID file `firma`.
+- **[`Operatore`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Person/Operatori/Operatore.js):** Estende `Person` aggiungendo qualifica professionale, ruolo operativo e sigla.
 
 ---
 
-### 2.3 Nucleo Familiare e Incontri
-- **[`NucleoFamiliare`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Nucleo/NucleoFamiliare.js):** Rappresenta l'unità di convivenza e progettualità assistita.
-  - Genera l'ID numerico incrementale (`generateNextId()`) verificando il massimo valore attualmente presente nel foglio Google.
-  - Memorizza le dimensioni socio-economiche (valore ISEE con 2 decimali, descrizione anamnestica del caso, obiettivi d'intervento, bisogni prioritari, sistemazione abitativa, medico di base e servizio sociale).
-- **[`Incontro`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Meeting/Incontro.js):** Traccia ogni singolo colloquio o accesso a sportello, memorizzando beneficiario, operatore, data, intervallo orario (`oraInizio` e `oraFine`), tipologia di attività, esito, stato di elaborazione ed eventuale flag di segnalazione al secondo livello.
+### 2.3 Nucleo Familiare, Fascicolo e Incontri
+- **[`NucleoFamiliare`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Nucleo/NucleoFamiliare.js):** Rappresenta il nucleo assistito. Gestisce l'ID incrementale (`generateNextId()`), l'intestatario, l'ISEE del nucleo, le dimensioni socio-abitative e l'`idCartella` su Google Drive.
+- **[`Documento`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Documenti/Documento.js):** Rappresenta il singolo documento registrato nel fascicolo relazionale sul foglio **`Documenti`**. Calcola lo stato di validità semaforico (`SCADUTO`, `IN_SCADENZA`, `VALIDO`, `PERMANENTE`), i giorni residui alla scadenza e gestisce valori numerici in € (ISEE, affitto).
+- **[`Incontro`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Meeting/Incontro.js):** Modella i colloqui di 1° livello (operatore) e 2° livello (assistente sociale), con orari, attività, segnalazione e note.
 
 ---
 
-### 2.4 Repository Layer (Persistenza e Isolamento Fogli)
-I Repository incapsulano le letture e scritture verso i fogli Google e Google Drive, isolando la complessità delle API di Apps Script (`SpreadsheetApp`, `DriveApp`, `DocumentApp`).
-- **`BeneficiarioRepository`:** Mappa le righe del foglio "Beneficiari", gestisce l'aggiornamento e la cancellazione per CF con verifica di unicità.
-- **`OperatoreRepository`:** Fornisce la lista degli operatori e la ricerca per nominativo.
-- **`IncontroRepository`:** Gestisce la persistenza separata nei due fogli "Incontri con operatore" (1° livello) e "Incontri con assistente sociale" (2° livello), supportando anche l'aggiornamento di righe esistenti.
-- **`FoglioFirmeRepository` / `DiarioGiornalieroRepository` / `SchedaSegnalazione`:** Coordinano la duplicazione dei template Google Docs, la sostituzione dei segnaposto e l'archiviazione organizzata nelle cartelle Google Drive.
-- **[`LookupRepository`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Repository/LookupRepository.js):** Gestisce il recupero centralizzato di tutti i valori ammessi (lookup lists e dropdown) interrogando i Named Ranges del foglio Google (`Abitazione`, `Sportello_Servizi`, `Criticità`, `Relazioni`, `StatoCivile`, `StatoLavorativo`, `TitoliStudio`, `Stati`, `TipiDocumenti`), con fallback automatico sui moduli di Dominio e memorizzazione in `CacheService` per 6 ore.
+### 2.4 Service Layer (Drive, Bonifica e IA)
+- **[`DriveManager`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/GDrive/DriveManager.js):** Gestisce l'alberatura delle cartelle (`<id> - <Intestatario>` e sottocartelle `<Nome Cognome>`), l'archiviazione di firme autografe PNG trasparenti e la scansione in tempo reale dei file con metadati.
+- **[`DriveReconciler`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/GDrive/DriveReconciler.js):** Motore di diagnostica e bonifica automatica: individua file fuori posto nella radice nucleo, cartelle mancanti e file orfani, spostandoli (`file.moveTo`), rinominandoli secondo la convenzione standard e censendoli nel foglio `Documenti`.
+- **[`DocumentIntelligence`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/Document/DocumentIntelligence.js):** Servizio di Computer Vision e OCR basato su Google Gemini Flash (`gemini-3.8-flash`) con schema JSON forzato per autocompilare istantaneamente le schede anagrafiche in 1-2 secondi.
+
+---
+
+### 2.5 Repository Layer (Persistenza e Isolamento)
+- **`BeneficiarioRepository`:** Persistenza su foglio `Beneficiari`.
+- **`DocumentoRepository`:** Persistenza su foglio relazionale `Documenti`, auto-increment progressivo `generateNextId()` da 1, gestione scadenze critiche.
+- **`IncontroRepository`:** Persistenza su `Incontri con operatore` e `Incontri con assistente sociale`.
+- **`OperatoreRepository`:** Anagrafica del personale.
+- **`LookupRepository`:** Cache e lettura Named Ranges con fallback di dominio.
+
+---
+
+### 2.6 Controller Backend
+- **[`BackendController` (`Backend.js`)](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Controller/Backend.js):** Gateway RPC (`google.script.run`) che espone i metodi per la Web App, aggregando lo stato iniziale in `getInitialAppData()` e serializzando le operazioni concorrenti con `LockService`.
