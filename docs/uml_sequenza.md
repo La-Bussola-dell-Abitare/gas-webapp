@@ -526,3 +526,64 @@ sequenceDiagram
     UI->>UI: Aggiorna tabella documenti con badge semaforico colorato (🟢 / 🟡 / 🔴)
     UI->>Op: Mostra Toast: "Documento registrato con successo!"
 ```
+
+---
+
+## 9. Sequenza 9: Modalità Debug Real-Time, Intercettazione RPC e Diagnostica di Sistema
+
+Descrive il ciclo di vita della modalità di debug: attivazione con scorciatoia `Ctrl + Shift + D` o da interfaccia, intercettazione a bassa invasività delle chiamate RPC tramite JavaScript `Proxy`, monitoraggio delle latenze di rete, ping diagnostico verso `pingBackend()` e generazione del report completo per il supporto tecnico.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Op as Sviluppatore / Operatore
+    participant UI as Frontend.html (DOM)
+    participant Dbg as DebugManager (Proxy & State)
+    participant GAS as google.script.run (Runtime Engine)
+    participant Ctrl as Backend.js (Controller)
+    participant Session as Google Apps Script Session
+
+    Note over Op,Dbg: 1. Attivazione Modalità Debug (Ctrl + Shift + D o Navbar)
+    Op->>UI: Premi Ctrl + Shift + D (oppure click su ⚙️ Impostazioni / 🐞 Debug)
+    UI->>Dbg: toggle()
+    Dbg->>UI: Mostra Badge Flottante (#debug-floating-badge) & Cassetto (#debug-drawer)
+    Dbg->>UI: Salva stato su localStorage ('bussola_debug_mode' = 'true')
+
+    Note over UI,Ctrl: 2. Intercettazione Trasparente delle Chiamate RPC
+    UI->>Dbg: Invocazione google.script.run.getInitialAppData()
+    activate Dbg
+    Dbg->>Dbg: Registra t0 = performance.now()
+    Dbg->>GAS: Delega chiamata al runtime Apps Script
+    activate GAS
+    GAS->>Ctrl: getInitialAppData()
+    activate Ctrl
+    Ctrl-->>GAS: Ritorna payload { lookups, beneficiari, nuclei, ... }
+    deactivate Ctrl
+    GAS-->>Dbg: Trigger withSuccessHandler(result)
+    deactivate GAS
+    Dbg->>Dbg: Calcola latenza = performance.now() - t0
+    Dbg->>Dbg: logRPC('getInitialAppData', args, 'SUCCESS', latenza)
+    Dbg->>UI: Aggiorna contatore badge, latenza media e lista log tab RPC
+    Dbg-->>UI: Inoltra result al callback originale della UI
+    deactivate Dbg
+
+    Note over Op,Session: 3. Benchmark Server (Ping Diagnostico)
+    Op->>UI: Clicca su "Esegui Ping Server" (#modal-settings o drawer)
+    UI->>Dbg: pingServer()
+    activate Dbg
+    Dbg->>Ctrl: google.script.run.pingBackend()
+    activate Ctrl
+    Ctrl->>Session: Session.getActiveUser().getEmail()
+    Ctrl->>Session: Session.getScriptTimeZone()
+    Ctrl-->>Dbg: { success: true, timestamp, serverExecutionMs, userEmail, geminiStatus }
+    deactivate Ctrl
+    Dbg->>UI: Mostra risultato ping (Latenza Round-Trip, Tempo Server, Account, Modello Gemini)
+    deactivate Dbg
+
+    Note over Op,Dbg: 4. Copia Report Diagnostico per Assistenza
+    Op->>UI: Clicca su "📋 Copia Report"
+    UI->>Dbg: copyDiagnosticsReport()
+    Dbg->>Dbg: Raccoglie statistiche RPC, stato DB, log errori e specifiche browser/OS
+    Dbg->>UI: navigator.clipboard.writeText(reportMarkdown)
+    UI->>Op: Mostra Toast: "Report diagnostico copiato negli appunti!"
+```

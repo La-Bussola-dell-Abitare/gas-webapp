@@ -56,5 +56,8 @@ In Google Apps Script questo pattern genera gravi colli di bottiglia:
 - **`auditArchive()`**: audit globale di tutti i nuclei.
 
 #### 7. Document Intelligence (Google Gemini Flash)
-- **`smartClassifyDocument(base64Data, mimeType, fileName)`**: analizza visivamente il file con `gemini-3.8-flash` ed estrae i dati anagrafici e documentali.
+- **`smartClassifyDocuments(filesPayload)`**: analizza visivamente batch di file con `gemini-3.8-flash` ed estrae dati anagrafici e documentali.
 - **`checkGeminiStatus()`**: verifica disponibilità e modello attivo.
+
+#### 8. Diagnostica di Sistema e Benchmark (Modalità Debug)
+- **`pingBackend()`**: endpoint diagnostico leggero che calcola la latenza server-side, restituisce l'identità dell'utente autenticato (`Session.getActiveUser().getEmail()`), il fuso orario di Apps Script, il modello IA attivo e la disponibilità della chiave Gemini API. Utilizzato dal benchmark del cassetto di debug nel frontend.

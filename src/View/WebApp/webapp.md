@@ -141,3 +141,29 @@ flowchart TD
   - Ricerca istantanea per nome nazione, prefisso o codice ISO.
   - Rendering vettoriale della bandiera sia nel bottone di selezione che nella lista dei suggerimenti.
   - Separazione pulita tra prefisso telefonico (es. `+39`, `+212`) e numero locale.
+
+### 4. Modalità Debug Real-Time & Pannello Diagnostica (`DebugManager`, `#debug-drawer`, `#modal-settings`)
+- **Scorciatoia da Tastiera Globale**: La combinazione `Ctrl + Shift + D` (o `Cmd + Shift + D` su macOS) attiva/disattiva istantaneamente la modalità di debug senza ricaricare la pagina.
+- **Punti di Accesso UI**:
+  - **Pulsante `⚙️ Impostazioni`** nella navbar: apre la modale `#modal-settings` per gestire la modalità debug, abilitare gli ID tecnici, eseguire il ping di benchmark del server (`pingBackend()`) e resettare la cache locale (`localStorage`).
+  - **Pulsante `🐞 Debug`** nella navbar: apre/chiude rapidamente il cassetto di diagnostica.
+  - **Footer dell'applicazione**: visualizza lo stato corrente (`Debug: Disattivato` / `Attivo`), la versione del software e il promemoria della scorciatoia da tastiera.
+- **HUD Badge Flottante (`#debug-floating-badge`)**:
+  - Fissato nell'angolo inferiore destro (z-index 1080) con indicatore di stato pulsante, conteggio delle chiamate RPC con latenza media e badge rosso reattivo per gli errori.
+- **Console Drawer di Diagnostica (`#debug-drawer`)**:
+  - Finestra a scomparsa laterale organizzata in 4 tab operative:
+    1. **⚡ Live RPC Monitor**: intercetta tutte le chiamate `google.script.run` tramite `Proxy` JavaScript, misurando la latenza in millisecondi ed evidenziando con tag colorati lo stato (`SUCCESS` o `ERROR`), con visualizzazione ad albero dei parametri e delle risposte JSON.
+    2. **💾 Stato Database**: ispettore in tempo reale delle collezioni in memoria (`dbBeneficiaries`, `dbNuclei`, `dbMeetings`, `dbDocumenti`, `dbLookups`) con conteggio record e pulsante per scaricare o ispezionare il dump JSON.
+    3. **🧠 AI & File**: storico dettagliato delle ottimizzazioni Canvas (risparmio % e KB originali vs compressi, tempo impiegato) e delle chiamate a Google Gemini Flash (`gemini-3.8-flash`) con riepilogo dei campi estratti.
+    4. **🔴 Error Log**: trappola per errori globali (`window.onerror` e `unhandledrejection`), tracciamento eccezioni con stack trace e pulsante **`📋 Copia Report Diagnostico`** per salvare negli appunti un report completo da inviare al supporto tecnico.
+- **Visualizzazione ID Tecnici (`showTechIds`)**:
+  - Interruttore che applica la classe CSS `.show-tech-ids` al `<body>`, rendendo visibili in linea su nuclei, membri e tabelle documenti gli ID primari del foglio di calcolo (`RowID: #X`), gli identificativi univoci delle cartelle Drive (`Drive: ...`) e i file ID.
+
+---
+
+## 5. Riferimenti di Codice e Link Utili
+- Controller di Backend: [Backend.js](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Controller/Backend.js)
+- Documentazione Controller: [README.md](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Controller/README.md)
+- Template Frontend: [Frontend.html](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/Frontend.html)
+- Diagrammi di Sequenza: [uml_sequenza.md](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/uml_sequenza.md)
+- Diagrammi delle Classi: [uml_classi.md](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/docs/uml_classi.md)

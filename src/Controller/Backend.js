@@ -1034,3 +1034,29 @@ function checkGeminiStatus() {
     return { available: false, model: "gemini-3.8-flash" };
   }
 }
+
+/**
+ * Esegue un ping di benchmark diagnostico per la modalità di debug.
+ * Restituisce timestamp del server, tempo di esecuzione, utente attivo e disponibilità dei servizi.
+ * 
+ * @return {{ success: boolean; serverTime: string; executionMs: number; userEmail: string; timeZone: string; geminiAvailable: boolean; geminiModel: string }}
+ */
+function pingBackend() {
+  const startTime = Date.now();
+  let userEmail = "";
+  try {
+    userEmail = Session.getActiveUser().getEmail();
+  } catch (e) {
+    userEmail = "anonimo / accesso ristretto";
+  }
+  const geminiStatus = checkGeminiStatus();
+  return {
+    success: true,
+    serverTime: new Date().toISOString(),
+    executionMs: Date.now() - startTime,
+    userEmail: userEmail || "anonimo",
+    timeZone: Session.getScriptTimeZone(),
+    geminiAvailable: geminiStatus.available,
+    geminiModel: geminiStatus.model
+  };
+}

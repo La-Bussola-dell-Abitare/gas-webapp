@@ -321,6 +321,29 @@ classDiagram
         +smartClassifyDocument(base64, mime, name) Object
         +smartClassifyDocuments(filesArray) Object
         +checkGeminiStatus() Object
+        +pingBackend() Object
+    }
+
+    class DebugManager {
+        <<Frontend Singleton>>
+        +boolean isEnabled
+        +boolean showTechIds
+        +boolean isHUDOpen
+        +string currentTab
+        +DebugLog[] logs
+        +DebugStats stats
+        +init() void
+        +toggle(forceState) void
+        +toggleTechIds(forceState) void
+        +toggleHUD(forceState) void
+        +switchTab(tabName) void
+        +installRPCInterceptor() void
+        +log(category, summary, details, level, latency) void
+        +logAI(type, details) void
+        +logCanvasCompression(originalBytes, compressedBytes, durationMs) void
+        +pingServer() Promise
+        +copyDiagnosticsReport() void
+        +clearLogs() void
     }
 
     BackendController ..> BeneficiarioRepository
@@ -332,6 +355,7 @@ classDiagram
     BackendController ..> DriveReconciler
     BackendController ..> DocumentIntelligence
     BackendController ..> LookupRepository
+    DebugManager ..> BackendController : RPC proxy & ping
 ```
 
 ---
@@ -375,4 +399,9 @@ classDiagram
 ---
 
 ### 2.6 Controller Backend
-- **[`BackendController` (`Backend.js`)](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Controller/Backend.js):** Gateway RPC (`google.script.run`) che espone i metodi per la Web App, aggregando lo stato iniziale in `getInitialAppData()` e serializzando le operazioni concorrenti con `LockService`.
+- **[`BackendController` (`Backend.js`)](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Controller/Backend.js):** Gateway RPC (`google.script.run`) che espone i metodi per la Web App, aggregando lo stato iniziale in `getInitialAppData()`, serializzando le operazioni concorrenti con `LockService` e fornendo l'endpoint diagnostico `pingBackend()`.
+
+---
+
+### 2.7 Frontend Diagnostics & Debug Singleton
+- **[`DebugManager` (`Frontend.html`)](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/Frontend.html):** Singleton frontend che gestisce l'intercettazione `google.script.run`, calcola le latenze RPC in tempo reale, monitora lo stato del database in memoria (`dbBeneficiaries`, `dbNuclei`, `dbMeetings`, `dbDocumenti`), registra i log di compressione Canvas e di Gemini Flash, traccia gli errori globali e controlla la visualizzazione degli ID tecnici (`showTechIds`).

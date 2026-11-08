@@ -433,6 +433,133 @@
       font-weight: 500;
       margin-top: 4px;
     }
+
+    /* =========================================================================
+       MODALITÀ DEBUG & TECHNICAL ID BADGES
+       ========================================================================= */
+    .tech-id-badge {
+      display: none !important;
+    }
+    body.show-tech-ids .tech-id-badge {
+      display: inline-block !important;
+    }
+
+    .debug-floating-badge {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      z-index: 1080;
+      background: #1e1e24;
+      color: #fff;
+      border-radius: 50rem;
+      padding: 6px 14px;
+      font-size: 0.78rem;
+      font-family: 'Roboto', monospace, sans-serif;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.15s ease, background-color 0.2s;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      user-select: none;
+    }
+    .debug-floating-badge:hover {
+      transform: translateY(-2px);
+      background: #111116;
+    }
+    .debug-floating-badge.active {
+      display: flex;
+    }
+
+    .debug-drawer {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      width: 660px;
+      max-width: 100vw;
+      height: 520px;
+      max-height: 85vh;
+      background: #1a1a22;
+      color: #e0e0e0;
+      z-index: 1090;
+      box-shadow: -4px -4px 28px rgba(0, 0, 0, 0.45);
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.25s ease-in-out;
+      transform: translateY(100%);
+      font-family: 'Roboto', sans-serif;
+    }
+    .debug-drawer.open {
+      transform: translateY(0);
+    }
+    .debug-drawer-header {
+      background: #121218;
+      padding: 10px 14px;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+      border-bottom: 1px solid #2d2d3a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .debug-drawer-nav {
+      background: #16161f;
+      border-bottom: 1px solid #2d2d3a;
+      padding: 0 10px;
+      display: flex;
+      gap: 4px;
+    }
+    .debug-drawer-nav .nav-link {
+      color: #9e9ea7;
+      font-size: 0.78rem;
+      padding: 8px 12px;
+      border: none;
+      border-bottom: 2px solid transparent;
+      border-radius: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+    .debug-drawer-nav .nav-link:hover {
+      color: #fff;
+    }
+    .debug-drawer-nav .nav-link.active {
+      color: #ffb300;
+      background: transparent;
+      border-bottom: 2px solid #ffb300;
+      font-weight: 600;
+    }
+    .debug-drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      font-size: 0.78rem;
+      font-family: 'Roboto Mono', Consolas, monospace;
+      background: #1a1a22;
+    }
+    .debug-log-card {
+      background: #23232d;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-bottom: 6px;
+      border-left: 3px solid #6c757d;
+      word-break: break-all;
+    }
+    .debug-log-card.success { border-left-color: #198754; }
+    .debug-log-card.error { border-left-color: #dc3545; }
+    .debug-log-card.warning { border-left-color: #ffc107; }
+    .debug-log-card.info { border-left-color: #0dcaf0; }
+
+    .app-footer {
+      background: #FFFFFF;
+      border-top: 1px solid var(--border);
+      padding: 14px 20px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 40px;
+    }
   </style>
 </head>
 
@@ -465,6 +592,16 @@
               <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
             </svg>
             <span>Sincronizza Dati</span>
+          </button>
+          <button class="btn btn-sm btn-outline-light d-flex align-items-center gap-1 shadow-sm px-2"
+            title="Impostazioni e Diagnostica" onclick="openSettingsModal()">
+            <i class="bi bi-gear-fill"></i>
+            <span class="d-none d-md-inline text-xs">Impostazioni</span>
+          </button>
+          <button id="btn-debug-nav" class="btn btn-sm btn-outline-warning d-none align-items-center gap-1 shadow-sm px-2"
+            title="Console di Debug Attiva (Ctrl+Shift+D)" onclick="DebugManager.toggleHUD()">
+            <span class="text-xs">🐞</span>
+            <span class="d-none d-md-inline text-xs fw-bold">Debug</span>
           </button>
         </div>
       </div>
@@ -929,6 +1066,29 @@
 
     </div>
   </main>
+
+  <!-- ========================================================================= -->
+  <!-- FOOTER APPLICATIVO & CONTROLLI DIAGNOSTICI -->
+  <!-- ========================================================================= -->
+  <footer class="app-footer">
+    <div class="container-fluid px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <strong class="font-outfit text-dark">La Bussola dell'Abitare</strong> &bull; Municipio XI Roma Capitale &bull; Azzurra84
+        <span class="ms-2 badge bg-light text-secondary border font-monospace">v2.3.0</span>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <a href="javascript:void(0)" class="text-secondary text-decoration-none small" onclick="openSettingsModal()" title="Impostazioni & Diagnostica di Sistema">
+          <i class="bi bi-gear me-1"></i>Impostazioni
+        </a>
+        <a href="javascript:void(0)" class="text-secondary text-decoration-none small" onclick="DebugManager.toggle()" title="Attiva/Disattiva Modalità Debug (Scorciatoia: Ctrl+Shift+D)">
+          <span class="me-1">🐞</span><span id="footer-debug-status">Debug: Off</span>
+        </a>
+        <span class="d-none d-lg-inline text-xs text-muted border-start ps-3">
+          Scorciatoia: <kbd class="bg-light text-dark border">Ctrl</kbd> + <kbd class="bg-light text-dark border">Shift</kbd> + <kbd class="bg-light text-dark border">D</kbd>
+        </span>
+      </div>
+    </div>
+  </footer>
 
   <!-- ========================================================================= -->
   <!-- MODAL: AGGIUNGI / MODIFICA MEMBRO NUCLEO (BENEFICIARIO) -->
@@ -1599,6 +1759,146 @@
     </div>
   </div>
 
+  <!-- ========================================================================= -->
+  <!-- MODAL: IMPOSTAZIONI & DIAGNOSTICA SPORTELLO -->
+  <!-- ========================================================================= -->
+  <div class="modal fade" id="modal-settings" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+      <div class="modal-content">
+        <div class="modal-header bg-light py-2">
+          <h5 class="modal-title font-outfit fs-6 fw-bold">
+            <i class="bi bi-gear-fill text-primary me-2"></i>Impostazioni & Diagnostica Sportello
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-3">
+          <!-- Sezione 1: Modalità Debug & Monitoraggio -->
+          <div class="card border mb-3">
+            <div class="card-body p-3">
+              <h6 class="fw-bold font-outfit mb-2 text-dark d-flex align-items-center justify-content-between">
+                <span><i class="bi bi-bug-fill text-warning me-2"></i>Modalità Debug & Logging</span>
+                <span class="badge bg-secondary font-monospace" id="settings-debug-pill">OFF</span>
+              </h6>
+              <p class="text-muted text-xs mb-3">
+                Abilita il monitoraggio in tempo reale delle chiamate RPC, del tempo di risposta di rete (latenza), dello stato del database locale e della diagnostica errori.
+              </p>
+              <div class="form-check form-switch mb-2">
+                <input class="form-check-input" type="checkbox" id="setting-debug-toggle" onchange="DebugManager.toggle(this.checked)">
+                <label class="form-check-label fw-semibold text-xs" for="setting-debug-toggle">
+                  Attiva Console di Debug (Scorciatoia rapida: Ctrl+Shift+D)
+                </label>
+              </div>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="setting-tech-ids-toggle" onchange="DebugManager.toggleTechIds(this.checked)">
+                <label class="form-check-label fw-semibold text-xs" for="setting-tech-ids-toggle">
+                  Mostra ID Tecnici nel Gestionale (ID Cartelle Drive, ID Nucleo, ID Documenti)
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sezione 2: Connettività & Benchmark Server -->
+          <div class="card border mb-3">
+            <div class="card-body p-3">
+              <h6 class="fw-bold font-outfit mb-2 text-dark">
+                <i class="bi bi-speedometer2 text-info me-2"></i>Connettività & Performance
+              </h6>
+              <div class="d-flex gap-2 flex-wrap mb-2">
+                <button class="btn btn-sm btn-outline-primary" id="btn-ping-server" onclick="DebugManager.pingServer(this)">
+                  <i class="bi bi-broadcast me-1"></i>Test Connessione (Ping)
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="reloadData(true)">
+                  <i class="bi bi-arrow-clockwise me-1"></i>Ricarica Dati (Forzato)
+                </button>
+              </div>
+              <div id="ping-results-box" class="p-2 rounded bg-light border text-xs font-monospace d-none"></div>
+            </div>
+          </div>
+
+          <!-- Sezione 3: Manutenzione Cache Locale -->
+          <div class="card border mb-3">
+            <div class="card-body p-3">
+              <h6 class="fw-bold font-outfit mb-2 text-dark">
+                <i class="bi bi-trash3 text-danger me-2"></i>Cache & Memoria Locale
+              </h6>
+              <p class="text-muted text-xs mb-2">
+                Se riscontri anomalie o vuoi ripristinare le impostazioni predefinite della Web App, puoi cancellare i dati memorizzati in locale.
+              </p>
+              <button class="btn btn-sm btn-outline-danger" onclick="DebugManager.clearLocalStorage()">
+                <i class="bi bi-trash me-1"></i>Svuota Cache Locale & Ricarica
+              </button>
+            </div>
+          </div>
+
+          <!-- Sezione 4: Scorciatoie da Tastiera -->
+          <div class="bg-light p-2 rounded border">
+            <div class="text-xs text-muted fw-semibold mb-1">Scorciatoie Rapide Disponibili:</div>
+            <div class="d-flex justify-content-between text-xs py-1 border-bottom">
+              <span>Attiva/Disattiva Console Debug:</span>
+              <span><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd></span>
+            </div>
+            <div class="d-flex justify-content-between text-xs py-1">
+              <span>Sincronizza / Ricarica Dati:</span>
+              <span class="text-muted">Pulsante in alto a destra</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light py-2">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Chiudi</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING DEBUG BADGE (In basso a destra) -->
+  <div id="debug-floating-badge" class="debug-floating-badge" onclick="DebugManager.toggleHUD()">
+    <span class="fs-6">🐞</span>
+    <span class="fw-bold" id="debug-badge-text">Debug: Attivo</span>
+    <span class="badge bg-dark border text-warning ms-1" id="debug-badge-rpc">0 RPC</span>
+    <span class="badge bg-danger ms-1 d-none" id="debug-badge-err">0 ERR</span>
+  </div>
+
+  <!-- DEBUG CONSOLE DRAWER (Console a scomparsa) -->
+  <div id="debug-drawer" class="debug-drawer">
+    <div class="debug-drawer-header">
+      <div class="d-flex align-items-center gap-2">
+        <span class="fs-6">🐞</span>
+        <strong class="font-outfit text-white fs-6">Console di Debug & Attività</strong>
+        <span class="badge bg-warning text-dark text-xs font-monospace ms-2" id="debug-drawer-stats">0 RPC &bull; 0ms</span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-xs btn-outline-info py-0 px-2" onclick="DebugManager.copyDiagnosticsReport()" title="Copia report diagnostico completo negli appunti">
+          <i class="bi bi-clipboard me-1"></i>Copia Report
+        </button>
+        <button class="btn btn-xs btn-outline-secondary py-0 px-2" onclick="DebugManager.clearLogs()" title="Pulisci cronologia eventi">
+          <i class="bi bi-trash me-1"></i>Pulisci
+        </button>
+        <button class="btn btn-xs btn-outline-light py-0 px-2" onclick="DebugManager.toggleHUD(false)" title="Minimizza console">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>
+    
+    <div class="debug-drawer-nav">
+      <button class="nav-link active" onclick="DebugManager.setTab('rpc')" id="debug-nav-rpc">
+        ⚡ Live RPC (<span id="count-nav-rpc">0</span>)
+      </button>
+      <button class="nav-link" onclick="DebugManager.setTab('state')" id="debug-nav-state">
+        💾 Stato Database (<span id="count-nav-state">0</span>)
+      </button>
+      <button class="nav-link" onclick="DebugManager.setTab('ai')" id="debug-nav-ai">
+        🧠 IA & Files (<span id="count-nav-ai">0</span>)
+      </button>
+      <button class="nav-link" onclick="DebugManager.setTab('errors')" id="debug-nav-errors">
+        🔴 Errori (<span id="count-nav-errors" class="text-danger">0</span>)
+      </button>
+    </div>
+
+    <div class="debug-drawer-body" id="debug-drawer-content">
+      <!-- I contenuti delle tab vengono renderizzati dinamicamente da DebugManager.renderHUD() -->
+    </div>
+  </div>
+
   <div class="toast-container-custom" id="toast-container"></div>
 
   <!-- Bootstrap and Client Scripts -->
@@ -1619,8 +1919,560 @@
     // Catalogo unificato Nazioni e prefissi in ordine alfabetico (Domain Model SSOT)
     const COUNTRIES = [{ "name": "Afghanistan", "citizenship": "Afghana", "iso": "AF", "phone": "+93", "flag": "🇦🇫" }, { "name": "Albania", "citizenship": "Albanese", "iso": "AL", "phone": "+355", "flag": "🇦🇱" }, { "name": "Algeria", "citizenship": "Algerina", "iso": "DZ", "phone": "+213", "flag": "🇩🇿" }, { "name": "Andorra", "citizenship": "Andorrana", "iso": "AD", "phone": "+376", "flag": "🇦🇩" }, { "name": "Angola", "citizenship": "Angolana", "iso": "AO", "phone": "+244", "flag": "🇦🇴" }, { "name": "Antigua e Barbuda", "citizenship": "Antiguana", "iso": "AG", "phone": "+1268", "flag": "🇦🇬" }, { "name": "Arabia Saudita", "citizenship": "Saudita", "iso": "SA", "phone": "+966", "flag": "🇸🇦" }, { "name": "Argentina", "citizenship": "Argentina", "iso": "AR", "phone": "+54", "flag": "🇦🇷" }, { "name": "Armenia", "citizenship": "Armena", "iso": "AM", "phone": "+374", "flag": "🇦🇲" }, { "name": "Australia", "citizenship": "Australiana", "iso": "AU", "phone": "+61", "flag": "🇦🇺" }, { "name": "Austria", "citizenship": "Austriaca", "iso": "AT", "phone": "+43", "flag": "🇦🇹" }, { "name": "Azerbaigian", "citizenship": "Azera", "iso": "AZ", "phone": "+994", "flag": "🇦🇿" }, { "name": "Bahamas", "citizenship": "Bahamense", "iso": "BS", "phone": "+1242", "flag": "🇧🇸" }, { "name": "Bahrein", "citizenship": "Bahreinita", "iso": "BH", "phone": "+973", "flag": "🇧🇭" }, { "name": "Bangladesh", "citizenship": "Bangladese", "iso": "BD", "phone": "+880", "flag": "🇧🇩" }, { "name": "Barbados", "citizenship": "Barbadiana", "iso": "BB", "phone": "+1246", "flag": "🇧🇧" }, { "name": "Belgio", "citizenship": "Belga", "iso": "BE", "phone": "+32", "flag": "🇧🇪" }, { "name": "Belize", "citizenship": "Beliziana", "iso": "BZ", "phone": "+501", "flag": "🇧🇿" }, { "name": "Benin", "citizenship": "Beninese", "iso": "BJ", "phone": "+229", "flag": "🇧🇯" }, { "name": "Bhutan", "citizenship": "Bhutanese", "iso": "BT", "phone": "+975", "flag": "🇧🇹" }, { "name": "Bielorussia", "citizenship": "Bielorussa", "iso": "BY", "phone": "+375", "flag": "🇧🇾" }, { "name": "Bolivia", "citizenship": "Boliviana", "iso": "BO", "phone": "+591", "flag": "🇧🇴" }, { "name": "Bosnia ed Erzegovina", "citizenship": "Bosniaca", "iso": "BA", "phone": "+387", "flag": "🇧🇦" }, { "name": "Botswana", "citizenship": "Botswanese", "iso": "BW", "phone": "+267", "flag": "🇧🇼" }, { "name": "Brasile", "citizenship": "Brasiliana", "iso": "BR", "phone": "+55", "flag": "🇧🇷" }, { "name": "Brunei", "citizenship": "Bruneiana", "iso": "BN", "phone": "+673", "flag": "🇧🇳" }, { "name": "Bulgaria", "citizenship": "Bulgara", "iso": "BG", "phone": "+359", "flag": "🇧🇬" }, { "name": "Burkina Faso", "citizenship": "Burkinabé", "iso": "BF", "phone": "+226", "flag": "🇧🇫" }, { "name": "Burundi", "citizenship": "Burundese", "iso": "BI", "phone": "+257", "flag": "🇧🇮" }, { "name": "Cambogia", "citizenship": "Cambogiana", "iso": "KH", "phone": "+855", "flag": "🇰🇭" }, { "name": "Camerun", "citizenship": "Camerunense", "iso": "CM", "phone": "+237", "flag": "🇨🇲" }, { "name": "Canada", "citizenship": "Canadese", "iso": "CA", "phone": "+1", "flag": "🇨🇦" }, { "name": "Capo Verde", "citizenship": "Capoverdiana", "iso": "CV", "phone": "+238", "flag": "🇨🇻" }, { "name": "Ciad", "citizenship": "Ciadiana", "iso": "TD", "phone": "+235", "flag": "🇹🇩" }, { "name": "Cile", "citizenship": "Cilena", "iso": "CL", "phone": "+56", "flag": "🇨🇱" }, { "name": "Cina", "citizenship": "Cinese", "iso": "CN", "phone": "+86", "flag": "🇨🇳" }, { "name": "Cipro", "citizenship": "Cipriota", "iso": "CY", "phone": "+357", "flag": "🇨🇾" }, { "name": "Colombia", "citizenship": "Colombiana", "iso": "CO", "phone": "+57", "flag": "🇨🇴" }, { "name": "Comore", "citizenship": "Comoriana", "iso": "KM", "phone": "+269", "flag": "🇰🇲" }, { "name": "Congo", "citizenship": "Congolese", "iso": "CG", "phone": "+242", "flag": "🇨🇬" }, { "name": "Corea del Nord", "citizenship": "Nordcoreana", "iso": "KP", "phone": "+850", "flag": "🇰🇵" }, { "name": "Corea del Sud", "citizenship": "Sudcoreana", "iso": "KR", "phone": "+82", "flag": "🇰🇷" }, { "name": "Costa d’Avorio", "citizenship": "Ivoriana", "iso": "CI", "phone": "+225", "flag": "🇨🇮" }, { "name": "Costa Rica", "citizenship": "Costaricana", "iso": "CR", "phone": "+506", "flag": "🇨🇷" }, { "name": "Croazia", "citizenship": "Croata", "iso": "HR", "phone": "+385", "flag": "🇭🇷" }, { "name": "Cuba", "citizenship": "Cubana", "iso": "CU", "phone": "+53", "flag": "🇨🇺" }, { "name": "Danimarca", "citizenship": "Danese", "iso": "DK", "phone": "+45", "flag": "🇩🇰" }, { "name": "Dominica", "citizenship": "Dominicana", "iso": "DM", "phone": "+1767", "flag": "🇩🇲" }, { "name": "Ecuador", "citizenship": "Ecuadoriana", "iso": "EC", "phone": "+593", "flag": "🇪🇨" }, { "name": "Egitto", "citizenship": "Egiziana", "iso": "EG", "phone": "+20", "flag": "🇪🇬" }, { "name": "El Salvador", "citizenship": "Salvadoregna", "iso": "SV", "phone": "+503", "flag": "🇸🇻" }, { "name": "Emirati Arabi Uniti", "citizenship": "Emiratina", "iso": "AE", "phone": "+971", "flag": "🇦🇪" }, { "name": "Eritrea", "citizenship": "Eritrea", "iso": "ER", "phone": "+291", "flag": "🇪🇷" }, { "name": "Estonia", "citizenship": "Estone", "iso": "EE", "phone": "+372", "flag": "🇪🇪" }, { "name": "Eswatini", "citizenship": "Swatina", "iso": "SZ", "phone": "+268", "flag": "🇸🇿" }, { "name": "Etiopia", "citizenship": "Etiope", "iso": "ET", "phone": "+251", "flag": "🇪🇹" }, { "name": "Figi", "citizenship": "Figiana", "iso": "FJ", "phone": "+679", "flag": "🇫🇯" }, { "name": "Filippine", "citizenship": "Filippina", "iso": "PH", "phone": "+63", "flag": "🇵🇭" }, { "name": "Finlandia", "citizenship": "Finlandese", "iso": "FI", "phone": "+358", "flag": "🇫🇮" }, { "name": "Francia", "citizenship": "Francese", "iso": "FR", "phone": "+33", "flag": "🇫🇷" }, { "name": "Gabon", "citizenship": "Gabonese", "iso": "GA", "phone": "+241", "flag": "🇬🇦" }, { "name": "Gambia", "citizenship": "Gambiana", "iso": "GM", "phone": "+220", "flag": "🇬🇲" }, { "name": "Georgia", "citizenship": "Georgiana", "iso": "GE", "phone": "+995", "flag": "🇬🇪" }, { "name": "Germania", "citizenship": "Tedesca", "iso": "DE", "phone": "+49", "flag": "🇩🇪" }, { "name": "Ghana", "citizenship": "Ghanese", "iso": "GH", "phone": "+233", "flag": "🇬🇭" }, { "name": "Giamaica", "citizenship": "Giamaicana", "iso": "JM", "phone": "+1876", "flag": "🇯🇲" }, { "name": "Giappone", "citizenship": "Giapponese", "iso": "JP", "phone": "+81", "flag": "🇯🇵" }, { "name": "Gibuti", "citizenship": "Gibutiana", "iso": "DJ", "phone": "+253", "flag": "🇩🇯" }, { "name": "Giordania", "citizenship": "Giordana", "iso": "JO", "phone": "+962", "flag": "🇯🇴" }, { "name": "Grecia", "citizenship": "Greca", "iso": "GR", "phone": "+30", "flag": "🇬🇷" }, { "name": "Grenada", "citizenship": "Grenadina", "iso": "GD", "phone": "+1473", "flag": "🇬🇩" }, { "name": "Guatemala", "citizenship": "Guatemalteca", "iso": "GT", "phone": "+502", "flag": "🇬🇹" }, { "name": "Guinea", "citizenship": "Guineana", "iso": "GN", "phone": "+224", "flag": "🇬🇳" }, { "name": "Guinea Equatoriale", "citizenship": "Equatoguineana", "iso": "GQ", "phone": "+240", "flag": "🇬🇶" }, { "name": "Guinea-Bissau", "citizenship": "Guineense", "iso": "GW", "phone": "+245", "flag": "🇬🇼" }, { "name": "Guyana", "citizenship": "Guyanese", "iso": "GY", "phone": "+592", "flag": "🇬🇾" }, { "name": "Haiti", "citizenship": "Haitiana", "iso": "HT", "phone": "+509", "flag": "🇭🇹" }, { "name": "Honduras", "citizenship": "Honduregna", "iso": "HN", "phone": "+504", "flag": "🇭🇳" }, { "name": "India", "citizenship": "Indiana", "iso": "IN", "phone": "+91", "flag": "🇮🇳" }, { "name": "Indonesia", "citizenship": "Indonesiana", "iso": "ID", "phone": "+62", "flag": "🇮🇩" }, { "name": "Iran", "citizenship": "Iraniana", "iso": "IR", "phone": "+98", "flag": "🇮🇷" }, { "name": "Iraq", "citizenship": "Irachena", "iso": "IQ", "phone": "+964", "flag": "🇮🇶" }, { "name": "Irlanda", "citizenship": "Irlandese", "iso": "IE", "phone": "+353", "flag": "🇮🇪" }, { "name": "Islanda", "citizenship": "Islandese", "iso": "IS", "phone": "+354", "flag": "🇮🇸" }, { "name": "Isole Marshall", "citizenship": "Marshallese", "iso": "MH", "phone": "+692", "flag": "🇲🇭" }, { "name": "Israele", "citizenship": "Israeliana", "iso": "IL", "phone": "+972", "flag": "🇮🇱" }, { "name": "Italia", "citizenship": "Italiana", "iso": "IT", "phone": "+39", "flag": "🇮🇹" }, { "name": "Kazakistan", "citizenship": "Kazaka", "iso": "KZ", "phone": "+7", "flag": "🇰🇿" }, { "name": "Kenya", "citizenship": "Kenyana", "iso": "KE", "phone": "+254", "flag": "🇰🇪" }, { "name": "Kirghizistan", "citizenship": "Kirghisa", "iso": "KG", "phone": "+996", "flag": "🇰🇬" }, { "name": "Kiribati", "citizenship": "Kiribatiana", "iso": "KI", "phone": "+686", "flag": "🇰🇮" }, { "name": "Kosovo", "citizenship": "Kosovara", "iso": "XK", "phone": "+383", "flag": "🇽🇰" }, { "name": "Kuwait", "citizenship": "Kuwaitiana", "iso": "KW", "phone": "+965", "flag": "🇰🇼" }, { "name": "Laos", "citizenship": "Laotiana", "iso": "LA", "phone": "+856", "flag": "🇱🇦" }, { "name": "Lesotho", "citizenship": "Lesothiana", "iso": "LS", "phone": "+266", "flag": "🇱🇸" }, { "name": "Lettonia", "citizenship": "Lettone", "iso": "LV", "phone": "+371", "flag": "🇱🇻" }, { "name": "Libano", "citizenship": "Libanese", "iso": "LB", "phone": "+961", "flag": "🇱🇧" }, { "name": "Liberia", "citizenship": "Liberiana", "iso": "LR", "phone": "+231", "flag": "🇱🇷" }, { "name": "Libia", "citizenship": "Libica", "iso": "LY", "phone": "+218", "flag": "🇱🇾" }, { "name": "Liechtenstein", "citizenship": "Liechtensteiniana", "iso": "LI", "phone": "+423", "flag": "🇱🇮" }, { "name": "Lituania", "citizenship": "Lituana", "iso": "LT", "phone": "+370", "flag": "🇱🇹" }, { "name": "Lussemburgo", "citizenship": "Lussemburghese", "iso": "LU", "phone": "+352", "flag": "🇱🇺" }, { "name": "Macedonia del Nord", "citizenship": "Macedone", "iso": "MK", "phone": "+389", "flag": "🇲🇰" }, { "name": "Madagascar", "citizenship": "Malgascia", "iso": "MG", "phone": "+261", "flag": "🇲🇬" }, { "name": "Malawi", "citizenship": "Malawiana", "iso": "MW", "phone": "+265", "flag": "🇲🇼" }, { "name": "Malaysia", "citizenship": "Malese", "iso": "MY", "phone": "+60", "flag": "🇲🇾" }, { "name": "Maldive", "citizenship": "Maldiviana", "iso": "MV", "phone": "+960", "flag": "🇲🇻" }, { "name": "Mali", "citizenship": "Maliana", "iso": "ML", "phone": "+223", "flag": "🇲🇱" }, { "name": "Malta", "citizenship": "Maltese", "iso": "MT", "phone": "+356", "flag": "🇲🇹" }, { "name": "Marocco", "citizenship": "Marocchina", "iso": "MA", "phone": "+212", "flag": "🇲🇦" }, { "name": "Mauritania", "citizenship": "Mauritana", "iso": "MR", "phone": "+222", "flag": "🇲🇷" }, { "name": "Mauritius", "citizenship": "Mauriziana", "iso": "MU", "phone": "+230", "flag": "🇲🇺" }, { "name": "Messico", "citizenship": "Messicana", "iso": "MX", "phone": "+52", "flag": "🇲🇽" }, { "name": "Micronesia", "citizenship": "Micronesiana", "iso": "FM", "phone": "+691", "flag": "🇫🇲" }, { "name": "Moldavia", "citizenship": "Moldava", "iso": "MD", "phone": "+373", "flag": "🇲🇩" }, { "name": "Monaco", "citizenship": "Monegasca", "iso": "MC", "phone": "+377", "flag": "🇲🇨" }, { "name": "Mongolia", "citizenship": "Mongola", "iso": "MN", "phone": "+976", "flag": "🇲🇳" }, { "name": "Montenegro", "citizenship": "Montenegrina", "iso": "ME", "phone": "+382", "flag": "🇲🇪" }, { "name": "Mozambico", "citizenship": "Mozambicana", "iso": "MZ", "phone": "+258", "flag": "🇲🇿" }, { "name": "Myanmar", "citizenship": "Birmana", "iso": "MM", "phone": "+95", "flag": "🇲🇲" }, { "name": "Namibia", "citizenship": "Namibiana", "iso": "NA", "phone": "+264", "flag": "🇳🇦" }, { "name": "Nauru", "citizenship": "Nauruana", "iso": "NR", "phone": "+674", "flag": "🇳🇷" }, { "name": "Nepal", "citizenship": "Nepalese", "iso": "NP", "phone": "+977", "flag": "🇳🇵" }, { "name": "Nessuno", "citizenship": "Apolide", "iso": "IT", "phone": "+39", "flag": "🇮🇹" }, { "name": "Nicaragua", "citizenship": "Nicaraguense", "iso": "NI", "phone": "+505", "flag": "🇳🇮" }, { "name": "Niger", "citizenship": "Nigerina", "iso": "NE", "phone": "+227", "flag": "🇳🇪" }, { "name": "Nigeria", "citizenship": "Nigeriana", "iso": "NG", "phone": "+234", "flag": "🇳🇬" }, { "name": "Norvegia", "citizenship": "Norvegese", "iso": "NO", "phone": "+47", "flag": "🇳🇴" }, { "name": "Nuova Zelanda", "citizenship": "Neozelandese", "iso": "NZ", "phone": "+64", "flag": "🇳🇿" }, { "name": "Oman", "citizenship": "Omanita", "iso": "OM", "phone": "+968", "flag": "🇴🇲" }, { "name": "Paesi Bassi", "citizenship": "Olandese", "iso": "NL", "phone": "+31", "flag": "🇳🇱" }, { "name": "Pakistan", "citizenship": "Pakistana", "iso": "PK", "phone": "+92", "flag": "🇵🇰" }, { "name": "Palau", "citizenship": "Palauana", "iso": "PW", "phone": "+680", "flag": "🇵🇼" }, { "name": "Palestina", "citizenship": "Palestinese", "iso": "PS", "phone": "+970", "flag": "🇵🇸" }, { "name": "Panama", "citizenship": "Panamense", "iso": "PA", "phone": "+507", "flag": "🇵🇦" }, { "name": "Papua Nuova Guinea", "citizenship": "Papua", "iso": "PG", "phone": "+675", "flag": "🇵🇬" }, { "name": "Paraguay", "citizenship": "Paraguayana", "iso": "PY", "phone": "+595", "flag": "🇵🇾" }, { "name": "Perù", "citizenship": "Peruviana", "iso": "PE", "phone": "+51", "flag": "🇵🇪" }, { "name": "Polonia", "citizenship": "Polacca", "iso": "PL", "phone": "+48", "flag": "🇵🇱" }, { "name": "Portogallo", "citizenship": "Portoghese", "iso": "PT", "phone": "+351", "flag": "🇵🇹" }, { "name": "Qatar", "citizenship": "Qatarina", "iso": "QA", "phone": "+974", "flag": "🇶🇦" }, { "name": "Regno Unito", "citizenship": "Britannica", "iso": "GB", "phone": "+44", "flag": "🇬🇧" }, { "name": "Repubblica Ceca", "citizenship": "Ceca", "iso": "CZ", "phone": "+420", "flag": "🇨🇿" }, { "name": "Repubblica Centrafricana", "citizenship": "Centrafricana", "iso": "CF", "phone": "+236", "flag": "🇨🇫" }, { "name": "Repubblica Dominicana", "citizenship": "Dominicana_RD", "iso": "DO", "phone": "+1809", "flag": "🇩🇴" }, { "name": "Romania", "citizenship": "Romena", "iso": "RO", "phone": "+40", "flag": "🇷🇴" }, { "name": "Ruanda", "citizenship": "Ruandese", "iso": "RW", "phone": "+250", "flag": "🇷🇼" }, { "name": "Russia", "citizenship": "Russa", "iso": "RU", "phone": "+7", "flag": "🇷🇺" }, { "name": "Saint Kitts e Nevis", "citizenship": "Nevisiana", "iso": "KN", "phone": "+1869", "flag": "🇰🇳" }, { "name": "Saint Lucia", "citizenship": "Luciana", "iso": "LC", "phone": "+1758", "flag": "🇱🇨" }, { "name": "Saint Vincent e Grenadine", "citizenship": "Vincentina", "iso": "VC", "phone": "+1784", "flag": "🇻🇨" }, { "name": "Samoa", "citizenship": "Samoana", "iso": "WS", "phone": "+685", "flag": "🇼🇸" }, { "name": "San Marino", "citizenship": "Sammarinese", "iso": "SM", "phone": "+378", "flag": "🇸🇲" }, { "name": "São Tomé e Príncipe", "citizenship": "Santomese", "iso": "ST", "phone": "+239", "flag": "🇸🇹" }, { "name": "Senegal", "citizenship": "Senegalese", "iso": "SN", "phone": "+221", "flag": "🇸🇳" }, { "name": "Serbia", "citizenship": "Serba", "iso": "RS", "phone": "+381", "flag": "🇷🇸" }, { "name": "Seychelles", "citizenship": "Seychellese", "iso": "SC", "phone": "+248", "flag": "🇸🇨" }, { "name": "Sierra Leone", "citizenship": "Sierraleonese", "iso": "SL", "phone": "+232", "flag": "🇸🇱" }, { "name": "Singapore", "citizenship": "Singaporiana", "iso": "SG", "phone": "+65", "flag": "🇸🇬" }, { "name": "Siria", "citizenship": "Siriana", "iso": "SY", "phone": "+963", "flag": "🇸🇾" }, { "name": "Slovacchia", "citizenship": "Slovacca", "iso": "SK", "phone": "+421", "flag": "🇸🇰" }, { "name": "Slovenia", "citizenship": "Slovena", "iso": "SI", "phone": "+386", "flag": "🇸🇮" }, { "name": "Somalia", "citizenship": "Somala", "iso": "SO", "phone": "+252", "flag": "🇸🇴" }, { "name": "Spagna", "citizenship": "Spagnola", "iso": "ES", "phone": "+34", "flag": "🇪🇸" }, { "name": "Sri Lanka", "citizenship": "Singalese", "iso": "LK", "phone": "+94", "flag": "🇱🇰" }, { "name": "Stati Uniti", "citizenship": "Statunitense", "iso": "US", "phone": "+1", "flag": "🇺🇸" }, { "name": "Sudafrica", "citizenship": "Sudafricana", "iso": "ZA", "phone": "+27", "flag": "🇿🇦" }, { "name": "Sudan", "citizenship": "Sudanese", "iso": "SD", "phone": "+249", "flag": "🇸🇩" }, { "name": "Sudan del Sud", "citizenship": "Sudsudanese", "iso": "SS", "phone": "+211", "flag": "🇸🇸" }, { "name": "Suriname", "citizenship": "Surinamese", "iso": "SR", "phone": "+597", "flag": "🇸🇷" }, { "name": "Svezia", "citizenship": "Svedese", "iso": "SE", "phone": "+46", "flag": "🇸🇪" }, { "name": "Svizzera", "citizenship": "Svizzera", "iso": "CH", "phone": "+41", "flag": "🇨🇭" }, { "name": "Tagikistan", "citizenship": "Tagika", "iso": "TJ", "phone": "+992", "flag": "🇹🇯" }, { "name": "Tanzania", "citizenship": "Tanzaniana", "iso": "TZ", "phone": "+255", "flag": "🇹🇿" }, { "name": "Thailandia", "citizenship": "Thailandese", "iso": "TH", "phone": "+66", "flag": "🇹🇭" }, { "name": "Timor Est", "citizenship": "Timorese", "iso": "TL", "phone": "+670", "flag": "🇹🇱" }, { "name": "Togo", "citizenship": "Togolese", "iso": "TG", "phone": "+228", "flag": "🇹🇬" }, { "name": "Tonga", "citizenship": "Tongana", "iso": "TO", "phone": "+676", "flag": "🇹🇴" }, { "name": "Trinidad e Tobago", "citizenship": "Trinidadiana", "iso": "TT", "phone": "+1868", "flag": "🇹🇹" }, { "name": "Tunisia", "citizenship": "Tunisina", "iso": "TN", "phone": "+216", "flag": "🇹🇳" }, { "name": "Turchia", "citizenship": "Turca", "iso": "TR", "phone": "+90", "flag": "🇹🇷" }, { "name": "Turkmenistan", "citizenship": "Turkmena", "iso": "TM", "phone": "+993", "flag": "🇹🇲" }, { "name": "Tuvalu", "citizenship": "Tuvaluana", "iso": "TV", "phone": "+688", "flag": "🇹🇻" }, { "name": "Ucraina", "citizenship": "Ucraina", "iso": "UA", "phone": "+380", "flag": "🇺🇦" }, { "name": "Uganda", "citizenship": "Ugandese", "iso": "UG", "phone": "+256", "flag": "🇺🇬" }, { "name": "Ungheria", "citizenship": "Ungherese", "iso": "HU", "phone": "+36", "flag": "🇭🇺" }, { "name": "Uruguay", "citizenship": "Uruguaiana", "iso": "UY", "phone": "+598", "flag": "🇺🇾" }, { "name": "Uzbekistan", "citizenship": "Uzbeka", "iso": "UZ", "phone": "+998", "flag": "🇺🇿" }, { "name": "Vanuatu", "citizenship": "Vanuatiana", "iso": "VU", "phone": "+678", "flag": "🇻🇺" }, { "name": "Vaticano", "citizenship": "Vaticana", "iso": "VA", "phone": "+39", "flag": "🇻🇦" }, { "name": "Venezuela", "citizenship": "Venezuelana", "iso": "VE", "phone": "+58", "flag": "🇻🇪" }, { "name": "Vietnam", "citizenship": "Vietnamita", "iso": "VN", "phone": "+84", "flag": "🇻🇳" }, { "name": "Yemen", "citizenship": "Yemenita", "iso": "YE", "phone": "+967", "flag": "🇾🇪" }, { "name": "Zambia", "citizenship": "Zambiana", "iso": "ZM", "phone": "+260", "flag": "🇿🇲" }, { "name": "Zimbabwe", "citizenship": "Zimbabwese", "iso": "ZW", "phone": "+263", "flag": "🇿🇼" }];
 
+    /**
+     * Utility di escape caratteri HTML per visualizzazione sicura nei log.
+     */
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    /**
+     * Gestore centralizzato della modalità di debug, logging e diagnostica delle attività.
+     * Traccia le chiamate RPC (google.script.run), lo stato del database in memoria,
+     * le performance di compressione Canvas e di Google Gemini Flash, e intercetta gli errori globali.
+     */
+    const DebugManager = {
+      isEnabled: false,
+      showTechIds: false,
+      isHUDOpen: false,
+      currentTab: 'rpc',
+      logs: [],
+      stats: {
+        rpcCount: 0,
+        rpcSuccess: 0,
+        rpcError: 0,
+        totalLatency: 0,
+        avgLatency: 0,
+        errorCount: 0,
+        aiCalls: 0,
+        canvasCompressions: []
+      },
+
+      init() {
+        try {
+          this.isEnabled = localStorage.getItem('bussola_debug_mode') === 'true';
+          this.showTechIds = localStorage.getItem('bussola_show_tech_ids') === 'true';
+        } catch (e) {
+          console.warn('localStorage non accessibile:', e);
+        }
+
+        this.applyTechIdsClass();
+        this.updatePillAndNav();
+
+        // Listener scorciatoia da tastiera (Ctrl + Shift + D o Cmd + Shift + D)
+        window.addEventListener('keydown', (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'D' || e.key === 'd')) {
+            e.preventDefault();
+            this.toggle();
+          }
+        });
+
+        // Intercettazione errori globali runtime
+        window.addEventListener('error', (event) => {
+          this.log('GLOBAL_ERROR', event.message || 'Errore JavaScript', {
+            filename: event.filename,
+            lineno: event.lineno,
+            colno: event.colno,
+            error: event.error ? (event.error.stack || event.error.message) : null
+          }, 'ERROR');
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+          this.log('PROMISE_REJECTION', event.reason ? (event.reason.message || String(event.reason)) : 'Promise rigettata', {
+            stack: event.reason ? event.reason.stack : null
+          }, 'ERROR');
+        });
+
+        // Installa RPC Interceptor
+        this.installRPCInterceptor();
+      },
+
+      toggle(forceState) {
+        this.isEnabled = (typeof forceState === 'boolean') ? forceState : !this.isEnabled;
+        try {
+          localStorage.setItem('bussola_debug_mode', this.isEnabled ? 'true' : 'false');
+        } catch (e) {}
+
+        this.updatePillAndNav();
+        if (this.isEnabled) {
+          showToast('🐞 Modalità Debug abilitata. Console attiva in basso a destra.', 'info');
+          this.log('SYSTEM', 'Modalità Debug attivata dall\'operatore', { timestamp: new Date().toISOString() }, 'INFO');
+          this.toggleHUD(true);
+        } else {
+          showToast('Modalità Debug disattivata.', 'secondary');
+          this.toggleHUD(false);
+        }
+      },
+
+      toggleTechIds(forceState) {
+        this.showTechIds = (typeof forceState === 'boolean') ? forceState : !this.showTechIds;
+        try {
+          localStorage.setItem('bussola_show_tech_ids', this.showTechIds ? 'true' : 'false');
+        } catch (e) {}
+        this.applyTechIdsClass();
+        showToast(this.showTechIds ? 'Visualizzazione ID tecnici attivata.' : 'ID tecnici nascosti.', 'info');
+      },
+
+      applyTechIdsClass() {
+        if (this.showTechIds) {
+          document.body.classList.add('show-tech-ids');
+        } else {
+          document.body.classList.remove('show-tech-ids');
+        }
+        const chk = document.getElementById('setting-tech-ids-toggle');
+        if (chk) chk.checked = this.showTechIds;
+      },
+
+      updatePillAndNav() {
+        const badge = document.getElementById('debug-floating-badge');
+        const navBtn = document.getElementById('btn-debug-nav');
+        const pill = document.getElementById('settings-debug-pill');
+        const chk = document.getElementById('setting-debug-toggle');
+        const footerStatus = document.getElementById('footer-debug-status');
+
+        if (badge) {
+          if (this.isEnabled) badge.classList.add('active');
+          else badge.classList.remove('active');
+        }
+        if (navBtn) {
+          if (this.isEnabled) navBtn.classList.remove('d-none');
+          else navBtn.classList.add('d-none');
+        }
+        if (pill) {
+          pill.textContent = this.isEnabled ? 'ON' : 'OFF';
+          pill.className = this.isEnabled ? 'badge bg-warning text-dark font-monospace' : 'badge bg-secondary font-monospace';
+        }
+        if (chk) chk.checked = this.isEnabled;
+        if (footerStatus) {
+          footerStatus.textContent = this.isEnabled ? 'Debug: On 🟢' : 'Debug: Off';
+        }
+      },
+
+      toggleHUD(forceOpen) {
+        const drawer = document.getElementById('debug-drawer');
+        if (!drawer) return;
+        this.isHUDOpen = (typeof forceOpen === 'boolean') ? forceOpen : !this.isHUDOpen;
+        if (this.isHUDOpen) {
+          drawer.classList.add('open');
+          this.renderHUD();
+        } else {
+          drawer.classList.remove('open');
+        }
+      },
+
+      setTab(tab) {
+        this.currentTab = tab;
+        ['rpc', 'state', 'ai', 'errors'].forEach(t => {
+          const btn = document.getElementById('debug-nav-' + t);
+          if (btn) {
+            if (t === tab) btn.classList.add('active');
+            else btn.classList.remove('active');
+          }
+        });
+        this.renderHUD();
+      },
+
+      log(category, message, details, level = 'INFO', latency = 0) {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString() + '.' + String(now.getMilliseconds()).padStart(3, '0');
+        const entry = {
+          id: Date.now() + Math.random(),
+          time: timeStr,
+          timestamp: now.toISOString(),
+          category,
+          message,
+          details,
+          level,
+          latency
+        };
+
+        this.logs.unshift(entry);
+        if (this.logs.length > 200) this.logs.pop();
+
+        if (level === 'ERROR') {
+          this.stats.errorCount++;
+          const errBadge = document.getElementById('debug-badge-err');
+          if (errBadge) {
+            errBadge.textContent = `${this.stats.errorCount} ERR`;
+            errBadge.classList.remove('d-none');
+          }
+        }
+
+        this.updateBadgeSummary();
+        if (this.isHUDOpen) this.renderHUD();
+      },
+
+      logRPC(method, args, result, status, latency) {
+        this.stats.rpcCount++;
+        if (status === 'SUCCESS') this.stats.rpcSuccess++;
+        else this.stats.rpcError++;
+
+        this.stats.totalLatency += latency;
+        this.stats.avgLatency = Math.round(this.stats.totalLatency / this.stats.rpcCount);
+
+        const level = status === 'SUCCESS' ? 'SUCCESS' : 'ERROR';
+        this.log('RPC', `${method}() [${status}] in ${latency}ms`, {
+          method,
+          args,
+          result: (status === 'SUCCESS' ? (typeof result === 'object' ? result : String(result)) : (result && result.message ? result.message : String(result)))
+        }, level, latency);
+      },
+
+      logAI(type, details) {
+        this.stats.aiCalls++;
+        this.log('AI_VISION', details.message || 'Elaborazione Document Intelligence', details, 'INFO');
+      },
+
+      logCanvasCompression(originalBytes, compressedBytes, durationMs) {
+        const ratio = Math.round((1 - (compressedBytes / originalBytes)) * 100);
+        const item = {
+          time: new Date().toLocaleTimeString(),
+          origKB: Math.round(originalBytes / 1024),
+          compKB: Math.round(compressedBytes / 1024),
+          ratio,
+          durationMs
+        };
+        this.stats.canvasCompressions.unshift(item);
+        if (this.stats.canvasCompressions.length > 20) this.stats.canvasCompressions.pop();
+        this.log('CANVAS', `Immagine ottimizzata: ${item.origKB}KB -> ${item.compKB}KB (-${ratio}%) in ${durationMs}ms`, item, 'SUCCESS');
+      },
+
+      updateBadgeSummary() {
+        const rpcBadge = document.getElementById('debug-badge-rpc');
+        const drawerStats = document.getElementById('debug-drawer-stats');
+        const txt = `${this.stats.rpcCount} RPC (${this.stats.avgLatency}ms)`;
+        if (rpcBadge) rpcBadge.textContent = txt;
+        if (drawerStats) drawerStats.textContent = txt;
+
+        const countRpc = document.getElementById('count-nav-rpc');
+        if (countRpc) countRpc.textContent = this.logs.filter(l => l.category === 'RPC').length;
+        const countState = document.getElementById('count-nav-state');
+        if (countState) countState.textContent = (dbBeneficiaries ? dbBeneficiaries.length : 0) + (dbNuclei ? dbNuclei.length : 0);
+        const countAi = document.getElementById('count-nav-ai');
+        if (countAi) countAi.textContent = this.stats.canvasCompressions.length + this.stats.aiCalls;
+        const countErrors = document.getElementById('count-nav-errors');
+        if (countErrors) countErrors.textContent = this.stats.errorCount;
+      },
+
+      clearLogs() {
+        this.logs = [];
+        this.stats.rpcCount = 0;
+        this.stats.rpcSuccess = 0;
+        this.stats.rpcError = 0;
+        this.stats.totalLatency = 0;
+        this.stats.avgLatency = 0;
+        this.stats.errorCount = 0;
+        this.stats.aiCalls = 0;
+        this.stats.canvasCompressions = [];
+        const errBadge = document.getElementById('debug-badge-err');
+        if (errBadge) errBadge.classList.add('d-none');
+        this.updateBadgeSummary();
+        this.renderHUD();
+        showToast('Cronologia log di debug pulita.', 'secondary');
+      },
+
+      clearLocalStorage() {
+        if (confirm("Vuoi davvero svuotare la cache locale e ricaricare l'applicazione?")) {
+          try {
+            localStorage.clear();
+          } catch (e) {}
+          window.location.reload();
+        }
+      },
+
+      installRPCInterceptor() {
+        if (typeof google === 'undefined' || !google.script || !google.script.run) return;
+        const rawRun = google.script.run;
+        if (rawRun.__isProxied) return;
+
+        const self = this;
+
+        function createChainedProxy(targetRunner, sharedCtx) {
+          return new Proxy(targetRunner, {
+            get(target, prop, receiver) {
+              if (prop === '__isProxied') return true;
+              if (prop === 'withSuccessHandler') {
+                return function(fn) {
+                  const next = target.withSuccessHandler.call(target, function(res) {
+                    const latency = Date.now() - (sharedCtx.startTime || Date.now());
+                    self.logRPC(sharedCtx.methodName, sharedCtx.args, res, 'SUCCESS', latency);
+                    if (typeof fn === 'function') fn(res);
+                  });
+                  return createChainedProxy(next, sharedCtx);
+                };
+              }
+              if (prop === 'withFailureHandler') {
+                return function(fn) {
+                  const next = target.withFailureHandler.call(target, function(err) {
+                    const latency = Date.now() - (sharedCtx.startTime || Date.now());
+                    self.logRPC(sharedCtx.methodName, sharedCtx.args, err, 'ERROR', latency);
+                    if (typeof fn === 'function') fn(err);
+                  });
+                  return createChainedProxy(next, sharedCtx);
+                };
+              }
+              const val = target[prop];
+              if (typeof val === 'function') {
+                return function(...args) {
+                  sharedCtx.methodName = String(prop);
+                  sharedCtx.args = args;
+                  sharedCtx.startTime = Date.now();
+                  return val.apply(target, args);
+                };
+              }
+              return Reflect.get(target, prop, receiver);
+            }
+          });
+        }
+
+        try {
+          const rootProxy = new Proxy(rawRun, {
+            get(target, prop, receiver) {
+              if (prop === '__isProxied') return true;
+              const sharedCtx = { methodName: '', args: [], startTime: 0 };
+              const chained = createChainedProxy(target, sharedCtx);
+              return chained[prop];
+            }
+          });
+          google.script.run = rootProxy;
+        } catch (e) {
+          console.warn('Impossibile agganciare Proxy su google.script.run:', e);
+        }
+      },
+
+      pingServer(btn) {
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Ping in corso...';
+        }
+        const box = document.getElementById('ping-results-box');
+        if (box) {
+          box.classList.remove('d-none');
+          box.innerHTML = '<div class="text-muted"><span class="spinner-border spinner-border-sm me-1"></span>Misurazione round-trip latency in corso...</div>';
+        }
+
+        const clientStartTime = Date.now();
+        google.script.run
+          .withSuccessHandler(res => {
+            if (btn) {
+              btn.disabled = false;
+              btn.innerHTML = '<i class="bi bi-broadcast me-1"></i>Test Connessione (Ping)';
+            }
+            const totalRoundTripMs = Date.now() - clientStartTime;
+            if (box) {
+              box.innerHTML = `
+                <div class="fw-bold text-success mb-1">✅ Server Risponde Correttamente (${totalRoundTripMs} ms)</div>
+                <div class="row g-1">
+                  <div class="col-6">Tempo Server: <strong>${res.executionMs} ms</strong></div>
+                  <div class="col-6">Latenza Rete: <strong>${totalRoundTripMs - res.executionMs} ms</strong></div>
+                  <div class="col-12">Utente Connesso: <code>${res.userEmail}</code></div>
+                  <div class="col-12">Time Zone GAS: <code>${res.timeZone}</code></div>
+                  <div class="col-12">Google Gemini: <strong>${res.geminiAvailable ? '🟢 Attivo (' + res.geminiModel + ')' : '🔴 Non Disponibile'}</strong></div>
+                </div>
+              `;
+            }
+          })
+          .withFailureHandler(err => {
+            if (btn) {
+              btn.disabled = false;
+              btn.innerHTML = '<i class="bi bi-broadcast me-1"></i>Test Connessione (Ping)';
+            }
+            if (box) {
+              box.innerHTML = `<div class="text-danger fw-bold">❌ Errore Ping: ${err.message || err}</div>`;
+            }
+          })
+          .pingBackend();
+      },
+
+      copyDiagnosticsReport() {
+        const report = {
+          app: "La Bussola dell'Abitare - Gestionale",
+          version: "2.3.0",
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          screen: `${window.innerWidth}x${window.innerHeight}`,
+          stats: this.stats,
+          database: {
+            beneficiari: (dbBeneficiaries || []).length,
+            nuclei: (dbNuclei || []).length,
+            incontri: (dbMeetings || []).length,
+            documenti: (dbDocumenti || []).length,
+            appuntamenti: (dbAppointments || []).length,
+            lookupKeys: Object.keys(dbLookups || {}).length
+          },
+          recentLogs: this.logs.slice(0, 30).map(l => ({
+            time: l.time,
+            category: l.category,
+            level: l.level,
+            message: l.message,
+            latency: l.latency,
+            details: l.details
+          }))
+        };
+
+        const markdownText = "```json\n" + JSON.stringify(report, null, 2) + "\n```";
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(markdownText).then(() => {
+            showToast('📋 Report diagnostico copiato negli appunti! Puoi incollarlo per ricevere assistenza.', 'success');
+          }).catch(() => {
+            showToast('Errore durante la copia automatica negli appunti.', 'warning');
+          });
+        } else {
+          prompt("Copia manualmente il report diagnostico:", JSON.stringify(report));
+        }
+      },
+
+      renderHUD() {
+        const container = document.getElementById('debug-drawer-content');
+        if (!container) return;
+
+        if (this.currentTab === 'rpc') {
+          const rpcLogs = this.logs.filter(l => l.category === 'RPC');
+          if (rpcLogs.length === 0) {
+            container.innerHTML = '<div class="text-muted text-center py-4">Nessuna chiamata RPC registrata finora.<br>Esegui un\'azione (es. salva un nucleo o sincronizza i dati) per osservare le chiamate.</div>';
+            return;
+          }
+          let html = '<div class="d-flex flex-column gap-2">';
+          rpcLogs.forEach(l => {
+            const cardClass = l.level === 'SUCCESS' ? 'success' : 'error';
+            const badgeClass = l.level === 'SUCCESS' ? 'bg-success' : 'bg-danger';
+            const detailsJson = l.details ? JSON.stringify(l.details, null, 2) : '';
+            html += `
+              <div class="debug-log-card ${cardClass}">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <div>
+                    <span class="badge ${badgeClass} text-uppercase text-2xs me-1">${l.level}</span>
+                    <strong class="text-white">${l.message}</strong>
+                  </div>
+                  <div class="text-muted text-2xs">${l.time}</div>
+                </div>
+                ${detailsJson ? `
+                  <details class="mt-1">
+                    <summary class="text-info text-2xs cursor-pointer">Mostra parametri & risposta</summary>
+                    <pre class="bg-dark p-2 mt-1 rounded text-light text-2xs overflow-auto" style="max-height: 180px;">${escapeHtml(detailsJson)}</pre>
+                  </details>
+                ` : ''}
+              </div>
+            `;
+          });
+          html += '</div>';
+          container.innerHTML = html;
+        } else if (this.currentTab === 'state') {
+          container.innerHTML = `
+            <div class="card bg-dark border-secondary text-light p-3 mb-2">
+              <h6 class="text-warning font-outfit mb-2">Snapshot Database in Memoria (Client Cache)</h6>
+              <div class="row g-2">
+                <div class="col-6 col-md-4"><div class="p-2 border border-secondary rounded bg-black bg-opacity-25"><div class="text-muted text-2xs">Beneficiari</div><div class="fs-6 fw-bold">${(dbBeneficiaries || []).length}</div></div></div>
+                <div class="col-6 col-md-4"><div class="p-2 border border-secondary rounded bg-black bg-opacity-25"><div class="text-muted text-2xs">Nuclei Familiari</div><div class="fs-6 fw-bold">${(dbNuclei || []).length}</div></div></div>
+                <div class="col-6 col-md-4"><div class="p-2 border border-secondary rounded bg-black bg-opacity-25"><div class="text-muted text-2xs">Documenti Relazionali</div><div class="fs-6 fw-bold">${(dbDocumenti || []).length}</div></div></div>
+                <div class="col-6 col-md-4"><div class="p-2 border border-secondary rounded bg-black bg-opacity-25"><div class="text-muted text-2xs">Incontri Totali</div><div class="fs-6 fw-bold">${(dbMeetings || []).length}</div></div></div>
+                <div class="col-6 col-md-4"><div class="p-2 border border-secondary rounded bg-black bg-opacity-25"><div class="text-muted text-2xs">Appuntamenti</div><div class="fs-6 fw-bold">${(dbAppointments || []).length}</div></div></div>
+                <div class="col-6 col-md-4"><div class="p-2 border border-secondary rounded bg-black bg-opacity-25"><div class="text-muted text-2xs">Lookup Range</div><div class="fs-6 fw-bold">${Object.keys(dbLookups || {}).length} liste</div></div></div>
+              </div>
+            </div>
+            <div class="card bg-dark border-secondary text-light p-3">
+              <h6 class="text-info font-outfit mb-2">Informazioni Sessione & Browser</h6>
+              <div class="text-2xs text-muted mb-1">User Agent: <code class="text-light">${navigator.userAgent}</code></div>
+              <div class="text-2xs text-muted mb-1">Risoluzione Viewport: <span class="text-light">${window.innerWidth}x${window.innerHeight}</span></div>
+              <div class="text-2xs text-muted">Stato Dati: <span class="${isDataLoading ? 'text-warning' : 'text-success'}">${isDataLoading ? 'Caricamento in corso...' : 'Sincronizzato'}</span></div>
+            </div>
+          `;
+        } else if (this.currentTab === 'ai') {
+          let compressionsHtml = '';
+          if (this.stats.canvasCompressions.length === 0) {
+            compressionsHtml = '<div class="text-muted text-2xs">Nessuna compressione grafica eseguita nella sessione.</div>';
+          } else {
+            compressionsHtml = '<div class="list-group list-group-flush">';
+            this.stats.canvasCompressions.forEach(c => {
+              compressionsHtml += `
+                <div class="list-group-item bg-dark text-light border-secondary py-1 px-2 text-2xs">
+                  <div class="d-flex justify-content-between">
+                    <span><strong>${c.origKB} KB</strong> &rarr; <strong>${c.compKB} KB</strong> (<span class="text-success">-${c.ratio}%</span>)</span>
+                    <span class="text-muted">${c.durationMs}ms &bull; ${c.time}</span>
+                  </div>
+                </div>
+              `;
+            });
+            compressionsHtml += '</div>';
+          }
+
+          const aiLogs = this.logs.filter(l => l.category === 'AI_VISION' || l.category === 'CANVAS');
+          let aiLogsHtml = '';
+          if (aiLogs.length > 0) {
+            aiLogsHtml = '<div class="mt-3"><h6 class="text-warning text-xs mb-2">Storico Chiamate IA:</h6>';
+            aiLogs.forEach(l => {
+              aiLogsHtml += `
+                <div class="debug-log-card info mb-2">
+                  <div class="d-flex justify-content-between text-2xs mb-1">
+                    <strong class="text-white">${l.message}</strong>
+                    <span class="text-muted">${l.time}</span>
+                  </div>
+                  ${l.details ? `<pre class="bg-dark p-1 rounded text-light text-2xs m-0 overflow-auto" style="max-height: 120px;">${escapeHtml(JSON.stringify(l.details, null, 2))}</pre>` : ''}
+                </div>
+              `;
+            });
+            aiLogsHtml += '</div>';
+          }
+
+          container.innerHTML = `
+            <div class="card bg-dark border-secondary text-light p-3 mb-2">
+              <h6 class="text-info font-outfit mb-2">Ottimizzazione Immagini su Canvas (Client-side)</h6>
+              ${compressionsHtml}
+            </div>
+            ${aiLogsHtml}
+          `;
+        } else if (this.currentTab === 'errors') {
+          const errorLogs = this.logs.filter(l => l.level === 'ERROR');
+          if (errorLogs.length === 0) {
+            container.innerHTML = '<div class="text-success text-center py-4">🟢 Nessun errore rilevato! Il sistema sta funzionando regolarmente.</div>';
+            return;
+          }
+          let html = '<div class="d-flex flex-column gap-2">';
+          errorLogs.forEach(l => {
+            html += `
+              <div class="debug-log-card error">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <strong class="text-danger">${l.message}</strong>
+                  <span class="text-muted text-2xs">${l.time}</span>
+                </div>
+                <div class="text-2xs text-muted mb-1">Categoria: ${l.category}</div>
+                ${l.details ? `
+                  <pre class="bg-black p-2 mt-1 rounded text-danger text-2xs overflow-auto" style="max-height: 160px;">${escapeHtml(typeof l.details === 'object' ? JSON.stringify(l.details, null, 2) : String(l.details))}</pre>
+                ` : ''}
+              </div>
+            `;
+          });
+          html += '</div>';
+          container.innerHTML = html;
+        }
+      }
+    };
+
+    /**
+     * Apre la modale delle impostazioni di sistema.
+     */
+    function openSettingsModal() {
+      const modalEl = document.getElementById('modal-settings');
+      if (!modalEl) return;
+      DebugManager.updatePillAndNav();
+      const modal = new bootstrap.Modal(modalEl);
+      modal.show();
+    }
+
     // Inizializzazione pagina
     window.onload = function () {
+      try {
+        DebugManager.init();
+      } catch (e) {
+        console.warn('DebugManager init error:', e);
+      }
+
       try {
         initNavigation();
         setupSignaturePad();
@@ -2763,6 +3615,9 @@
               <div>
                 <strong>${displayName}</strong> <span class="text-muted text-xs ms-2">${m.cf || ''}</span>
                 <div class="mt-1">${badge}</div>
+                <div class="tech-id-badge text-xs mt-1">
+                  <code>Cartella: ${m.idCartella || m.cartellaDrive || '-'}</code> ${m.firma ? `| <code>FirmaID: ${m.firma}</code>` : ''}
+                </div>
               </div>
               <div class="btn-group btn-group-sm">
                 <button class="btn btn-outline-info py-0 px-2 btn-xs" onclick="openBeneficiarioDriveFolder('${m.cf}', this)" title="Apri Cartella Drive Personale">📁 Cartella</button>
@@ -2779,6 +3634,9 @@
             <div>
               <strong>Nucleo Familiare #${n.id}</strong>
               <div class="text-xs text-muted m-0">Intestatario CF: ${n.intestatario}</div>
+              <div class="tech-id-badge text-xs mt-1">
+                <code>NucleoID: #${n.id}</code> | <code>Drive: ${n.idCartella || n.cartellaDrive || 'Non associata'}</code>
+              </div>
             </div>
             <div>
               <button class="btn btn-outline-primary btn-xs py-0 px-2 me-1" onclick="runNucleoHealthCheck('${n.id}', this)" title="Diagnostica e Riconciliazione Cartella Drive">🔍 Diagnostica</button>
@@ -4259,6 +5117,9 @@
             <div>
               <div class="fw-semibold">${doc.emoji || '📄'} ${doc.tipo} ${doc.valore ? ('<span class="badge bg-info text-dark ms-1">€ ' + doc.valore.toLocaleString('it-IT') + '</span>') : ''}</div>
               <div class="text-xs text-muted mt-1">${badgeScadenza} ${doc.note ? ('<span class="ms-1 font-italic">(' + doc.note + ')</span>') : ''}</div>
+              <div class="tech-id-badge text-xs mt-1">
+                <code>ID: #${doc.id}</code> | <code>DriveID: ${doc.idDrive || '-'}</code>
+              </div>
             </div>
             <div class="btn-group btn-group-sm">
               ${driveBtn}
@@ -4309,14 +5170,24 @@
 
         html += `
           <tr>
-            <td><strong>#${d.id}</strong></td>
+            <td>
+              <strong>#${d.id}</strong>
+              <div class="tech-id-badge text-xs">
+                <code>RowID: #${d.id}</code>
+              </div>
+            </td>
             <td><span class="font-monospace fw-semibold">${d.intestatario}</span></td>
             <td>${d.emoji || '📄'} ${d.tipo}</td>
             <td><span class="badge bg-light text-dark border">${d.categoria}</span></td>
             <td>${d.valore !== null ? ('<strong>€ ' + d.valore.toLocaleString('it-IT') + '</strong>') : '-'}</td>
             <td>${d.dataScadenza || '-'}</td>
             <td>${badge}</td>
-            <td>${driveLink}</td>
+            <td>
+              ${driveLink}
+              <div class="tech-id-badge text-xs mt-1">
+                <code>DriveID: ${d.idDrive || '-'}</code>
+              </div>
+            </td>
             <td class="text-end">
               <button class="btn btn-xs btn-outline-secondary py-0 px-1 me-1" onclick="openDocumentoModal('${d.intestatario}', '${d.id}')" title="Modifica">✏️</button>
               <button class="btn btn-xs btn-outline-danger py-0 px-1" onclick="handleRemoveDocumento('${d.id}', '${d.intestatario}')" title="Elimina">🗑️</button>
@@ -4447,6 +5318,7 @@
           return;
         }
 
+        const t0 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
         const img = new Image();
         const url = URL.createObjectURL(file);
         img.onload = () => {
@@ -4471,6 +5343,13 @@
           ctx.drawImage(img, 0, 0, width, height);
 
           const optimizedBase64 = canvas.toDataURL('image/jpeg', quality);
+          const t1 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+          const durationMs = Math.round(t1 - t0);
+
+          if (typeof DebugManager !== 'undefined' && DebugManager.logCanvasCompression) {
+            DebugManager.logCanvasCompression(file.size, optimizedBase64.length, durationMs);
+          }
+
           resolve({
             base64Data: optimizedBase64,
             mimeType: 'image/jpeg',
@@ -4696,8 +5575,21 @@
               });
 
               renderPendingDocs(prefix);
+              if (typeof DebugManager !== 'undefined' && DebugManager.logAI) {
+                DebugManager.logAI('DOCUMENT_INTELLIGENCE', {
+                  message: `Elaborati ${optimizedFiles.length} file con Gemini Flash`,
+                  persona: d.datiPersona || {},
+                  documenti: docsToAdd,
+                  valoreISEE: d.valoreISEE
+                });
+              }
               showToast(`✨ Document Intelligence completata: campi precompilati e ${docsToAdd.length} file pronti per l'archiviazione.`, 'success');
             } else {
+              if (typeof DebugManager !== 'undefined' && DebugManager.logAI) {
+                DebugManager.logAI('DOCUMENT_INTELLIGENCE_WARNING', {
+                  message: (res && res.message) || 'Impossibile estrarre i dati con IA'
+                });
+              }
               showToast((res && res.message) || 'Impossibile estrarre i dati con IA.', 'warning');
             }
           })
@@ -4705,6 +5597,12 @@
             if (loadingEl) loadingEl.classList.add('d-none');
             const inputEl = document.getElementById(isBen ? 'ai-upload-ben-input' : 'ai-upload-nuc-input');
             if (inputEl) inputEl.value = '';
+            if (typeof DebugManager !== 'undefined' && DebugManager.logAI) {
+              DebugManager.logAI('DOCUMENT_INTELLIGENCE_ERROR', {
+                message: 'Errore analisi IA: ' + (err.message || err),
+                error: (err.message || err)
+              });
+            }
             showToast('Errore analisi IA: ' + (err.message || err), 'danger');
           })
           .smartClassifyDocuments(optimizedFiles);

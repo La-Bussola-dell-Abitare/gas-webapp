@@ -1,6 +1,7 @@
 # BUG
 
 # Miglioramenti
+* (Fatto) Modalità di debug real-time con intercettore RPC (latenza ms e payload), ispettore stato database in memoria, diagnostica compressione Canvas e IA Gemini Flash, trappola errori globali, benchmark ping server, pulsante esportazione report e toggle ID tecnici (scorciatoia Ctrl+Shift+D, navbar e modale impostazioni)
 * Permettere un solo intestatario per nucleo
 * Dare suggerimenti sul da farsi con IA dopo aver compilato i campi
 * Compilare documenti (domanda ERP, cambio residenza...) con IA
