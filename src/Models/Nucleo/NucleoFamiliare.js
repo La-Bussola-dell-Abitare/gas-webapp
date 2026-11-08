@@ -28,6 +28,7 @@ class NucleoFamiliare {
     this.tipologiaAbitazione = getSheetVal(row, idx, "tipologia abitazione", "");
     this.assistenteSociale = getSheetVal(row, idx, "assistente sociale", "No");
     this.medicoDiBase = getSheetVal(row, idx, "medico di base", "No");
+    this.serviziDaAttivare = getSheetVal(row, idx, "serviziDaAttivare", "");
     this.idCartella = getSheetVal(row, idx, "idCartella", "");
   }
 
@@ -160,6 +161,18 @@ class NucleoFamiliare {
     if (idx.tipologiaAbitazione >= 0) sheet.getRange(newRowIdx, idx.tipologiaAbitazione + 1).setValue(data.tipologiaAbitazione ? data.tipologiaAbitazione.trim() : "");
     if (idx.assistenteSociale >= 0) sheet.getRange(newRowIdx, idx.assistenteSociale + 1).setValue(data.assistenteSociale ? data.assistenteSociale.trim() : "No");
     if (idx.medicoDiBase >= 0) sheet.getRange(newRowIdx, idx.medicoDiBase + 1).setValue(data.medicoDiBase ? data.medicoDiBase.trim() : "No");
+
+    if (data.serviziDaAttivare !== undefined) {
+      let sIdx = idx.serviziDaAttivare;
+      if (sIdx < 0 && data.serviziDaAttivare) {
+        sIdx = ensureHeaderIndex(sheet, "Servizi da attivare");
+        idx.serviziDaAttivare = sIdx;
+      }
+      if (sIdx >= 0) {
+        sheet.getRange(newRowIdx, sIdx + 1).setValue(data.serviziDaAttivare ? data.serviziDaAttivare.trim() : "");
+      }
+    }
+
     if (idx.idCartella >= 0 && data.idCartella !== undefined) sheet.getRange(newRowIdx, idx.idCartella + 1).setValue(data.idCartella ? data.idCartella.trim() : "");
 
     if (idx.dataInserimento >= 0 && !isUpdate) {
@@ -227,6 +240,7 @@ class NucleoFamiliare {
       tipologiaAbitazione: findHeaderIndex(headers, ["tipologia abitazione", "abitazione"]),
       assistenteSociale: findHeaderIndex(headers, ["assistente sociale", "assistente"]),
       medicoDiBase: findHeaderIndex(headers, ["medico di base", "medico"]),
+      serviziDaAttivare: findHeaderIndex(headers, ["servizi da attivare", "servizi da attivare / erogati", "servizi"]),
       idCartella: findHeaderIndex(headers, ["id cartella drive", "id cartella", "cartella drive", "cartella", "id_cartella"]),
       dataInserimento: findHeaderIndex(headers, ["data inserimento", "data di inserimento", "inserimento"])
     };

@@ -35,11 +35,7 @@ Estende la classe base [`Person`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Buss
 | **P** | **`Stato Lavorativo`** | Testo (Enum) | *Occupato*, *Disoccupato*, *Inattivo*, *Pensionato*, *Studente*... |
 | **Q** | **`Titolo di Studio`** | Testo (Enum) | *Nessun titolo*, *Licenza Elementare*, *Licenza Media*, *Diploma*, *Laurea* |
 | **R** | **`Assistente Sociale`** | Testo | Indicazione se in carico ai servizi sociali (*Sì / No / Nominativo*) |
-| **S** | **`Carta Identità`** | Testo (Enum) | *Non posseduto*, *cartacea*, *elettronica (CIE)* |
-| **T** | **`Passaporto`** | Booleano (TRUE/FALSE) | Indicatore di possesso del passaporto |
-| **U** | **`Patente`** | Booleano (TRUE/FALSE) | Indicatore di possesso della patente di guida |
-| **V** | **`Permesso Soggiorno`** | Booleano (TRUE/FALSE) | Indicatore di possesso del titolo di soggiorno |
-| **W** | **`Tessera Sanitaria`** | Booleano (TRUE/FALSE) | Indicatore di possesso di TS / Codice Fiscale plastificato |
+| **S**-**W** | *(Legacy Documenti)* | - | *(Colonne storiche non più alimentate: tutti i documenti risiedono nel foglio relazionale `Documenti`)* |
 | **X** | **`idCartella`** | Testo (33 car.) | ID della sottocartella personale del beneficiario su Google Drive |
 | **Y** | **`Firma`** | Testo (33 car.) | ID del file immagine PNG della firma autografa su Google Drive |
 

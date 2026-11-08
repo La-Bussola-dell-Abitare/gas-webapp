@@ -148,6 +148,7 @@ classDiagram
         +string tipologiaAbitazione
         +string assistenteSociale
         +string medicoDiBase
+        +string[] serviziDaAttivare
         +string idCartella
         +getAll()$ NucleoFamiliare[]
         +generateNextId()$ string
@@ -278,6 +279,7 @@ classDiagram
         +getOrCreateNucleoFolder(id, name)$ Object
         +getOrCreateBeneficiarioFolder(cf)$ Object
         +saveBeneficiarySignature(cf, base64)$ Object
+        +saveDocumentFile(cf, docPayload, nucleoId)$ Object
         +scanBeneficiarioDocuments(cf)$ Object
         +scanNucleoDocuments(id)$ Object
     }
@@ -291,13 +293,15 @@ classDiagram
     class DocumentIntelligence {
         +isAvailable()$ boolean
         +analyzeBlob(blob)$ Object
+        +analyzeBlobs(blobs)$ Object
         +smartClassifyBase64(base64, mime, name)$ Object
+        +smartClassifyMultipleBase64(filesArray)$ Object
     }
 
     DriveReconciler ..> DriveManager : sposta/crea
     DriveReconciler ..> DocumentoRepository : censisce
     DriveReconciler ..> DocumentIntelligence : OCR/Vision
-    DriveManager ..> DocumentoRepository : registra firma
+    DriveManager ..> DocumentoRepository : registra firma e documenti
 
     %% =========================================================================
     %% CONTROLLER
@@ -315,6 +319,7 @@ classDiagram
         +auditNucleoDrive(nucleoId) Object
         +reconcileNucleoDrive(nucleoId, options) Object
         +smartClassifyDocument(base64, mime, name) Object
+        +smartClassifyDocuments(filesArray) Object
         +checkGeminiStatus() Object
     }
 
@@ -354,9 +359,9 @@ classDiagram
 ---
 
 ### 2.4 Service Layer (Drive, Bonifica e IA)
-- **[`DriveManager`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/GDrive/DriveManager.js):** Gestisce l'alberatura delle cartelle (`<id> - <Intestatario>` e sottocartelle `<Nome Cognome>`), l'archiviazione di firme autografe PNG trasparenti e la scansione in tempo reale dei file con metadati.
+- **[`DriveManager`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/GDrive/DriveManager.js):** Gestisce l'alberatura delle cartelle (`<id> - <Intestatario>` e sottocartelle `<Nome Cognome>`), l'archiviazione di firme autografe PNG trasparenti, l'archiviazione automatica di file documentali con naming standard e la scansione in tempo reale dei file con metadati.
 - **[`DriveReconciler`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/GDrive/DriveReconciler.js):** Motore di diagnostica e bonifica automatica: individua file fuori posto nella radice nucleo, cartelle mancanti e file orfani, spostandoli (`file.moveTo`), rinominandoli secondo la convenzione standard e censendoli nel foglio `Documenti`.
-- **[`DocumentIntelligence`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/Document/DocumentIntelligence.js):** Servizio di Computer Vision e OCR basato su Google Gemini Flash (`gemini-3.8-flash`) con schema JSON forzato per autocompilare istantaneamente le schede anagrafiche in 1-2 secondi.
+- **[`DocumentIntelligence`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/Document/DocumentIntelligence.js):** Servizio di Computer Vision e OCR multimodale basato su Google Gemini Flash (`gemini-2.5-flash`) con supporto multi-file, schema JSON vincolato e normalizzazione deterministica Title Case per autocompilare istantaneamente anagrafiche e nuclei.
 
 ---
 

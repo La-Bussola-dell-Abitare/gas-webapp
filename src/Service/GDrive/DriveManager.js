@@ -242,6 +242,113 @@ class DriveManager {
   }
 
   /**
+   * Salva un file documento (Base64) nella corretta cartella Google Drive (cartella nucleo o sottocartella personale)
+   * e registra contestualmente il record nel foglio relazionale 'Documenti'.
+   * 
+   * @param {string} cf - Codice Fiscale del beneficiario firmatario o titolare.
+   * @param {{
+   *   base64Data: string;
+   *   mimeType?: string;
+   *   fileName?: string;
+   *   tipoDocumento?: string;
+   *   categoria?: string;
+   *   valore?: number | null;
+   *   dataScadenza?: string;
+   *   dataEmissione?: string;
+   *   note?: string;
+   * }} docPayload - Metadati e contenuto del file.
+   * @param {string|number} [nucleoId] - ID del nucleo familiare (per documenti di pertinenza del nucleo, es. ISEE).
+   * @return {{ success: boolean; fileId: string; fileUrl: string; docId?: number|string; fileName: string; message: string }}
+   */
+  static saveDocumentFile(cf, docPayload, nucleoId) {
+    if (!cf) throw new Error("Codice Fiscale obbligatorio per l'archiviazione del documento.");
+    if (!docPayload || !docPayload.base64Data) throw new Error("Dati del file documento mancanti.");
+
+    const targetCF = cf.toUpperCase().trim();
+    const beneficiari = (typeof BeneficiarioRepository !== "undefined") ? BeneficiarioRepository.getAll() : [];
+    const ben = beneficiari.find(b => (b.cf || "").toUpperCase().trim() === targetCF);
+
+    const nomePersona = ben ? ((ben.nome || "") + " " + (ben.cognome || "")).trim() : targetCF;
+    const nId = nucleoId || (ben ? ben.idNucleo : "");
+
+    // 1. Identifica tipologia e catalogo SSOT
+    let tipo = docPayload.tipoDocumento || "Altro";
+    let categoria = docPayload.categoria || "Altro";
+    let docRecord = null;
+    if (typeof findDocumentType === "function") {
+      docRecord = findDocumentType(tipo);
+      if (docRecord) {
+        tipo = docRecord.name;
+        categoria = docRecord.categoria;
+      }
+    }
+
+    // 2. Determina la cartella di destinazione:
+    // Se lo scope è "nucleo" (es. ISEE, Contratto Locazione), salva nella cartella del nucleo.
+    // Altrimenti (documento personale), salva nella sottocartella personale del beneficiario.
+    let targetFolder = null;
+    const isNucleoScope = docRecord && docRecord.scope === "nucleo";
+    if (isNucleoScope && nId) {
+      const nucInfo = DriveManager.getOrCreateNucleoFolder(nId, nomePersona);
+      targetFolder = DriveApp.getFolderById(nucInfo.id);
+    } else {
+      const benInfo = DriveManager.getOrCreateBeneficiarioFolder(targetCF);
+      targetFolder = DriveApp.getFolderById(benInfo.id);
+    }
+
+    // 3. Calcola il nome formale standard del file tramite buildDocumentFileName
+    let standardName = docPayload.fileName || docPayload.name || "documento.pdf";
+    if (typeof buildDocumentFileName === "function") {
+      standardName = buildDocumentFileName(tipo, nomePersona, {
+        dataScadenza: docPayload.dataScadenza,
+        dataEmissione: docPayload.dataEmissione,
+        originalName: docPayload.fileName || docPayload.name
+      });
+    }
+
+    // 4. Decodifica e crea il file in Drive
+    let cleanBase64 = docPayload.base64Data;
+    let detectedMime = docPayload.mimeType || "application/pdf";
+    const dataUriMatch = cleanBase64.match(/^data:([^;]+);base64,(.+)$/);
+    if (dataUriMatch) {
+      detectedMime = dataUriMatch[1];
+      cleanBase64 = dataUriMatch[2];
+    }
+    const decodedBytes = Utilities.base64Decode(cleanBase64);
+    const blob = Utilities.newBlob(decodedBytes, detectedMime, standardName);
+    const file = targetFolder.createFile(blob);
+    const fileId = file.getId();
+    const fileUrl = file.getUrl();
+
+    // 5. Registra nel foglio relazionale 'Documenti'
+    let docId = "";
+    if (typeof DocumentoRepository !== "undefined") {
+      const addRes = DocumentoRepository.add({
+        intestatario: targetCF,
+        tipo: tipo,
+        categoria: categoria,
+        valore: (docPayload.valore !== undefined && docPayload.valore !== null && !isNaN(Number(docPayload.valore))) ? Number(docPayload.valore) : null,
+        dataEmissione: docPayload.dataEmissione || "",
+        dataScadenza: docPayload.dataScadenza || "",
+        idDrive: fileId,
+        note: docPayload.note || `Caricato da interfaccia Web App (${standardName})`
+      });
+      if (addRes && addRes.success && addRes.data) {
+        docId = addRes.data.id;
+      }
+    }
+
+    return {
+      success: true,
+      fileId: fileId,
+      fileUrl: fileUrl,
+      docId: docId,
+      fileName: standardName,
+      message: `Documento '${standardName}' archiviato con successo.`
+    };
+  }
+
+  /**
    * Scansiona i documenti presenti nella cartella di un Beneficiario,
    * categorizzandoli tramite regex intelligente e aggiornando il foglio se necessario.
    * 

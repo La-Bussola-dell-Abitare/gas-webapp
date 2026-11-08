@@ -946,24 +946,24 @@
             <input type="hidden" id="ben-is-update" value="false">
 
             <!-- Dropzone Document Intelligence con IA (Gemini Flash) -->
-            <div id="ai-smart-fill-ben" class="p-3 mb-3 border rounded-3 bg-light border-primary border-opacity-50">
-              <div class="d-flex justify-content-between align-items-center">
+            <div id="ai-smart-fill-ben" class="p-3 mb-3 border rounded-3 bg-light border-primary border-opacity-50 dropzone-area" style="cursor: pointer;" onclick="if(event.target.tagName !== 'BUTTON') document.getElementById('ai-upload-ben-input').click()">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div class="d-flex align-items-center">
                   <span class="fs-4 me-2">✨</span>
                   <div>
                     <strong class="font-outfit small text-primary d-block">Compilazione Automatica con IA (Gemini Flash)</strong>
-                    <span class="text-muted text-xs">Trascina qui il documento (CIE, Permesso di Soggiorno, ISEE, Patente) per autocompilare la scheda</span>
+                    <span class="text-muted text-xs">Trascina qui uno o più documenti (CIE fronte/retro, ISEE, Permesso di Soggiorno) per autocompilare e allegare i file</span>
                   </div>
                 </div>
                 <div>
-                  <input type="file" id="ai-upload-ben-input" accept="image/*,application/pdf" class="d-none" onchange="handleSmartDocUpload(event, 'ben-')">
-                  <button type="button" class="btn btn-sm btn-outline-primary font-outfit" onclick="document.getElementById('ai-upload-ben-input').click()">
-                    <i class="bi bi-cloud-arrow-up me-1"></i> Carica Documento
+                  <input type="file" id="ai-upload-ben-input" multiple accept="image/*,application/pdf" class="d-none" onchange="handleSmartDocUpload(event, 'ben-')">
+                  <button type="button" class="btn btn-sm btn-outline-primary font-outfit" onclick="event.stopPropagation(); document.getElementById('ai-upload-ben-input').click()">
+                    <i class="bi bi-cloud-arrow-up me-1"></i> Carica Documenti
                   </button>
                 </div>
               </div>
               <div id="ai-loading-ben" class="text-center py-2 d-none text-primary small font-outfit">
-                <span class="spinner-border spinner-border-sm me-1"></span> Lettura e analisi visiva in corso con Gemini Flash (~1 sec)...
+                <span class="spinner-border spinner-border-sm me-1"></span> <span id="ai-loading-ben-text">Lettura e analisi visiva in corso con Gemini Flash...</span>
               </div>
             </div>
             <div class="row g-3">
@@ -1087,38 +1087,24 @@
                 </select>
               </div>
 
-              <!-- Documenti allegati -->
-              <div class="col-12">
-                <h6 class="font-outfit border-bottom pb-1 mt-3">Documenti Personali in Possesso</h6>
-                <div class="d-flex flex-wrap gap-3">
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="ben-doc-passaporto">
-                    <label class="form-check-label">Passaporto</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="ben-doc-patente">
-                    <label class="form-check-label">Patente</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="ben-doc-permesso">
-                    <label class="form-check-label">Permesso Soggiorno</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="ben-doc-tessera">
-                    <label class="form-check-label">Tessera Sanitaria</label>
-                  </div>
+              <!-- Documenti Allegati da Archiviare in Drive -->
+              <div class="col-12 mt-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <h6 class="font-outfit small text-uppercase text-primary m-0 fw-bold">
+                    <i class="bi bi-files me-1"></i> Documenti Pronti per l'Archiviazione in Drive
+                  </h6>
+                  <span id="ben-doc-count-badge" class="badge bg-secondary">0 documenti allegati</span>
                 </div>
-                <div class="mt-3">
-                  <label class="form-label font-outfit small">Carta d'Identità</label>
-                  <select class="form-select form-select-sm" id="ben-doc-carta">
-                    <option value="Non posseduto">Non posseduto</option>
-                    <option value="cartacea">Cartacea</option>
-                    <option value="elettronica">Elettronica</option>
-                  </select>
+                <div id="ben-pending-docs-container" class="p-2 border rounded bg-white" style="min-height: 48px;">
+                  <p class="text-muted text-xs m-0 text-center py-2" id="ben-no-pending-docs">
+                    Nessun documento in coda. Trascina i file nella dropzone in alto per analizzarli con l'IA ed allegarli automaticamente.
+                  </p>
+                  <div id="ben-pending-docs-list" class="d-flex flex-column gap-2"></div>
                 </div>
+              </div>
 
-                <!-- Fascicolo Digitale e Firma Autografa -->
-                <div class="mt-4 pt-3 border-top" id="ben-drive-section">
+              <!-- Fascicolo Digitale e Firma Autografa -->
+              <div class="col-12 mt-4 pt-3 border-top" id="ben-drive-section">
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <h6 class="font-outfit m-0">📁 Fascicolo Google Drive</h6>
                     <button type="button" class="btn btn-xs btn-outline-info" id="btn-modal-open-folder" onclick="handleModalOpenBeneficiaryFolder(this)">
@@ -1180,6 +1166,29 @@
         <div class="modal-body">
           <form id="nucleo-form" onsubmit="handleNucleoSubmit(event)">
             <input type="hidden" id="nuc-id">
+
+            <!-- Dropzone Document Intelligence con IA (Gemini Flash) per Nucleo -->
+            <div id="ai-smart-fill-nuc" class="p-3 mb-3 border rounded-3 bg-light border-primary border-opacity-50 dropzone-area" style="cursor: pointer;" onclick="if(event.target.tagName !== 'BUTTON') document.getElementById('ai-upload-nuc-input').click()">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center">
+                  <span class="fs-4 me-2">✨</span>
+                  <div>
+                    <strong class="font-outfit small text-primary d-block">Compilazione Automatica con IA (Gemini Flash)</strong>
+                    <span class="text-muted text-xs">Trascina qui uno o più documenti (CIE fronte/retro, ISEE, Permesso di Soggiorno) per autocompilare nucleo e intestatario</span>
+                  </div>
+                </div>
+                <div>
+                  <input type="file" id="ai-upload-nuc-input" multiple accept="image/*,application/pdf" class="d-none" onchange="handleSmartDocUpload(event, 'nuc-ben-')">
+                  <button type="button" class="btn btn-sm btn-outline-primary font-outfit" onclick="event.stopPropagation(); document.getElementById('ai-upload-nuc-input').click()">
+                    <i class="bi bi-cloud-arrow-up me-1"></i> Carica Documenti
+                  </button>
+                </div>
+              </div>
+              <div id="ai-loading-nuc" class="text-center py-2 d-none text-primary small font-outfit">
+                <span class="spinner-border spinner-border-sm me-1"></span> <span id="ai-loading-nuc-text">Lettura e analisi visiva in corso con Gemini Flash...</span>
+              </div>
+            </div>
+
             <div class="row g-3">
               <!-- Selezione Modalità Intestatario -->
               <div class="col-12" id="nuc-mode-selector-container">
@@ -1325,35 +1334,27 @@
                         onblur="triggerValidationAnnoArrivo('nuc-ben-')">
                       <div class="invalid-feedback font-outfit" id="nuc-ben-anno-arrivo-feedback"></div>
                     </div>
+                    <div class="col-md-4">
+                      <label class="form-label font-outfit text-xs">In Carico Servizi?</label>
+                      <select class="form-select form-select-sm" id="nuc-ben-servizi">
+                        <option value="No">No</option>
+                        <option value="Sì">Sì</option>
+                      </select>
+                    </div>
 
-                    <!-- Documenti Personali -->
+                    <!-- Documenti Allegati da Archiviare in Drive -->
                     <div class="col-12 mt-2 pt-2 border-top">
-                      <label class="form-label font-outfit text-xs d-block mb-1">Documenti Personali in Possesso</label>
-                      <div class="d-flex flex-wrap gap-3 small">
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input" type="checkbox" id="nuc-ben-doc-passaporto">
-                          <label class="form-check-label text-xs" for="nuc-ben-doc-passaporto">Passaporto</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input" type="checkbox" id="nuc-ben-doc-patente">
-                          <label class="form-check-label text-xs" for="nuc-ben-doc-patente">Patente</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input" type="checkbox" id="nuc-ben-doc-permesso">
-                          <label class="form-check-label text-xs" for="nuc-ben-doc-permesso">Permesso Soggiorno</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input" type="checkbox" id="nuc-ben-doc-tessera">
-                          <label class="form-check-label text-xs" for="nuc-ben-doc-tessera">Tessera Sanitaria</label>
-                        </div>
-                        <div class="d-inline-flex align-items-center gap-1 ms-auto">
-                          <label class="text-xs text-muted mb-0">Carta Identità:</label>
-                          <select class="form-select form-select-sm py-0" id="nuc-ben-doc-carta" style="width: auto;">
-                            <option value="Non posseduto">Non posseduto</option>
-                            <option value="Carta d'Identità Elettronica">Elettronica</option>
-                            <option value="Carta d'Identità Cartacea">Cartacea</option>
-                          </select>
-                        </div>
+                      <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label font-outfit text-xs d-block mb-0 fw-bold text-primary">
+                          <i class="bi bi-files me-1"></i> Documenti Pronti per l'Archiviazione in Drive
+                        </label>
+                        <span id="nuc-doc-count-badge" class="badge bg-secondary">0 documenti allegati</span>
+                      </div>
+                      <div id="nuc-pending-docs-container" class="p-2 border rounded bg-white" style="min-height: 48px;">
+                        <p class="text-muted text-xs m-0 text-center py-2" id="nuc-no-pending-docs">
+                          Nessun documento in coda. Trascina i file nella dropzone in alto per analizzarli ed allegarli al nucleo.
+                        </p>
+                        <div id="nuc-pending-docs-list" class="d-flex flex-column gap-2"></div>
                       </div>
                     </div>
                   </div>
@@ -1397,6 +1398,16 @@
               <div class="col-md-6">
                 <label class="form-label font-outfit small">Medico di Base *</label>
                 <input type="text" class="form-control" id="nuc-medico" placeholder="Nome o 'No'" required>
+              </div>
+
+              <!-- Servizi da attivare -->
+              <div class="col-12">
+                <label class="form-label font-outfit small d-block mb-1">
+                  <strong>Servizi da Attivare</strong> <span class="text-xs text-muted">(Seleziona uno o più servizi erogabili dallo sportello)</span>
+                </label>
+                <div id="nuc-servizi-container" class="d-flex flex-wrap gap-2 p-2 border rounded bg-white" style="max-height: 150px; overflow-y: auto;">
+                  <span class="text-muted text-xs">Caricamento servizi in corso...</span>
+                </div>
               </div>
               <div class="col-12">
                 <label class="form-label font-outfit small">Descrizione Caso *</label>
@@ -2274,6 +2285,7 @@
       }
       if (lookups.servizi) {
         populateSelectOptions('nuc-richiesta', lookups.servizi, 'Seleziona Tipologia Richiesta...');
+        renderServiziDaAttivare(lookups.servizi);
       }
       if (lookups.relazioni) {
         populateSelectOptions('ben-rapporto', lookups.relazioni, 'Seleziona Rapporto Parentela...');
@@ -2302,6 +2314,56 @@
         buildCountryDropdown('ben-', lookups.countries || COUNTRIES);
         buildCountryDropdown('nuc-ben-', lookups.countries || COUNTRIES);
       }
+    }
+
+    /**
+     * Emette i checkbox per la selezione multipla dei servizi da attivare nel nucleo.
+     * @param {string[]} serviziList - Lista dei servizi dello sportello
+     */
+    function renderServiziDaAttivare(serviziList) {
+      const container = document.getElementById('nuc-servizi-container');
+      if (!container) return;
+      if (!Array.isArray(serviziList) || serviziList.length === 0) {
+        container.innerHTML = '<span class="text-muted text-xs">Nessun servizio disponibile.</span>';
+        return;
+      }
+      let html = '';
+      serviziList.forEach((srv, idx) => {
+        const id = `chk-servizio-${idx}`;
+        const escaped = srv.replace(/"/g, '&quot;');
+        html += `
+          <div class="form-check form-check-inline m-1">
+            <input class="form-check-input nuc-servizio-chk" type="checkbox" id="${id}" value="${escaped}">
+            <label class="form-check-label text-xs font-outfit" for="${id}">${srv}</label>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    /**
+     * Recupera l'elenco dei servizi selezionati nel form nucleo come stringa separata da virgole.
+     * @return {string}
+     */
+    function getSelectedServiziDaAttivare() {
+      const checked = document.querySelectorAll('.nuc-servizio-chk:checked');
+      return Array.from(checked).map(c => c.value.trim()).filter(Boolean).join(', ');
+    }
+
+    /**
+     * Imposta lo stato di selezione dei servizi da attivare a partire da una stringa memorizzata.
+     * @param {string} rawString - Stringa memorizzata (es. "Domanda ERP, Residenza fittizia")
+     */
+    function setSelectedServiziDaAttivare(rawString) {
+      const checkboxes = document.querySelectorAll('.nuc-servizio-chk');
+      if (!rawString) {
+        checkboxes.forEach(c => c.checked = false);
+        return;
+      }
+      const parts = rawString.split(',').map(s => s.trim().toLowerCase());
+      checkboxes.forEach(c => {
+        c.checked = parts.includes(c.value.trim().toLowerCase());
+      });
     }
 
     // Gestione Tab di Navigazione
@@ -2796,6 +2858,9 @@
       document.getElementById('nuc-abitazione').value = '';
       document.getElementById('nucleo-form-title').textContent = 'Crea Nuovo Nucleo Familiare';
 
+      if (typeof clearPendingDocs === 'function') clearPendingDocs('nuc-');
+      if (typeof setSelectedServiziDaAttivare === 'function') setSelectedServiziDaAttivare('');
+
       const modeSelector = document.getElementById('nuc-mode-selector-container');
       if (modeSelector) modeSelector.classList.remove('d-none');
       const radioNuovo = document.getElementById('nuc-mode-nuovo');
@@ -2805,7 +2870,7 @@
       setSelectValue(document.getElementById('nuc-ben-cittadinanza'), 'Italia');
       setSelectPhonePrefix(document.getElementById('nuc-ben-prefisso-tel'), '+39', 'Italia');
       setSelectValue(document.getElementById('nuc-ben-sesso'), 'M');
-      setSelectValue(document.getElementById('nuc-ben-doc-carta'), 'Non posseduto');
+      setSelectValue(document.getElementById('nuc-ben-servizi'), 'No');
 
       const textEl = document.getElementById('btn-nuc-submit-text');
       if (textEl) {
@@ -2826,6 +2891,9 @@
 
       document.getElementById('nucleo-form').reset();
       document.getElementById('nuc-id').value = n.id;
+
+      if (typeof clearPendingDocs === 'function') clearPendingDocs('nuc-');
+      if (typeof setSelectedServiziDaAttivare === 'function') setSelectedServiziDaAttivare(n.serviziDaAttivare || '');
 
       // In modalità modifica nucleo, fissa la modalità su intestatario esistente
       const modeSelector = document.getElementById('nuc-mode-selector-container');
@@ -3172,8 +3240,10 @@
           orientamentoFollowUp: document.getElementById('nuc-followup').value,
           tipologiaAbitazione: document.getElementById('nuc-abitazione').value,
           assistenteSociale: document.getElementById('nuc-assistente').value,
-          medicoDiBase: document.getElementById('nuc-medico').value
+          medicoDiBase: document.getElementById('nuc-medico').value,
+          serviziDaAttivare: typeof getSelectedServiziDaAttivare === 'function' ? getSelectedServiziDaAttivare() : ''
         },
+        documenti: (typeof pendingNucDocuments !== 'undefined') ? [...pendingNucDocuments] : [],
         intestatario: isNuovoIntestatario ? {
           cf: document.getElementById('nuc-ben-cf').value,
           nome: document.getElementById('nuc-ben-nome').value,
@@ -3187,14 +3257,8 @@
           statoCivile: document.getElementById('nuc-ben-stato-civile').value,
           statoLavorativo: document.getElementById('nuc-ben-lavoro').value,
           titoloStudio: document.getElementById('nuc-ben-studio').value,
-          annoArrivo: document.getElementById('nuc-ben-anno-arrivo').value ? parseInt(document.getElementById('nuc-ben-anno-arrivo').value, 10) : null,
-          documents: {
-            passaporto: document.getElementById('nuc-ben-doc-passaporto').checked,
-            patente: document.getElementById('nuc-ben-doc-patente').checked,
-            permessoSoggiorno: document.getElementById('nuc-ben-doc-permesso').checked,
-            tesseraSanitaria: document.getElementById('nuc-ben-doc-tessera').checked,
-            cartaIdentita: document.getElementById('nuc-ben-doc-carta').value
-          }
+          assistenteSociale: document.getElementById('nuc-ben-servizi')?.value || "No",
+          annoArrivo: document.getElementById('nuc-ben-anno-arrivo').value ? parseInt(document.getElementById('nuc-ben-anno-arrivo').value, 10) : null
         } : null
       };
 
@@ -3209,6 +3273,8 @@
             if (modalInstance) {
               modalInstance.hide();
             }
+            if (typeof clearPendingDocs === 'function') clearPendingDocs('nuc-');
+            if (typeof setSelectedServiziDaAttivare === 'function') setSelectedServiziDaAttivare('');
             document.getElementById('nucleo-form').reset();
             document.getElementById('nuc-id').value = '';
             document.getElementById('nucleo-form-title').textContent = 'Crea Nuovo Nucleo Familiare';
@@ -3235,6 +3301,7 @@
     function openAddMemberModal(nucleoId) {
       document.getElementById('modal-ben-form').reset();
       resetFormValidationUI('ben-');
+      if (typeof clearPendingDocs === 'function') clearPendingDocs('ben-');
       document.getElementById('ben-id-nucleo').value = nucleoId;
       document.getElementById('ben-is-update').value = 'false';
       document.getElementById('ben-cf').disabled = false;
@@ -3262,6 +3329,7 @@
 
       document.getElementById('modal-ben-form').reset();
       resetFormValidationUI('ben-');
+      if (typeof clearPendingDocs === 'function') clearPendingDocs('ben-');
       document.getElementById('ben-is-update').value = 'true';
       document.getElementById('ben-id-nucleo').value = ben.idNucleo || '';
 
@@ -3287,13 +3355,6 @@
       setSelectValue(document.getElementById('ben-lavoro'), ben.statoLavorativo || '');
       setSelectValue(document.getElementById('ben-studio'), ben.titoloStudio || '');
       document.getElementById('ben-servizi').value = ben.assistenteSociale || 'No';
-
-      // Checkbox documenti
-      document.getElementById('ben-doc-passaporto').checked = !!ben.passaporto;
-      document.getElementById('ben-doc-patente').checked = !!ben.patente;
-      document.getElementById('ben-doc-permesso').checked = !!ben.permessoSoggiorno;
-      document.getElementById('ben-doc-tessera').checked = !!ben.tesseraSanitaria;
-      document.getElementById('ben-doc-carta').value = ben.cartaIdentita || 'Non posseduto';
 
       // Aggiornamento stato firma e fascicolo Drive
       const firmaBadge = document.getElementById('ben-firma-status-badge');
@@ -3347,13 +3408,7 @@
         assistenteSociale: document.getElementById('ben-servizi').value,
         idNucleo: document.getElementById('ben-id-nucleo').value,
         isUpdate: document.getElementById('ben-is-update').value === 'true',
-        documents: {
-          passaporto: document.getElementById('ben-doc-passaporto').checked,
-          patente: document.getElementById('ben-doc-patente').checked,
-          permessoSoggiorno: document.getElementById('ben-doc-permesso').checked,
-          tesseraSanitaria: document.getElementById('ben-doc-tessera').checked,
-          cartaIdentita: document.getElementById('ben-doc-carta').value
-        }
+        documenti: (typeof pendingBenDocuments !== 'undefined') ? [...pendingBenDocuments] : []
       };
 
       google.script.run
@@ -3361,6 +3416,7 @@
           submitBtn.disabled = false;
           if (res.success) {
             showToast(res.message, "success");
+            if (typeof clearPendingDocs === 'function') clearPendingDocs('ben-');
             bootstrap.Modal.getInstance(document.getElementById('modal-beneficiario')).hide();
             reloadData();
           } else {
@@ -4271,75 +4327,450 @@
       tbody.innerHTML = html;
     }
 
+    // =========================================================================
+    // MODULO DOCUMENT INTELLIGENCE & OTTIMIZZAZIONE IMMAGINI (CANVAS)
+    // =========================================================================
+
     /**
-     * Upload e analisi automatica del documento tramite IA Gemini Flash.
+     * Normalizza una stringa in Proper Case (Title Case italiano),
+     * preservando particelle, patronimici, apostrofi e trattini.
+     * @param {string} str
+     * @return {string}
      */
-    function handleSmartDocUpload(event, prefix) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) return;
+    function normalizeProperCase(str) {
+      if (!str) return "";
+      const minorWords = new Set(["di", "de", "del", "della", "delle", "dei", "degli", "da", "dal", "dalla", "dalle", "dai", "dagli", "in", "sul", "sulla", "sulle", "sui", "sugli", "a", "al", "alla", "alle", "ai", "agli", "e", "ed", "o", "od"]);
+      const words = String(str).trim().replace(/\s+/g, " ").split(" ");
+      return words.map((w, idx) => {
+        const lower = w.toLowerCase();
+        const isFirst = idx === 0;
+        const isLast = idx === words.length - 1;
+        if (!isFirst && !isLast && minorWords.has(lower)) return lower;
 
-      const loadingEl = document.getElementById(prefix === 'ben-' ? 'ai-loading-ben' : 'ai-loading-nuc');
+        if (lower.includes("'")) {
+          return lower.split("'").map((p, pIdx) => {
+            if (pIdx === 0 && ["d", "l", "sant", "dell", "nell", "all", "sull"].includes(p)) {
+              return isFirst ? p.charAt(0).toUpperCase() + p.slice(1) : p.toLowerCase();
+            }
+            return p.charAt(0).toUpperCase() + p.slice(1);
+          }).join("'");
+        }
+
+        if (lower.includes("-")) {
+          return lower.split("-").map(p => p.charAt(0).toUpperCase() + p.slice(1)).join("-");
+        }
+
+        return lower.charAt(0).toUpperCase() + lower.slice(1);
+      }).join(" ");
+    }
+
+    /**
+     * Normalizza la denominazione di un comune o luogo di nascita con sigla provincia maiuscola a 2 lettere.
+     * @param {string} str
+     * @return {string}
+     */
+    function normalizeCity(str) {
+      if (!str) return "";
+      let s = String(str).trim().replace(/\s+/g, " ");
+      let prov = "";
+      const provMatchParen = s.match(/\s*\(([a-zA-Z]{2})\)\s*$/);
+      if (provMatchParen) {
+        prov = " (" + provMatchParen[1].toUpperCase() + ")";
+        s = s.replace(/\s*\(([a-zA-Z]{2})\)\s*$/, "").trim();
+      } else {
+        const provMatchEnd = s.match(/\s+([a-zA-Z]{2})$/);
+        if (provMatchEnd) {
+          prov = " (" + provMatchEnd[1].toUpperCase() + ")";
+          s = s.replace(/\s+([a-zA-Z]{2})$/, "").trim();
+        }
+      }
+      return normalizeProperCase(s) + prov;
+    }
+
+    /**
+     * Normalizza un indirizzo stradale preservando CAP e sigle provincia.
+     * @param {string} str
+     * @return {string}
+     */
+    function normalizeAddress(str) {
+      if (!str) return "";
+      const words = String(str).trim().replace(/\s+/g, " ").split(" ");
+      return words.map((w, idx) => {
+        let trailingPunct = "";
+        let clean = w;
+        const punctMatch = w.match(/([,;:.])$/);
+        if (punctMatch) {
+          trailingPunct = punctMatch[1];
+          clean = w.slice(0, -1);
+        }
+        if (/^\d{5}$/.test(clean)) return clean + trailingPunct;
+        if (/^\([a-zA-Z]{2}\)$/.test(clean)) return clean.toUpperCase() + trailingPunct;
+        if (/^\d+[\/\-a-zA-Z]*$/.test(clean)) return clean.toUpperCase() + trailingPunct;
+        return normalizeProperCase(clean) + trailingPunct;
+      }).join(" ");
+    }
+
+    /**
+     * Normalizza il Codice Fiscale forzandolo a 16 caratteri maiuscoli alfanumerici.
+     * @param {string} cf
+     * @return {string}
+     */
+    function normalizeFiscalCode(cf) {
+      if (!cf) return "";
+      return String(cf).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 16);
+    }
+
+    /**
+     * Ottimizza e comprime un file prima della trasmissione di rete via google.script.run.
+     * Se è un'immagine, la ridimensiona (max 1600px) e la comprime in JPEG con canvas HTML5.
+     * Se è un PDF, lo converte direttamente in Base64 Data URI.
+     * 
+     * @param {File} file - Il file selezionato dall'utente
+     * @param {number} [maxDimension=1600] - Dimensione massima lato lungo
+     * @param {number} [quality=0.82] - Qualità compressione JPEG (0..1)
+     * @return {Promise<{ base64Data: string; mimeType: string; name: string; size: number }>}
+     */
+    function optimizeFileForUpload(file, maxDimension = 1600, quality = 0.82) {
+      return new Promise((resolve, reject) => {
+        if (!file) return reject(new Error("File non valido"));
+        const isImage = file.type.startsWith('image/') || /\.(jpg|jpeg|png|webp|heic|bmp)$/i.test(file.name);
+        if (!isImage) {
+          const reader = new FileReader();
+          reader.onload = e => resolve({
+            base64Data: e.target.result,
+            mimeType: file.type || "application/pdf",
+            name: file.name,
+            size: file.size
+          });
+          reader.onerror = e => reject(e);
+          reader.readAsDataURL(file);
+          return;
+        }
+
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          let width = img.naturalWidth || img.width;
+          let height = img.naturalHeight || img.height;
+
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const optimizedBase64 = canvas.toDataURL('image/jpeg', quality);
+          resolve({
+            base64Data: optimizedBase64,
+            mimeType: 'image/jpeg',
+            name: file.name.replace(/\.[^/.]+$/, "") + ".jpg",
+            size: optimizedBase64.length
+          });
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          const reader = new FileReader();
+          reader.onload = e => resolve({
+            base64Data: e.target.result,
+            mimeType: file.type || "image/jpeg",
+            name: file.name,
+            size: file.size
+          });
+          reader.onerror = e => reject(e);
+          reader.readAsDataURL(file);
+        };
+        img.src = url;
+      });
+    }
+
+    // Code di documenti pendenti da archiviare in Drive al salvataggio
+    let pendingBenDocuments = [];
+    let pendingNucDocuments = [];
+
+    /**
+     * Restituisce l'emoji per la tipologia di documento.
+     * @param {string} tipo
+     * @return {string}
+     */
+    function getDocEmoji(tipo) {
+      if (!tipo) return '📄';
+      if (/identit/i.test(tipo)) return '🪪';
+      if (/soggiorno/i.test(tipo)) return '🛂';
+      if (/patente/i.test(tipo)) return '🚗';
+      if (/passaporto/i.test(tipo)) return '📘';
+      if (/isee/i.test(tipo)) return '💶';
+      if (/sanitaria|codice.*fisc/i.test(tipo)) return '🏥';
+      if (/contratto|locazione/i.test(tipo)) return '🏠';
+      if (/busta.*paga|reddito/i.test(tipo)) return '💰';
+      return '📄';
+    }
+
+    /**
+     * Renderizza visivamente la lista dei documenti in coda pronti per il salvataggio.
+     * @param {string} prefix - 'ben-' oppure 'nuc-ben-' / 'nuc-'
+     */
+    function renderPendingDocs(prefix) {
+      const isBen = prefix === 'ben-';
+      const docs = isBen ? pendingBenDocuments : pendingNucDocuments;
+      const listEl = document.getElementById(isBen ? 'ben-pending-docs-list' : 'nuc-pending-docs-list');
+      const badgeEl = document.getElementById(isBen ? 'ben-doc-count-badge' : 'nuc-doc-count-badge');
+      const emptyMsgEl = document.getElementById(isBen ? 'ben-no-pending-docs' : 'nuc-no-pending-docs');
+
+      if (!listEl) return;
+
+      if (badgeEl) {
+        badgeEl.textContent = `${docs.length} ${docs.length === 1 ? 'documento allegato' : 'documenti allegati'}`;
+        badgeEl.className = docs.length > 0 ? 'badge bg-primary' : 'badge bg-secondary';
+      }
+
+      if (docs.length === 0) {
+        if (emptyMsgEl) emptyMsgEl.classList.remove('d-none');
+        listEl.innerHTML = '';
+        return;
+      }
+
+      if (emptyMsgEl) emptyMsgEl.classList.add('d-none');
+      let html = '';
+      docs.forEach((doc, idx) => {
+        const emoji = getDocEmoji(doc.tipoDocumento);
+        const scadText = doc.dataScadenza ? `<span class="badge bg-light text-dark border me-1">Scadenza: ${doc.dataScadenza}</span>` : '';
+        const valText = doc.valore !== null && doc.valore !== undefined ? `<span class="badge bg-success bg-opacity-10 text-success border border-success me-1">€ ${Number(doc.valore).toLocaleString('it-IT')}</span>` : '';
+        html += `
+          <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-light">
+            <div class="d-flex align-items-center text-truncate me-2">
+              <span class="fs-4 me-2">${emoji}</span>
+              <div class="text-truncate">
+                <strong class="font-outfit text-xs d-block text-dark text-truncate">${doc.tipoDocumento}</strong>
+                <span class="text-2xs text-muted d-block text-truncate">${doc.name || 'documento'}</span>
+                <div class="mt-1">${scadText}${valText}</div>
+              </div>
+            </div>
+            <button type="button" class="btn btn-xs btn-outline-danger flex-shrink-0" onclick="removePendingDoc('${prefix}', ${idx})" title="Rimuovi documento dalla coda">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        `;
+      });
+      listEl.innerHTML = html;
+    }
+
+    /**
+     * Rimuove un documento dalla coda dei file da archiviare.
+     * @param {string} prefix
+     * @param {number} index
+     */
+    function removePendingDoc(prefix, index) {
+      if (prefix === 'ben-') {
+        pendingBenDocuments.splice(index, 1);
+      } else {
+        pendingNucDocuments.splice(index, 1);
+      }
+      renderPendingDocs(prefix);
+    }
+
+    /**
+     * Azzera la coda dei documenti pendenti.
+     * @param {string} prefix
+     */
+    function clearPendingDocs(prefix) {
+      if (prefix === 'ben-') {
+        pendingBenDocuments = [];
+      } else {
+        pendingNucDocuments = [];
+      }
+      renderPendingDocs(prefix);
+    }
+
+    /**
+     * Elabora una lista di file (da input file o da drag & drop)
+     * comprimendoli lato client e inviandoli all'IA Gemini Flash.
+     * 
+     * @param {FileList|File[]} files
+     * @param {string} prefix - 'ben-' o 'nuc-ben-'
+     */
+    async function processFilesUpload(files, prefix) {
+      if (!files || files.length === 0) return;
+
+      const isBen = prefix === 'ben-';
+      const loadingEl = document.getElementById(isBen ? 'ai-loading-ben' : 'ai-loading-nuc');
+      const loadingText = document.getElementById(isBen ? 'ai-loading-ben-text' : 'ai-loading-nuc-text');
+
       if (loadingEl) loadingEl.classList.remove('d-none');
+      if (loadingText) loadingText.textContent = `Ottimizzazione e compressione di ${files.length} file in corso...`;
 
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const base64Data = e.target.result;
+      try {
+        const fileArray = Array.from(files);
+        // Compressione in parallelo tramite Canvas
+        const optimizedFiles = await Promise.all(fileArray.map(f => optimizeFileForUpload(f)));
+
+        if (loadingText) loadingText.textContent = `Analisi visiva e OCR in corso con Gemini Flash (${optimizedFiles.length} doc)...`;
 
         google.script.run
           .withSuccessHandler(res => {
             if (loadingEl) loadingEl.classList.add('d-none');
-            event.target.value = '';
+
+            // Reset input file
+            const inputEl = document.getElementById(isBen ? 'ai-upload-ben-input' : 'ai-upload-nuc-input');
+            if (inputEl) inputEl.value = '';
 
             if (res && res.success && res.data) {
               const d = res.data;
               const p = d.datiPersona || {};
-              const doc = d.datiDocumento || {};
 
-              // Autocompila i campi anagrafici
-              if (p.codiceFiscale) document.getElementById(prefix + 'cf').value = p.codiceFiscale.toUpperCase();
-              if (p.nome) document.getElementById(prefix + 'nome').value = p.nome;
-              if (p.cognome) document.getElementById(prefix + 'cognome').value = p.cognome;
-              if (p.dataNascita) document.getElementById(prefix + 'data-nascita').value = p.dataNascita;
-              if (p.luogoNascita) document.getElementById(prefix + 'luogo-nascita').value = p.luogoNascita;
-              if (p.sesso && ['M', 'F'].includes(p.sesso.toUpperCase())) document.getElementById(prefix + 'sesso').value = p.sesso.toUpperCase();
-              if (p.residenza && document.getElementById(prefix + 'residenza')) document.getElementById(prefix + 'residenza').value = p.residenza;
+              // Autocompila i campi anagrafici con Title Case rigoroso
+              if (p.codiceFiscale) {
+                const cfEl = document.getElementById(prefix + 'cf');
+                if (cfEl) {
+                  cfEl.value = normalizeFiscalCode(p.codiceFiscale);
+                  validateAndDecodeCF(prefix);
+                }
+              }
+              if (p.nome && document.getElementById(prefix + 'nome')) {
+                document.getElementById(prefix + 'nome').value = normalizeProperCase(p.nome);
+              }
+              if (p.cognome && document.getElementById(prefix + 'cognome')) {
+                document.getElementById(prefix + 'cognome').value = normalizeProperCase(p.cognome);
+              }
+              if (p.dataNascita && document.getElementById(prefix + 'data-nascita')) {
+                document.getElementById(prefix + 'data-nascita').value = p.dataNascita;
+              }
+              if (p.luogoNascita && document.getElementById(prefix + 'luogo-nascita')) {
+                document.getElementById(prefix + 'luogo-nascita').value = normalizeCity(p.luogoNascita);
+              }
+              if (p.sesso && ['M', 'F'].includes(p.sesso.toUpperCase()) && document.getElementById(prefix + 'sesso')) {
+                document.getElementById(prefix + 'sesso').value = p.sesso.toUpperCase();
+              }
+              if (p.residenza) {
+                if (document.getElementById(prefix + 'residenza')) {
+                  document.getElementById(prefix + 'residenza').value = normalizeAddress(p.residenza);
+                }
+                if (prefix === 'nuc-ben-' && document.getElementById('nuc-residenza')) {
+                  document.getElementById('nuc-residenza').value = normalizeAddress(p.residenza);
+                }
+              }
 
               // Seleziona la cittadinanza se presente
               if (p.cittadinanza && typeof selectCountryByText === 'function') {
                 selectCountryByText(p.cittadinanza, prefix);
               }
 
-              // Spunta i checkbox di possesso documento
-              if (/carta.*identit/i.test(d.tipoDocumento)) {
-                const sel = document.getElementById(prefix + 'doc-carta');
-                if (sel) sel.value = 'elettronica';
-              } else if (/permesso.*sogg/i.test(d.tipoDocumento)) {
-                const chk = document.getElementById(prefix + 'doc-permesso');
-                if (chk) chk.checked = true;
-              } else if (/patente/i.test(d.tipoDocumento)) {
-                const chk = document.getElementById(prefix + 'doc-patente');
-                if (chk) chk.checked = true;
-              } else if (/passaporto/i.test(d.tipoDocumento)) {
-                const chk = document.getElementById(prefix + 'doc-passaporto');
-                if (chk) chk.checked = true;
-              } else if (/tessera.*sanit/i.test(d.tipoDocumento)) {
-                const chk = document.getElementById(prefix + 'doc-tessera');
-                if (chk) chk.checked = true;
+              // Se è un nucleo e l'IA ha estratto un valore ISEE
+              if (prefix === 'nuc-ben-' && d.valoreISEE !== null && d.valoreISEE !== undefined) {
+                const iseeInput = document.getElementById('nuc-isee');
+                if (iseeInput) iseeInput.value = d.valoreISEE;
               }
 
-              showToast('✨ ' + d.tipoDocumento + ' riconosciuto con successo! Campi compilati automaticamente.', 'success');
+              // Aggiunge i documenti riconosciuti alla coda di salvataggio in Drive
+              const docsToAdd = Array.isArray(d.documenti) ? d.documenti : (d.datiDocumento ? [d.datiDocumento] : []);
+              docsToAdd.forEach((docItem, i) => {
+                const optFile = optimizedFiles[i] || optimizedFiles[0];
+                const docObj = {
+                  base64Data: optFile.base64Data,
+                  mimeType: optFile.mimeType,
+                  name: optFile.name,
+                  tipoDocumento: docItem.tipoDocumento || d.tipoDocumento || "Altro",
+                  categoria: docItem.categoria || d.categoria || "Altro",
+                  valore: docItem.valore !== undefined ? docItem.valore : null,
+                  dataScadenza: docItem.dataScadenza || "",
+                  dataEmissione: docItem.dataEmissione || "",
+                  enteRilascio: docItem.enteRilascio || "",
+                  note: docItem.note || ""
+                };
+
+                if (isBen) {
+                  pendingBenDocuments.push(docObj);
+                } else {
+                  pendingNucDocuments.push(docObj);
+                }
+              });
+
+              renderPendingDocs(prefix);
+              showToast(`✨ Document Intelligence completata: campi precompilati e ${docsToAdd.length} file pronti per l'archiviazione.`, 'success');
             } else {
               showToast((res && res.message) || 'Impossibile estrarre i dati con IA.', 'warning');
             }
           })
           .withFailureHandler(err => {
             if (loadingEl) loadingEl.classList.add('d-none');
-            event.target.value = '';
+            const inputEl = document.getElementById(isBen ? 'ai-upload-ben-input' : 'ai-upload-nuc-input');
+            if (inputEl) inputEl.value = '';
             showToast('Errore analisi IA: ' + (err.message || err), 'danger');
           })
-          .smartClassifyDocument(base64Data, file.type, file.name);
-      };
-      reader.readAsDataURL(file);
+          .smartClassifyDocuments(optimizedFiles);
+
+      } catch (optErr) {
+        if (loadingEl) loadingEl.classList.add('d-none');
+        showToast('Errore preparazione file: ' + optErr.message, 'danger');
+      }
+    }
+
+    /**
+     * Handler per il cambio sull'input file della dropzone.
+     * @param {Event} event
+     * @param {string} prefix
+     */
+    function handleSmartDocUpload(event, prefix) {
+      const files = event.target.files;
+      if (files && files.length > 0) {
+        processFilesUpload(files, prefix);
+      }
+    }
+
+    /**
+     * Inizializza gli eventi Drag & Drop per le aree di rilascio documenti.
+     */
+    function initDocumentDropzones() {
+      const setups = [
+        { dropId: 'ai-smart-fill-ben', prefix: 'ben-' },
+        { dropId: 'ai-smart-fill-nuc', prefix: 'nuc-ben-' }
+      ];
+
+      setups.forEach(s => {
+        const dropEl = document.getElementById(s.dropId);
+        if (!dropEl) return;
+
+        ['dragenter', 'dragover'].forEach(evtName => {
+          dropEl.addEventListener(evtName, e => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropEl.classList.add('border-primary', 'bg-white', 'shadow-sm');
+          });
+        });
+
+        ['dragleave', 'drop'].forEach(evtName => {
+          dropEl.addEventListener(evtName, e => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropEl.classList.remove('border-primary', 'bg-white', 'shadow-sm');
+          });
+        });
+
+        dropEl.addEventListener('drop', e => {
+          const dt = e.dataTransfer;
+          const files = dt && dt.files;
+          if (files && files.length > 0) {
+            processFilesUpload(files, s.prefix);
+          }
+        });
+      });
+    }
+
+    // Registra l'inizializzazione del drag & drop al caricamento
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initDocumentDropzones);
+    } else {
+      initDocumentDropzones();
     }
 
     /**

@@ -27,7 +27,8 @@ Ciascun nucleo possiede:
 | **J** | **`Tipologia abitazione`** | Testo | Condizione alloggiativa attuale (proprietà, locazione, occupazione, ospite...) |
 | **K** | **`Assistente sociale`** | Testo | Servizio sociale o nominativo dell'assistente sociale di presa in carico |
 | **L** | **`Medico di base`** | Testo | Indicazione medico di famiglia di riferimento |
-| **M** | **`idCartella`** | Testo (33 car.) | Identificativo univoco della cartella del nucleo su Google Drive |
+| **M** | **`Servizi da attivare`** | Testo | Elenco dei servizi dello sportello da attivare (selezionati dal Named Range `Sportello_Servizi`) |
+| **N** | **`idCartella`** | Testo (33 car.) | Identificativo univoco della cartella del nucleo su Google Drive |
 
 ---
 

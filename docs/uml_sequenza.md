@@ -331,50 +331,88 @@ sequenceDiagram
 
 ---
 
-## 6. Sequenza 6: Smart Form-Filling & Document Intelligence con Google Gemini Flash
+## 6. Sequenza 6: Smart Form-Filling Multi-File & Document Intelligence con Google Gemini Flash
 
-Illustra l'interazione tra l'area di rilascio documenti (drag & drop), il servizio di Computer Vision multimodale Gemini Flash (`gemini-3.8-flash`) e l'autocompilazione guidata dei campi anagrafici e documentali.
+Illustra l'interazione tra l'area di rilascio documenti (drag & drop multi-file), l'ottimizzazione grafica su Canvas client-side, il servizio multimodale Gemini Flash (`gemini-2.5-flash`), la normalizzazione deterministica Title Case e l'archiviazione automatica in Google Drive e foglio `Documenti`.
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Op as Operatore di Sportello
-    participant UI as Frontend.html (Dropzone IA)
+    participant UI as Frontend.html (Dropzone IA & Canvas)
     participant Ctrl as Backend.js
     participant DI as DocumentIntelligence
-    participant Gemini as Google Gemini API (gemini-3.8-flash)
+    participant Gemini as Google Gemini API (gemini-2.5-flash)
     participant DocDomain as Documents (SSOT)
+    participant DM as DriveManager
+    participant DocRepo as DocumentoRepository
+    participant SS as Google Sheets ("Beneficiari" / "Documenti")
 
-    Op->>UI: Trascina foto o PDF (es. Carta d'Identità o Permesso di Soggiorno)
-    UI->>UI: FileReader legge il file come DataURL (Base64)
-    UI->>UI: Mostra spinner "Analisi visiva in corso con Gemini Flash (~1 sec)..."
+    Op->>UI: Trascina uno o più file/foto (es. CIE fronte/retro, ISEE, Tessera Sanitaria)
+    activate UI
+    UI->>UI: optimizeFileForUpload() ridimensiona via HTML5 Canvas (max 1600px, JPEG 0.82)
+    Note over UI: Riduzione peso da ~12MB a ~300KB in <50ms
+    UI->>UI: Mostra spinner "Analisi visiva in corso con Gemini Flash..."
     
-    UI->>Ctrl: google.script.run.smartClassifyDocument(base64Data, mimeType, fileName)
+    UI->>Ctrl: google.script.run.smartClassifyDocuments(filesArray)
+    deactivate UI
     activate Ctrl
 
-    Ctrl->>DI: smartClassifyBase64(base64Data, mimeType, fileName)
+    Ctrl->>DI: smartClassifyMultipleBase64(filesArray)
     activate DI
 
-    DI->>DI: Verifica disponibilità API Key da ScriptProperties (GEMINI_API_KEY)
-    DI->>Gemini: UrlFetchApp.fetch(POST /models/gemini-3.8-flash:generateContent)
-    Note over DI,Gemini: Payload multimodale (Base64) + Schema JSON vincolato (response_mime_type: application/json)
+    DI->>DI: Prepara payload multimodale (array di inlineData Base64)
+    DI->>Gemini: UrlFetchApp.fetch(POST /models/gemini-2.5-flash:generateContent)
+    Note over DI,Gemini: Analisi batch unificata + Schema JSON vincolato con istruzioni Title Case
     
-    Gemini-->>DI: JSON strutturato { tipoDocumento, datiPersona, datiDocumento }
+    Gemini-->>DI: JSON strutturato { tipoDocumento, datiPersona, datiDocumento, datiNucleo }
     
     DI->>DocDomain: findDocumentType(tipoDocumento)
-    DocDomain-->>DI: Record di dominio (name, categoria, archetipo, icona, emoji)
+    DocDomain-->>DI: Record di dominio (name, categoria, archetipo, icona, scope)
+    DI->>DI: Post-processing deterministico (normalizeProperCase, normalizeCity, normalizeAddress, normalizeFiscalCode)
     
-    DI-->>Ctrl: { success: true, data: { tipoDocumento, categoria, datiPersona, datiDocumento } }
+    DI-->>Ctrl: { success: true, data: { tipoDocumento, categoria, datiPersona, datiDocumento, datiNucleo } }
     deactivate DI
 
-    Ctrl-->>UI: Risposta con dati estratti
+    Ctrl-->>UI: Risposta con dati strutturati e normalizzati
     deactivate Ctrl
+    activate UI
 
-    UI->>UI: Popola input form: Nome, Cognome, CF, Data Nascita, Luogo, Sesso, Residenza
-    UI->>UI: Seleziona automaticamente Cittadinanza con relativa bandierina grafica
-    UI->>UI: Spunta automaticamente il checkbox del documento riconosciuto (es. CIE / PdS)
-    UI->>Op: Toast: "✨ Carta d'Identità riconosciuta con successo! Campi compilati."
-    Op->>UI: Verifica visiva dei dati precompilati e clicca su "Salva Membro"
+    UI->>UI: Popola input form con Title Case (Nome, Cognome, Luogo nascita con PR maiuscola, CF, Indirizzo, ISEE)
+    UI->>UI: Seleziona automaticamente Cittadinanza con bandierina SVG
+    UI->>UI: renderPendingDocs() aggiunge i file al vassoio documenti pendenti con badge rimovibili
+    UI->>Op: Toast: "✨ Documenti analizzati con successo! Dati compilati."
+    deactivate UI
+
+    %% Fase di Salvataggio
+    Op->>UI: Verifica i dati e clicca su "Salva" (Beneficiario o Nucleo)
+    activate UI
+    UI->>Ctrl: google.script.run.submitBeneficiary / submitNucleoCompleto(payload con documents)
+    deactivate UI
+    activate Ctrl
+
+    Ctrl->>SS: Scrive riga anagrafica (senza flag documento legacy obsoleti)
+    
+    loop Per ogni documento nel payload
+        Ctrl->>DM: saveDocumentFile(cf, doc, nucleoId)
+        activate DM
+        DM->>DM: Determina destinazione in base a doc.scope (Cartella Personale o Cartella Nucleo)
+        DM->>DM: Genera nome standard con buildDocumentFileName
+        DM->>DM: Utilities.base64Decode() e folder.createFile()
+        DM->>DocRepo: add({ intestatario: cf, tipo, categoria, valore, dataEmissione, dataScadenza, idDrive })
+        activate DocRepo
+        DocRepo->>SS: Registra riga nel foglio relazionale "Documenti"
+        deactivate DocRepo
+        DM-->>Ctrl: { success: true, fileId, fileUrl }
+        deactivate DM
+    end
+
+    Ctrl-->>UI: { success: true, message: "Salvataggio completato e documenti archiviati!" }
+    deactivate Ctrl
+    activate UI
+    UI->>UI: clearPendingDocs() e reloadData()
+    UI->>Op: Notifica di successo e chiusura modale
+    deactivate UI
 ```
 
 ---

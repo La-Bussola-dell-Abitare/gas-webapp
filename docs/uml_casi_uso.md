@@ -105,6 +105,7 @@ flowchart LR
     UC01 -.->|"<<extend>>"| UC08
     UC05 -.->|"<<include>>"| UC07
     UC06 -.->|"<<include>>"| UC07
+    UC05 -.->|"<<extend>>"| UC16
     UC06 -.->|"<<extend>>"| UC16
     UC05 -.->|"<<extend>>"| UC15
     UC06 -.->|"<<include>>"| UC14
@@ -158,14 +159,16 @@ flowchart LR
   3. L'operatore visualizza il rapporto con badge semaforico (🟢 Conforme, 🟡 Warning, 🔴 Critico) e clicca su `⚡ Bonifica e Riorganizza Ora`.
   4. Il motore `DriveReconciler` crea le cartelle personali mancanti, sposta i file nella destinazione corretta con `file.moveTo`, li rinomina applicando lo standard `buildDocumentFileName` e li censisce nel foglio `Documenti`.
 
-### UC16: Smart Form-Filling da Documento con IA (Google Gemini Flash)
+### UC16: Smart Form-Filling Multi-File da Documento con IA (Google Gemini Flash)
 - **Attori:** Operatore Sociale, Assistente Sociale.
 - **Flusso Principale:**
-  1. In fase di compilazione della scheda beneficiario, l'operatore trascina una scansione PDF o foto (CIE, Permesso di Soggiorno, Patente, ISEE) nella dropzone con icona ✨.
-  2. Il frontend converte il file in Base64 e chiama `smartClassifyDocument`.
-  3. Il backend invoca `gemini-3.8-flash` forzando lo schema JSON strutturato.
-  4. In ~1-2 secondi i campi anagrafici (Nome, Cognome, CF, Data Nascita, Luogo, Sesso, Residenza) e documentali si autocompilano, selezionando anche la bandierina della cittadinanza e spuntando i documenti posseduti.
-  5. L'operatore effettua un rapido controllo visivo e salva con un click.
+  1. In fase di creazione del nucleo (`UC05`) o compilazione della scheda beneficiario (`UC06`), l'operatore trascina una o più foto o scansioni PDF (es. CIE fronte e retro, ISEE, Tessera Sanitaria) nella dropzone con icona ✨.
+  2. Il frontend ottimizza istantaneamente le immagini tramite HTML5 Canvas (`optimizeFileForUpload`), ridimensionandole a un massimo di 1600px con qualità JPEG 0.82 (riducendo le dimensioni da ~12 MB a ~300 KB in meno di 50 ms).
+  3. Il frontend converte i file in Base64 e invoca `smartClassifyDocuments` via RPC.
+  4. Il backend effettua una singola chiamata multimodale batch a `gemini-2.5-flash` forzando lo schema JSON strutturato e applicando la normalizzazione deterministica Title Case (iniziale maiuscola per nome, cognome e comune di nascita, sigla provincia in maiuscolo, es. `Reggio nell'Emilia (RE)`).
+  5. I campi anagrafici, la residenza, l'ISEE e la bandierina della cittadinanza si autocompilano in 1-2 secondi.
+  6. I documenti analizzati vengono mostrati in un vassoio di anteprima con badge rimovibili (`pendingDocs`).
+  7. Al salvataggio della scheda, i file fisici vengono archiviati su Google Drive (nella cartella nucleo o personale in base allo scope) tramite `DriveManager.saveDocumentFile` e registrati automaticamente nel foglio `Documenti`. Vengono definitivamente superate le vecchie caselle di spunta manuali.
 
 ### UC17: Gestione Fascicolo Documentale e Tracciamento Scadenze
 - **Attori:** Operatore Sociale, Assistente Sociale, Coordinatore.

@@ -172,26 +172,7 @@ class BeneficiarioRepository {
         if (idx.assistenteSociale >= 0) sheet.getRange(newRowIdx, idx.assistenteSociale + 1).setValue(data.assistenteSociale || "No");
         if (idx.rapportoIntestatario >= 0) sheet.getRange(newRowIdx, idx.rapportoIntestatario + 1).setValue(data.rapportoIntestatario || "");
         if (idx.idNucleo >= 0) sheet.getRange(newRowIdx, idx.idNucleo + 1).setValue(data.idNucleo || "");
-        if (idx.cartaIdentita >= 0) {
-            const val = data.documents?.cartaIdentita || data.cartaIdentita || "Non posseduto";
-            sheet.getRange(newRowIdx, idx.cartaIdentita + 1).setValue(val);
-        }
-        if (idx.passaporto >= 0) {
-            const val = data.documents?.passaporto !== undefined ? data.documents.passaporto : data.passaporto;
-            sheet.getRange(newRowIdx, idx.passaporto + 1).setValue(typeof val === "string" && val.trim() ? val.trim() : (val ? true : false));
-        }
-        if (idx.patente >= 0) {
-            const val = data.documents?.patente !== undefined ? data.documents.patente : data.patente;
-            sheet.getRange(newRowIdx, idx.patente + 1).setValue(typeof val === "string" && val.trim() ? val.trim() : (val ? true : false));
-        }
-        if (idx.permessoSoggiorno >= 0) {
-            const val = data.documents?.permessoSoggiorno !== undefined ? data.documents.permessoSoggiorno : data.permessoSoggiorno;
-            sheet.getRange(newRowIdx, idx.permessoSoggiorno + 1).setValue(typeof val === "string" && val.trim() ? val.trim() : (val ? true : false));
-        }
-        if (idx.tesseraSanitaria >= 0) {
-            const val = data.documents?.tesseraSanitaria !== undefined ? data.documents.tesseraSanitaria : data.tesseraSanitaria;
-            sheet.getRange(newRowIdx, idx.tesseraSanitaria + 1).setValue(typeof val === "string" && val.trim() ? val.trim() : (val ? true : false));
-        }
+        // I vecchi flag documentali non vengono più scritti nel foglio Beneficiari: la gestione risiede esclusivamente nel foglio 'Documenti'
         if (idx.firma >= 0 && (data.firma !== undefined || data.documents?.firma !== undefined)) {
             const val = data.firma !== undefined ? data.firma : data.documents.firma;
             sheet.getRange(newRowIdx, idx.firma + 1).setValue(val || "");

@@ -54,6 +54,14 @@ Fornisce funzioni ad alta affidabilità per interagire con i dati non strutturat
   Verifica se una colonna esiste nella riga 1 del foglio; se manca, la aggiunge automaticamente a destra dell'ultima colonna e restituisce il nuovo indice. Permette l'auto-migrazione progressiva dello schema del foglio.
 - **`safeString(val)`**:
   Converte qualsiasi valore di cella in stringa ripulita dagli spazi, evitando errori `TypeError: cannot read property trim of null/undefined`.
+- **`normalizeProperCase(str)`**:
+  Converte una stringa in Title Case italiano rispettando particelle nobiliari/patronimiche (*De Luca*, *Di Pietro*, *Dell'Acqua*, *D'Angelo*), apostrofi e nomi composti con trattino (*Jean-Luc*, *Rossi-Bianchi*).
+- **`normalizeCity(str)`**:
+  Formatta denominazioni di comuni e luoghi di nascita mantenendo in minuscolo le preposizioni interne (*di*, *sul*, *nell'*) e preservando la **sigla della provincia a 2 lettere obbligatoriamente in MAIUSCOLO** (es. `Reggio nell'Emilia (RE)`, `Castellammare di Stabia (NA)`).
+- **`normalizeAddress(str)`**:
+  Formatta indirizzi anagrafici preservando numeri civici (es. `10/A`), CAP a 5 cifre e sigle provinciali.
+- **`normalizeFiscalCode(cf)`**:
+  Forza il codice fiscale a 16 caratteri alfanumerici maiuscoli rimuovendo spazi o simboli spuri.
 - **`getSheetVal(row, idx, key, fallback)`**:
   Estrae in modo sicuro un campo da un array di riga controllando che l'indice sia valido e compreso nei limiti della matrice.
 - **`mapFormula(input, fn, fallbackOnError, emptyValue)`**:

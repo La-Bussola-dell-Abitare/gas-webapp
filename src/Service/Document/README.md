@@ -41,7 +41,11 @@ Integra l'endpoint REST dei modelli Google Gemini Flash (`gemini-3.8-flash`) tra
    ```
 3. **Integrazione con il Dominio SSOT**:
    La risposta dell'IA viene passata a `findDocumentType(tipo)` per mappare automaticamente la categoria, l'archetipo temporale, l'icona e l'emoji ufficiale.
-4. **Sicurezza e Configurabilità**:
+4. **Supporto Multi-File Simultaneo**:
+   Gemini Flash analizza più allegati contemporaneamente (es. fronte e retro di una CIE, oppure CIE + Tessera Sanitaria + Attestazione ISEE), consolidando l'anagrafica comune in `datiPersona` e restituendo un array `documenti` contenente ciascun file individuato con tipo, scadenza e valore economico.
+5. **Normalizzazione Rigorosa Title Case**:
+   Il prompt prescrive esplicitamente il Title Case per nomi e comuni (con sigla provincia a 2 lettere maiuscola tra parentesi), e il servizio applica funzioni deterministiche di normalizzazione post-risposta (`normalizeProperCase`, `normalizeCity`, `normalizeAddress`, `normalizeFiscalCode`).
+6. **Sicurezza e Configurabilità**:
    La chiave API viene conservata nelle proprietà dello script (`GEMINI_API_KEY`), e il modello può essere variato senza modifiche al codice tramite `GEMINI_MODEL`.
 
 ---

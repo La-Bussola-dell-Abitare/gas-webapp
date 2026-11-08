@@ -196,7 +196,20 @@ function getOperatorsList() {
  */
 function submitBeneficiary(data) {
   try {
-    return BeneficiarioRepository.add(data);
+    const result = BeneficiarioRepository.add(data);
+    if (result && result.success && Array.isArray(data.documenti) && data.documenti.length > 0 && typeof DriveManager !== "undefined") {
+      const targetCF = data.cf ? data.cf.toUpperCase().trim() : "";
+      if (targetCF) {
+        for (const docItem of data.documenti) {
+          try {
+            DriveManager.saveDocumentFile(targetCF, docItem, data.idNucleo);
+          } catch (docSaveErr) {
+            Logger.log("Avviso salvataggio documento beneficiario: " + (docSaveErr instanceof Error ? docSaveErr.message : String(docSaveErr)));
+          }
+        }
+      }
+    }
+    return result;
   } catch (error) {
     return { success: false, message: error instanceof Error ? error.message : String(error) };
   }
@@ -357,6 +370,7 @@ function getNucleiObjects() {
       tipologiaAbitazione: n.tipologiaAbitazione,
       assistenteSociale: n.assistenteSociale,
       medicoDiBase: n.medicoDiBase,
+      serviziDaAttivare: n.serviziDaAttivare || "",
       idCartella: String(n.idCartella || "").trim()
     }));
   } catch (err) {
@@ -454,6 +468,18 @@ function submitNucleoCompleto(payload) {
         throw new Error("Errore salvataggio nucleo: " + nucResult.message);
       }
 
+      // 5. Archiviazione dei file documenti in Google Drive e registrazione nel foglio 'Documenti'
+      const docsToSave = payload.documenti || intestData.documenti || [];
+      if (Array.isArray(docsToSave) && docsToSave.length > 0 && typeof DriveManager !== "undefined") {
+        for (const docItem of docsToSave) {
+          try {
+            DriveManager.saveDocumentFile(cf, docItem, nucleoId);
+          } catch (docSaveErr) {
+            Logger.log("Avviso salvataggio documento nucleo: " + (docSaveErr instanceof Error ? docSaveErr.message : String(docSaveErr)));
+          }
+        }
+      }
+
       return {
         success: true,
         message: `Nucleo #${nucleoId} e intestatario ${nome} ${cognome} registrati con successo!`,
@@ -469,6 +495,23 @@ function submitNucleoCompleto(payload) {
       const nucResult = NucleoFamiliare.add(nucData);
       if (!nucResult.success) {
         throw new Error("Errore salvataggio nucleo: " + nucResult.message);
+      }
+
+      // Estrae il codice fiscale dell'intestatario esistente
+      const rawIntest = String(nucData.intestatario).trim();
+      const cfMatch = rawIntest.match(/\b([A-Za-z0-9]{16})\b/);
+      const targetCF = cfMatch ? cfMatch[1].toUpperCase() : (rawIntest.length === 16 ? rawIntest.toUpperCase() : "");
+
+      // Archivia eventuali documenti caricati per il nucleo o l'intestatario
+      const docsToSave = payload.documenti || nucData.documenti || [];
+      if (Array.isArray(docsToSave) && docsToSave.length > 0 && typeof DriveManager !== "undefined" && targetCF) {
+        for (const docItem of docsToSave) {
+          try {
+            DriveManager.saveDocumentFile(targetCF, docItem, nucleoId);
+          } catch (docSaveErr) {
+            Logger.log("Avviso salvataggio documento nucleo esistente: " + (docSaveErr instanceof Error ? docSaveErr.message : String(docSaveErr)));
+          }
+        }
       }
 
       // Associa idNucleo al beneficiario esistente
@@ -953,6 +996,25 @@ function smartClassifyDocument(base64Data, mimeType, fileName) {
     return DocumentIntelligence.smartClassifyBase64(base64Data, mimeType, fileName);
   } catch (err) {
     Logger.log("Errore smartClassifyDocument: " + (err instanceof Error ? err.message : String(err)));
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Analizza una serie di documenti contemporaneamente tramite Google Gemini Flash (Multimodale),
+ * consolidando in un unico flusso i dati anagrafici unificati e l'elenco dei documenti riconosciuti.
+ * 
+ * @param {Array<{ base64Data: string; mimeType?: string; fileName?: string }>} filesArray - Elenco dei file in Base64.
+ * @return {Record<string, any>} Dati estratti consolidati.
+ */
+function smartClassifyDocuments(filesArray) {
+  try {
+    if (typeof DocumentIntelligence === "undefined") {
+      throw new Error("Modulo DocumentIntelligence non disponibile.");
+    }
+    return DocumentIntelligence.smartClassifyMultipleBase64(filesArray);
+  } catch (err) {
+    Logger.log("Errore smartClassifyDocuments: " + (err instanceof Error ? err.message : String(err)));
     return { success: false, message: err instanceof Error ? err.message : String(err) };
   }
 }

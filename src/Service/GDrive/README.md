@@ -42,6 +42,12 @@ Tutti i file risiedono all'interno della cartella radice ufficiale configurata i
   3. Crea il nuovo file `Firma <Nome> <Cognome>.png`.
   4. Memorizza l'ID del file nella colonna `Firma` di `Beneficiari`.
   5. Sincronizza o inserisce contestualmente il record nel foglio relazionale `Documenti` (tipologia *"Firma Autografa"*, archetipo `UNICO`).
+- **`saveDocumentFile(cf, docPayload, nucleoId)`**:
+  Archivia fisicamente un file documento caricato dalla Web App:
+  1. Risolve l'alberatura Drive di destinazione (sottocartella personale per documenti di identità, cartella del nucleo per ISEE e contratti di alloggio).
+  2. Calcola la denominazione standardizzata tramite `buildDocumentFileName` (da `documents.js`).
+  3. Crea il file su Google Drive.
+  4. Registra automaticamente il record nel foglio relazionale `Documenti` (con ID incrementale, CF intestatario, tipo, scadenza, valore economico € e link Drive).
 - **`scanBeneficiarioDocuments(cf)`** e **`scanNucleoDocuments(nucleoId)`**:
   Scansionano in tempo reale i file archiviati nella cartella, categorizzandoli tramite il catalogo SSOT `findDocumentType` e arricchendoli con icone, emoji, scadenze e flag economici.
 

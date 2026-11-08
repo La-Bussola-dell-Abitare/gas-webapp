@@ -129,36 +129,40 @@ flowchart TD
 
 ## 4. Attività 4: Processo di Onboarding e Compilazione Rapida con Smart Document Intelligence (IA)
 
-Descrive il flusso operatore supportato dall'Intelligenza Artificiale multimodale (`gemini-3.8-flash`) per l'estrazione e il popolamento istantaneo dell'anagrafica da foto o scansioni dei documenti.
+Descrive il flusso operatore supportato dall'Intelligenza Artificiale multimodale (`gemini-2.5-flash`) per l'estrazione batch, l'ottimizzazione client-side su Canvas, il popolamento istantaneo dell'anagrafica con normalizzazione Title Case e l'archiviazione automatica dei file su Google Drive e foglio `Documenti`.
 
 ```mermaid
 flowchart TD
-    Start([Inizio: Nuovo Beneficiario allo Sportello]) --> OpenModal[Operatore apre Modale 'Aggiungi / Modifica Membro']
-    OpenModal --> Choice{L'operatore ha a disposizione<br/>un documento scansionato/foto?}
+    Start([Inizio: Nuovo Beneficiario o Nucleo allo Sportello]) --> OpenModal[Operatore apre Modale 'Crea Nucleo' o 'Aggiungi / Modifica Membro']
+    OpenModal --> Choice{L'operatore ha a disposizione<br/>uno o più documenti/foto?}
     
     %% Flusso Manuale
     Choice -- "No (Inserimento Manuale)" --> ManualInput[Digitazione manuale Codice Fiscale, Nome, Cognome, Dati Nascita]
     ManualInput --> DecodeCF[Decodifica deterministica automatica CF]
     
     %% Flusso con IA
-    Choice -- "Sì (CIE, PdS, ISEE, Patente)" --> DragDrop[Operatore trascina il file nella dropzone IA ✨]
-    DragDrop --> CallGemini[Chiamata RPC: smartClassifyDocument -> Gemini Flash 3.8]
-    CallGemini --> ParseJSON[Estrazione multimodale con Schema JSON forzato]
-    ParseJSON --> Autofill[Autocompilazione campi anagrafici, residenza e bandierina cittadinanza]
-    Autofill --> AutoCheck[Spunta automatica dei checkbox documenti posseduti]
+    Choice -- "Sì (CIE, PdS, ISEE, Patente, TS)" --> DragDrop[Operatore trascina uno o più file nella dropzone IA ✨]
+    DragDrop --> Compress[Compressione client-side su HTML5 Canvas<br/>max 1600px, JPEG 0.82 in <50ms]
+    Compress --> CallGemini[Chiamata RPC: smartClassifyDocuments -> Gemini Flash 2.5]
+    CallGemini --> BatchVision[Analisi multimodale unificata con Schema JSON forzato]
+    BatchVision --> Normalize[Normalizzazione deterministica Title Case & Toponomastica<br/>es. D'Angelo, Reggio nell'Emilia PR]
+    Normalize --> Autofill[Autocompilazione campi anagrafici, ISEE, residenza e bandierina]
+    Autofill --> AddQueue[Aggiunta file al vassoio documenti pendenti con badge rimovibili]
     
     DecodeCF --> CheckData
-    AutoCheck --> CheckData[Operatore controlla a colpo d'occhio l'accuratezza dei dati]
+    AddQueue --> CheckData[Operatore controlla a colpo d'occhio l'accuratezza dei dati]
     
     CheckData --> SignRequired{È richiesta l'acquisizione<br/>della firma autografa?}
     SignRequired -- "Sì" --> OpenCanvas[Apertura Canvas HTML5 W3C PointerEvents]
     OpenCanvas --> SignDraw[Beneficiario firma su schermo touch o penna stylus]
     SignDraw --> SaveSig[Salvataggio PNG trasparente nella cartella personale Drive]
-    SaveSig --> SaveMember
-    SignRequired -- "No / Già Acquisita" --> SaveMember
+    SaveSig --> SaveAction
+    SignRequired -- "No / Già Acquisita" --> SaveAction
     
-    SaveMember[Salvataggio record nel foglio 'Beneficiari'] --> SyncDoc[Sincronizzazione automatica nel foglio 'Documenti']
-    SyncDoc --> End([Fine Onboarding Membro])
+    SaveAction[Operatore clicca 'Salva Nucleo' o 'Salva Membro'] --> SaveRecord[Salvataggio record nel foglio 'Beneficiari' o 'Nuclei']
+    SaveRecord --> UploadDrive[Salvataggio automatico file pendenti in Google Drive<br/>cartella nucleo o personale in base allo scope]
+    UploadDrive --> SyncDoc[Censimento righe nel foglio relazionale 'Documenti']
+    SyncDoc --> End([Fine Onboarding con Fascicolo Aggiornato])
 ```
 
 ---
