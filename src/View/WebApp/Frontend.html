@@ -5454,6 +5454,14 @@
           </div>
         `;
       });
+      if (docs.length > 0) {
+        html += `
+          <div class="text-xs text-muted mt-2 d-flex align-items-center">
+            <i class="bi bi-cloud-arrow-up-fill text-primary me-1"></i>
+            <span>File in coda: verranno archiviati su Drive e censiti nel foglio <strong>Documenti</strong> al click su Salva.</span>
+          </div>
+        `;
+      }
       listEl.innerHTML = html;
     }
 
@@ -5596,7 +5604,7 @@
                   valoreISEE: d.valoreISEE
                 });
               }
-              showToast(`✨ Document Intelligence completata: campi precompilati e ${docsToAdd.length} file pronti per l'archiviazione.`, 'success');
+              showToast(`✨ Document Intelligence completata: dati precompilati e ${docsToAdd.length} file pronti in coda per l'archiviazione su Drive.`, 'success');
             } else {
               if (typeof DebugManager !== 'undefined' && DebugManager.logAI) {
                 DebugManager.logAI('DOCUMENT_INTELLIGENCE_WARNING', {

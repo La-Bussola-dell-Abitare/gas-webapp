@@ -213,6 +213,10 @@ class NucleoFamiliare {
       Logger.log("Avviso: Impossibile collegare idNucleo dell'intestatario: " + (linkErr instanceof Error ? linkErr.message : String(linkErr)));
     }
 
+    try {
+      SpreadsheetApp.flush();
+    } catch (e) {}
+
     return {
       success: true,
       message: isUpdate ? "Nucleo Familiare aggiornato con successo (ID " + nextId + ")." : "Nucleo Familiare registrato con successo con ID " + nextId + ".",

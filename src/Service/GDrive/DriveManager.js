@@ -98,18 +98,25 @@ class DriveManager {
    * @param {string} cf - Codice fiscale del beneficiario.
    * @return {{ id: string; url: string; name: string }}
    */
-  static getOrCreateBeneficiarioFolder(cf) {
+  /**
+   * Recupera o crea la sottocartella personale del Beneficiario all'interno della cartella del suo Nucleo.
+   * La cartella viene denominata `<Nome Cognome>`.
+   * L'ID della cartella viene memorizzato nella colonna 'idCartella' del foglio Beneficiari.
+   * 
+   * @param {string} cf - Codice Fiscale del beneficiario.
+   * @param {string|number} [fallbackNucleoId=""] - ID nucleo di fallback se il record è appena stato inserito.
+   * @param {string} [fallbackNome=""] - Nome e cognome di fallback per nominare la cartella.
+   * @return {{ id: string; url: string; name: string }}
+   */
+  static getOrCreateBeneficiarioFolder(cf, fallbackNucleoId = "", fallbackNome = "") {
     if (!cf) throw new Error("Codice Fiscale obbligatorio.");
     const targetCF = cf.toUpperCase().trim();
 
-    const beneficiari = BeneficiarioRepository.getAll();
+    const beneficiari = (typeof BeneficiarioRepository !== "undefined") ? BeneficiarioRepository.getAll() : [];
     const ben = beneficiari.find(b => (b.cf || "").toUpperCase().trim() === targetCF);
-    if (!ben) {
-      throw new Error("Beneficiario con Codice Fiscale '" + targetCF + "' non trovato.");
-    }
 
     // 1. Fast path: verifica se l'ID della cartella personale è già nel foglio
-    if (ben.idCartella) {
+    if (ben && ben.idCartella) {
       try {
         const folder = DriveApp.getFolderById(ben.idCartella.trim());
         if (folder && !folder.isTrashed()) {
@@ -121,20 +128,21 @@ class DriveManager {
     }
 
     // 2. Recupera la cartella del nucleo di appartenenza
-    const idNucleo = ben.idNucleo ? String(ben.idNucleo).trim() : "";
+    const idNucleo = (ben && ben.idNucleo) ? String(ben.idNucleo).trim() : (fallbackNucleoId ? String(fallbackNucleoId).trim() : "");
     if (!idNucleo) {
       throw new Error("Il beneficiario non è ancora associato a un Nucleo Familiare (ID Nucleo mancante).");
     }
 
-    const nucleoFolderInfo = DriveManager.getOrCreateNucleoFolder(idNucleo);
-    const nucleoFolder = DriveApp.getFolderById(nucleoFolderInfo.id);
-
-    // 3. Ricerca della sottocartella personale con Nome Cognome all'interno della cartella nucleo
-    const nome = (ben.nome || ben.name || "").trim();
-    const cognome = (ben.cognome || ben.surname || "").trim();
+    const nome = ben ? ((ben.nome || ben.name || "").trim()) : (fallbackNome ? fallbackNome.split(" ")[0] || "" : "");
+    const cognome = ben ? ((ben.cognome || ben.surname || "").trim()) : (fallbackNome ? fallbackNome.split(" ").slice(1).join(" ") || "" : "");
+    const folderDisplayName = (nome && cognome) ? `${nome} ${cognome}`.trim() : (fallbackNome || `Beneficiario ${targetCF}`);
     const expectedName = `${nome} ${cognome}`.trim().toLowerCase();
     const invertedName = `${cognome} ${nome}`.trim().toLowerCase();
 
+    const nucleoFolderInfo = DriveManager.getOrCreateNucleoFolder(idNucleo, folderDisplayName);
+    const nucleoFolder = DriveApp.getFolderById(nucleoFolderInfo.id);
+
+    // 3. Ricerca della sottocartella personale con Nome Cognome all'interno della cartella nucleo
     const subfolders = nucleoFolder.getFolders();
     let memberFolder = null;
 
@@ -142,7 +150,8 @@ class DriveManager {
       const f = subfolders.next();
       if (!f.isTrashed()) {
         const currentName = f.getName().trim().toLowerCase();
-        if (currentName === expectedName || currentName === invertedName || (expectedName && currentName.includes(expectedName))) {
+        if ((expectedName && (currentName === expectedName || currentName === invertedName || currentName.includes(expectedName))) ||
+            (currentName.includes(targetCF.toLowerCase()))) {
           memberFolder = f;
           break;
         }
@@ -151,14 +160,15 @@ class DriveManager {
 
     // 4. Se non esiste, crea la sottocartella personale
     if (!memberFolder) {
-      const newFolderName = `${nome} ${cognome}`.trim() || `Beneficiario ${targetCF}`;
-      memberFolder = nucleoFolder.createFolder(newFolderName);
-      Logger.log("Creata sottocartella membro beneficiario: " + newFolderName + " (ID: " + memberFolder.getId() + ")");
+      memberFolder = nucleoFolder.createFolder(folderDisplayName);
+      Logger.log("Creata sottocartella membro beneficiario: " + folderDisplayName + " (ID: " + memberFolder.getId() + ")");
     }
 
     // Salva l'ID nel foglio Beneficiari per i futuri accessi O(1)
     try {
-      BeneficiarioRepository.updateDriveInfo(targetCF, { idCartella: memberFolder.getId() });
+      if (typeof BeneficiarioRepository !== "undefined") {
+        BeneficiarioRepository.updateDriveInfo(targetCF, { idCartella: memberFolder.getId() });
+      }
     } catch (saveErr) {
       Logger.log("Impossibile salvare idCartella beneficiario nel foglio: " + saveErr.message);
     }
@@ -292,18 +302,29 @@ class DriveManager {
       const nucInfo = DriveManager.getOrCreateNucleoFolder(nId, nomePersona);
       targetFolder = DriveApp.getFolderById(nucInfo.id);
     } else {
-      const benInfo = DriveManager.getOrCreateBeneficiarioFolder(targetCF);
+      const benInfo = DriveManager.getOrCreateBeneficiarioFolder(targetCF, nId, nomePersona);
       targetFolder = DriveApp.getFolderById(benInfo.id);
     }
 
     // 3. Calcola il nome formale standard del file tramite buildDocumentFileName
-    let standardName = docPayload.fileName || docPayload.name || "documento.pdf";
+    let ext = "pdf";
+    const fn = docPayload.fileName || docPayload.name || "";
+    const extMatch = fn.match(/\.([a-zA-Z0-9]+)$/);
+    if (extMatch) ext = extMatch[1].toLowerCase();
+
+    let standardName = fn || "documento.pdf";
     if (typeof buildDocumentFileName === "function") {
-      standardName = buildDocumentFileName(tipo, nomePersona, {
-        dataScadenza: docPayload.dataScadenza,
-        dataEmissione: docPayload.dataEmissione,
-        originalName: docPayload.fileName || docPayload.name
-      });
+      standardName = buildDocumentFileName(
+        {
+          tipo: tipo,
+          dataScadenza: docPayload.dataScadenza,
+          dataEmissione: docPayload.dataEmissione,
+          anno: docPayload.anno,
+          originalName: fn
+        },
+        nomePersona,
+        ext
+      );
     }
 
     // 4. Decodifica e crea il file in Drive
@@ -337,6 +358,10 @@ class DriveManager {
         docId = addRes.data.id;
       }
     }
+
+    try {
+      SpreadsheetApp.flush();
+    } catch (e) {}
 
     return {
       success: true,

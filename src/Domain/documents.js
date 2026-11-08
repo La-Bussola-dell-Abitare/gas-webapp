@@ -445,7 +445,29 @@ function getDocumentsByCategory(categoria) {
  * @return {string} Nome formattato del file (es. "Carta d'Identità (scad. 2034) - Mario Rossi.pdf")
  */
 function buildDocumentFileName(doc, persona, ext = "pdf") {
-  const cleanExt = (ext || "pdf").replace(/^\./, "");
+  let docInput = {};
+  if (typeof doc === "string") {
+    docInput = { tipo: doc };
+    if (ext && typeof ext === "object") {
+      Object.assign(docInput, ext);
+    }
+  } else if (doc && typeof doc === "object") {
+    docInput = Object.assign({}, doc);
+    if (ext && typeof ext === "object") {
+      Object.assign(docInput, ext);
+    }
+  }
+
+  let cleanExt = "pdf";
+  if (typeof ext === "string" && ext.trim()) {
+    cleanExt = ext.trim().replace(/^\./, "");
+  } else if (ext && typeof ext === "object" && typeof ext.ext === "string") {
+    cleanExt = ext.ext.trim().replace(/^\./, "");
+  } else if (docInput.originalName || docInput.fileName || docInput.name) {
+    const fn = docInput.originalName || docInput.fileName || docInput.name;
+    const match = String(fn).match(/\.([a-zA-Z0-9]+)$/);
+    if (match) cleanExt = match[1].toLowerCase();
+  }
   
   let nomePersona = "";
   if (typeof persona === "string") {
@@ -454,62 +476,65 @@ function buildDocumentFileName(doc, persona, ext = "pdf") {
     nomePersona = `${persona.nome || persona.name || ""} ${persona.cognome || persona.surname || ""}`.trim();
   }
 
-  const docInput = doc || {};
-  const docRecord = findDocumentType(docInput.tipo || docInput.name || docInput.id || docInput);
+  const queryType = docInput.tipo || docInput.name || docInput.id || (typeof doc === "string" ? doc : "Documento");
+  const docRecord = findDocumentType(queryType);
+  const tipoLabel = docRecord ? docRecord.name : (String(queryType).trim() || "Documento");
 
   let dettaglio = "";
 
-  switch (docRecord.archetipo) {
-    case "ANNUALE": {
-      // Estrae l'anno di riferimento (da anno, dataEmissione o data odierna)
-      const anno = docInput.anno || 
-        (docInput.dataEmissione ? new Date(docInput.dataEmissione).getFullYear() : new Date().getFullYear());
-      dettaglio = `${anno}`;
-      break;
-    }
-
-    case "SCADENZA": {
-      if (docInput.dataScadenza) {
-        const annoScad = new Date(docInput.dataScadenza).getFullYear();
-        dettaglio = `(scad. ${annoScad})`;
-      } else if (docInput.annoScadenza) {
-        dettaglio = `(scad. ${docInput.annoScadenza})`;
-      } else if (docInput.idDocumento || (docInput.id && !DocumentById[docInput.id])) {
-        dettaglio = `[DOC-${docInput.idDocumento || docInput.id}]`;
+  if (docRecord && docRecord.archetipo) {
+    switch (docRecord.archetipo) {
+      case "ANNUALE": {
+        // Estrae l'anno di riferimento (da anno, dataEmissione o data odierna)
+        const anno = docInput.anno || 
+          (docInput.dataEmissione ? new Date(docInput.dataEmissione).getFullYear() : new Date().getFullYear());
+        dettaglio = `${anno}`;
+        break;
       }
-      break;
-    }
 
-    case "PERIODICO": {
-      if (docInput.periodo) {
-        dettaglio = String(docInput.periodo);
-      } else if (docInput.dataEmissione) {
-        try {
-          const tz = (typeof Session !== "undefined" && Session.getScriptTimeZone && Session.getScriptTimeZone()) || "Europe/Rome";
-          dettaglio = Utilities.formatDate(new Date(docInput.dataEmissione), tz, "yyyy-MM");
-        } catch (e) {
-          const d = new Date(docInput.dataEmissione);
-          dettaglio = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      case "SCADENZA": {
+        if (docInput.dataScadenza) {
+          const annoScad = new Date(docInput.dataScadenza).getFullYear();
+          dettaglio = `(scad. ${annoScad})`;
+        } else if (docInput.annoScadenza) {
+          dettaglio = `(scad. ${docInput.annoScadenza})`;
+        } else if (docInput.idDocumento || (docInput.id && !DocumentById[docInput.id])) {
+          dettaglio = `[DOC-${docInput.idDocumento || docInput.id}]`;
         }
-      } else {
-        dettaglio = `${new Date().getFullYear()}`;
+        break;
       }
-      break;
-    }
 
-    case "CONTRATTO": {
-      const anno = docInput.anno || (docInput.dataEmissione ? new Date(docInput.dataEmissione).getFullYear() : new Date().getFullYear());
-      dettaglio = `${anno}`;
-      break;
-    }
+      case "PERIODICO": {
+        if (docInput.periodo) {
+          dettaglio = String(docInput.periodo);
+        } else if (docInput.dataEmissione) {
+          try {
+            const tz = (typeof Session !== "undefined" && Session.getScriptTimeZone && Session.getScriptTimeZone()) || "Europe/Rome";
+            dettaglio = Utilities.formatDate(new Date(docInput.dataEmissione), tz, "yyyy-MM");
+          } catch (e) {
+            const d = new Date(docInput.dataEmissione);
+            dettaglio = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+          }
+        } else {
+          dettaglio = `${new Date().getFullYear()}`;
+        }
+        break;
+      }
 
-    case "UNICO":
-    default:
-      dettaglio = "";
-      break;
+      case "CONTRATTO": {
+        const anno = docInput.anno || (docInput.dataEmissione ? new Date(docInput.dataEmissione).getFullYear() : new Date().getFullYear());
+        dettaglio = `${anno}`;
+        break;
+      }
+
+      case "UNICO":
+      default:
+        dettaglio = "";
+        break;
+    }
   }
 
-  const parti = [docRecord.name];
+  const parti = [tipoLabel];
   if (dettaglio) parti.push(dettaglio);
   const prefisso = parti.join(" ");
 

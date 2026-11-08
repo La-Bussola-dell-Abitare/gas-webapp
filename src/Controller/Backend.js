@@ -200,12 +200,23 @@ function submitBeneficiary(data) {
     if (result && result.success && Array.isArray(data.documenti) && data.documenti.length > 0 && typeof DriveManager !== "undefined") {
       const targetCF = data.cf ? data.cf.toUpperCase().trim() : "";
       if (targetCF) {
+        let savedCount = 0;
+        let saveErrors = [];
         for (const docItem of data.documenti) {
           try {
             DriveManager.saveDocumentFile(targetCF, docItem, data.idNucleo);
+            savedCount++;
           } catch (docSaveErr) {
-            Logger.log("Avviso salvataggio documento beneficiario: " + (docSaveErr instanceof Error ? docSaveErr.message : String(docSaveErr)));
+            const msg = docSaveErr instanceof Error ? docSaveErr.message : String(docSaveErr);
+            Logger.log("Errore salvataggio documento beneficiario: " + msg);
+            saveErrors.push(msg);
           }
+        }
+        if (savedCount > 0) {
+          result.message += ` (${savedCount} doc archiviati su Drive e censiti nel foglio Documenti)`;
+        }
+        if (saveErrors.length > 0) {
+          result.message += ` [Avviso Drive: ${saveErrors.join("; ")}]`;
         }
       }
     }
@@ -469,20 +480,32 @@ function submitNucleoCompleto(payload) {
       }
 
       // 5. Archiviazione dei file documenti in Google Drive e registrazione nel foglio 'Documenti'
+      let docExtraMsg = "";
       const docsToSave = payload.documenti || intestData.documenti || [];
       if (Array.isArray(docsToSave) && docsToSave.length > 0 && typeof DriveManager !== "undefined") {
+        let savedCount = 0;
+        let saveErrors = [];
         for (const docItem of docsToSave) {
           try {
             DriveManager.saveDocumentFile(cf, docItem, nucleoId);
+            savedCount++;
           } catch (docSaveErr) {
-            Logger.log("Avviso salvataggio documento nucleo: " + (docSaveErr instanceof Error ? docSaveErr.message : String(docSaveErr)));
+            const msg = docSaveErr instanceof Error ? docSaveErr.message : String(docSaveErr);
+            Logger.log("Errore salvataggio documento nucleo: " + msg);
+            saveErrors.push(msg);
           }
+        }
+        if (savedCount > 0) {
+          docExtraMsg += ` (${savedCount} doc archiviati su Drive e censiti nel foglio Documenti)`;
+        }
+        if (saveErrors.length > 0) {
+          docExtraMsg += ` [Avviso Drive: ${saveErrors.join("; ")}]`;
         }
       }
 
       return {
         success: true,
-        message: `Nucleo #${nucleoId} e intestatario ${nome} ${cognome} registrati con successo!`,
+        message: `Nucleo #${nucleoId} e intestatario ${nome} ${cognome} registrati con successo!${docExtraMsg}`,
         id: nucleoId
       };
     } else {
@@ -503,14 +526,26 @@ function submitNucleoCompleto(payload) {
       const targetCF = cfMatch ? cfMatch[1].toUpperCase() : (rawIntest.length === 16 ? rawIntest.toUpperCase() : "");
 
       // Archivia eventuali documenti caricati per il nucleo o l'intestatario
+      let docExtraMsg = "";
       const docsToSave = payload.documenti || nucData.documenti || [];
       if (Array.isArray(docsToSave) && docsToSave.length > 0 && typeof DriveManager !== "undefined" && targetCF) {
+        let savedCount = 0;
+        let saveErrors = [];
         for (const docItem of docsToSave) {
           try {
             DriveManager.saveDocumentFile(targetCF, docItem, nucleoId);
+            savedCount++;
           } catch (docSaveErr) {
-            Logger.log("Avviso salvataggio documento nucleo esistente: " + (docSaveErr instanceof Error ? docSaveErr.message : String(docSaveErr)));
+            const msg = docSaveErr instanceof Error ? docSaveErr.message : String(docSaveErr);
+            Logger.log("Errore salvataggio documento nucleo esistente: " + msg);
+            saveErrors.push(msg);
           }
+        }
+        if (savedCount > 0) {
+          docExtraMsg += ` (${savedCount} doc archiviati su Drive e censiti nel foglio Documenti)`;
+        }
+        if (saveErrors.length > 0) {
+          docExtraMsg += ` [Avviso Drive: ${saveErrors.join("; ")}]`;
         }
       }
 
@@ -554,7 +589,7 @@ function submitNucleoCompleto(payload) {
 
       return {
         success: true,
-        message: isUpdate ? `Nucleo #${nucleoId} aggiornato con successo!` : `Nucleo #${nucleoId} registrato con successo!`,
+        message: (isUpdate ? `Nucleo #${nucleoId} aggiornato con successo!` : `Nucleo #${nucleoId} registrato con successo!`) + docExtraMsg,
         id: nucleoId
       };
     }

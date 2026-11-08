@@ -197,8 +197,11 @@ class BeneficiarioRepository {
         }
 
         try {
+            SpreadsheetApp.flush();
+        } catch (e) {}
+
+        try {
             if (typeof syncBeneficiaries === 'function') {
-                SpreadsheetApp.flush();
                 syncBeneficiaries();
             }
         } catch (e) {

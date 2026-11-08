@@ -29,8 +29,8 @@ In Google Apps Script questo pattern genera gravi colli di bottiglia:
 - **`getOperatorsList()`** e **`getBeneficiariesList()`**: liste per l'autocompletamento rapido.
 
 #### 2. Nuclei Familiari e Beneficiari
-- **`submitNucleoCompleto(payload)`**: registrazione atomica protetta da `LockService.getScriptLock()` per la creazione contemporanea di nucleo e intestatario.
-- **`submitBeneficiary(data)`**: salvataggio o aggiornamento beneficiario.
+- **`submitNucleoCompleto(payload)`**: registrazione atomica protetta da `LockService.getScriptLock()` per la creazione contemporanea di nucleo e intestatario, archiviazione automatica di tutti i documenti allegati in coda su Google Drive e censimento nel foglio relazionale `Documenti`.
+- **`submitBeneficiary(data)`**: salvataggio o aggiornamento beneficiario, con archiviazione automatica dei documenti allegati su Google Drive e censimento nel foglio relazionale `Documenti`.
 - **`removeBeneficiary(cf)`**: cancellazione beneficiario.
 - **`getNucleiObjects()`** e **`getBeneficiariObjects()`**: restituzione dei dati in formato POJO per la UI.
 

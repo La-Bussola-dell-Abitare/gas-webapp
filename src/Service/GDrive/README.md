@@ -34,8 +34,8 @@ Tutti i file risiedono all'interno della cartella radice ufficiale configurata i
 ### `DriveManager.js` — Gestione Strutturata di Cartelle e File
 - **`getOrCreateNucleoFolder(nucleoId, intestatarioNome)`**:
   Individua la cartella del nucleo tramite regex resiliente (`^\s*<id>([\s\-–—]|$)`). Se non esiste, la crea nella root con il nome standard `[id] - [Nome Cognome Intestatario]` e restituisce `{ id, url, name }`.
-- **`getOrCreateBeneficiarioFolder(cf)`**:
-  Individua il nucleo di appartenenza del beneficiario, apre la cartella del nucleo e verifica l'esistenza della sottocartella personale `<Nome Cognome>`. Se assente, la crea e ne aggiorna l'ID nel foglio `Beneficiari`.
+- **`getOrCreateBeneficiarioFolder(cf, fallbackNucleoId, fallbackNome)`**:
+  Individua il nucleo di appartenenza del beneficiario, apre la cartella del nucleo e verifica l'esistenza della sottocartella personale `<Nome Cognome>`. Se assente, la crea e ne aggiorna l'ID nel foglio `Beneficiari`. Include fallback parametrici per operare in modo atomico anche quando il record beneficiario è stato appena inserito nello stesso thread di esecuzione.
 - **`saveBeneficiarySignature(cf, base64Data)`**:
   1. Decodifica la stringa Base64 in blob immagine PNG trasparente.
   2. Rimuove eventuali file di firma obsoleti presenti nella cartella personale per evitare duplicazioni.
@@ -45,9 +45,9 @@ Tutti i file risiedono all'interno della cartella radice ufficiale configurata i
 - **`saveDocumentFile(cf, docPayload, nucleoId)`**:
   Archivia fisicamente un file documento caricato dalla Web App:
   1. Risolve l'alberatura Drive di destinazione (sottocartella personale per documenti di identità, cartella del nucleo per ISEE e contratti di alloggio).
-  2. Calcola la denominazione standardizzata tramite `buildDocumentFileName` (da `documents.js`).
-  3. Crea il file su Google Drive.
-  4. Registra automaticamente il record nel foglio relazionale `Documenti` (con ID incrementale, CF intestatario, tipo, scadenza, valore economico € e link Drive).
+  2. Calcola la denominazione standardizzata tramite `buildDocumentFileName` (da `documents.js`) preservando l'estensione originaria.
+  3. Crea il file su Google Drive (`createFile`).
+  4. Registra automaticamente il record nel foglio relazionale `Documenti` (con ID incrementale, CF intestatario, tipo, scadenza, valore economico € e link Drive) eseguendo un `SpreadsheetApp.flush()` immediato per rendere il record subito disponibile.
 - **`scanBeneficiarioDocuments(cf)`** e **`scanNucleoDocuments(nucleoId)`**:
   Scansionano in tempo reale i file archiviati nella cartella, categorizzandoli tramite il catalogo SSOT `findDocumentType` e arricchendoli con icone, emoji, scadenze e flag economici.
 
