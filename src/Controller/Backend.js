@@ -964,9 +964,11 @@ function smartClassifyDocument(base64Data, mimeType, fileName) {
 function checkGeminiStatus() {
   try {
     const isAvail = (typeof DocumentIntelligence !== "undefined") && DocumentIntelligence.isAvailable();
-    const model = (typeof CONFIG !== "undefined" && CONFIG.GEMINI && CONFIG.GEMINI.MODEL) || "gemini-2.0-flash";
+    const model = (typeof CONFIG !== "undefined" && CONFIG.GEMINI && CONFIG.GEMINI.getModel)
+      ? CONFIG.GEMINI.getModel()
+      : ((typeof CONFIG !== "undefined" && CONFIG.GEMINI && CONFIG.GEMINI.MODEL) || "gemini-3.8-flash");
     return { available: isAvail, model: model };
   } catch (e) {
-    return { available: false, model: "gemini-2.0-flash" };
+    return { available: false, model: "gemini-3.8-flash" };
   }
 }

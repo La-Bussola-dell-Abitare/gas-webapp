@@ -71,7 +71,7 @@ class DocumentIntelligence {
     }
 
     const apiKey = CONFIG.GEMINI.getApiKey();
-    const model = (CONFIG.GEMINI && CONFIG.GEMINI.MODEL) || "gemini-2.0-flash";
+    const model = (CONFIG.GEMINI && CONFIG.GEMINI.getModel) ? CONFIG.GEMINI.getModel() : ((CONFIG.GEMINI && CONFIG.GEMINI.MODEL) || "gemini-3.8-flash");
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const mimeType = blob.getContentType() || "application/pdf";

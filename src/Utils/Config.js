@@ -122,8 +122,24 @@ const CONFIG = Object.freeze({
    * Configurazione per Google Gemini (Document Intelligence & OCR).
    */
   GEMINI: Object.freeze({
-    MODEL: "gemini-2.0-flash",
+    MODEL: "gemini-3.8-flash",
     API_URL: "https://generativelanguage.googleapis.com/v1beta/models/",
+    /**
+     * Restituisce il modello attivo (da ScriptProperties GEMINI_MODEL se presente, altrimenti default MODEL).
+     * @return {string}
+     */
+    getModel: function() {
+      try {
+        if (typeof PropertiesService !== "undefined" && PropertiesService.getScriptProperties) {
+          const props = PropertiesService.getScriptProperties();
+          const customModel = props.getProperty("GEMINI_MODEL");
+          if (customModel && customModel.trim()) return customModel.trim();
+        }
+      } catch (e) {
+        // Fallback sul default
+      }
+      return this.MODEL;
+    },
     /**
      * Recupera la chiave API da ScriptProperties o fallback.
      * @return {string}
