@@ -444,6 +444,13 @@
       display: inline-block !important;
     }
 
+    .debug-only-id {
+      display: none !important;
+    }
+    body.debug-mode-active .debug-only-id {
+      display: inline-block !important;
+    }
+
     .debug-floating-badge {
       position: fixed;
       bottom: 16px;
@@ -1791,7 +1798,7 @@
               <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" id="setting-tech-ids-toggle" onchange="DebugManager.toggleTechIds(this.checked)">
                 <label class="form-check-label fw-semibold text-xs" for="setting-tech-ids-toggle">
-                  Mostra ID Tecnici nel Gestionale (ID Cartelle Drive, ID Nucleo, ID Documenti)
+                  Mostra ID Tecnici nel Fascicolo Documenti (Row ID foglio, Drive File ID)
                 </label>
               </div>
             </div>
@@ -2030,6 +2037,12 @@
       },
 
       updatePillAndNav() {
+        if (this.isEnabled) {
+          document.body.classList.add('debug-mode-active');
+        } else {
+          document.body.classList.remove('debug-mode-active');
+        }
+
         const badge = document.getElementById('debug-floating-badge');
         const navBtn = document.getElementById('btn-debug-nav');
         const pill = document.getElementById('settings-debug-pill');
@@ -3615,8 +3628,8 @@
               <div>
                 <strong>${displayName}</strong> <span class="text-muted text-xs ms-2">${m.cf || ''}</span>
                 <div class="mt-1">${badge}</div>
-                <div class="tech-id-badge text-xs mt-1">
-                  <code>Cartella: ${m.idCartella || m.cartellaDrive || '-'}</code> ${m.firma ? `| <code>FirmaID: ${m.firma}</code>` : ''}
+                <div class="debug-only-id text-xs mt-1">
+                  <code>🐞 Cartella ID: ${m.idCartella || m.cartellaDrive || '-'}</code> ${m.firma ? `| <code>Firma: ${m.firma}</code>` : ''}
                 </div>
               </div>
               <div class="btn-group btn-group-sm">
@@ -3634,8 +3647,8 @@
             <div>
               <strong>Nucleo Familiare #${n.id}</strong>
               <div class="text-xs text-muted m-0">Intestatario CF: ${n.intestatario}</div>
-              <div class="tech-id-badge text-xs mt-1">
-                <code>NucleoID: #${n.id}</code> | <code>Drive: ${n.idCartella || n.cartellaDrive || 'Non associata'}</code>
+              <div class="debug-only-id text-xs mt-1">
+                <code>🐞 Cartella Drive ID: ${n.idCartella || n.cartellaDrive || 'Non associata'}</code>
               </div>
             </div>
             <div>

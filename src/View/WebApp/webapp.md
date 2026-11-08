@@ -156,8 +156,9 @@ flowchart TD
     2. **💾 Stato Database**: ispettore in tempo reale delle collezioni in memoria (`dbBeneficiaries`, `dbNuclei`, `dbMeetings`, `dbDocumenti`, `dbLookups`) con conteggio record e pulsante per scaricare o ispezionare il dump JSON.
     3. **🧠 AI & File**: storico dettagliato delle ottimizzazioni Canvas (risparmio % e KB originali vs compressi, tempo impiegato) e delle chiamate a Google Gemini Flash (`gemini-3.8-flash`) con riepilogo dei campi estratti.
     4. **🔴 Error Log**: trappola per errori globali (`window.onerror` e `unhandledrejection`), tracciamento eccezioni con stack trace e pulsante **`📋 Copia Report Diagnostico`** per salvare negli appunti un report completo da inviare al supporto tecnico.
-- **Visualizzazione ID Tecnici (`showTechIds`)**:
-  - Interruttore che applica la classe CSS `.show-tech-ids` al `<body>`, rendendo visibili in linea su nuclei, membri e tabelle documenti gli ID primari del foglio di calcolo (`RowID: #X`), gli identificativi univoci delle cartelle Drive (`Drive: ...`) e i file ID.
+- **Visualizzazione ID Tecnici (`showTechIds`) & Folder ID di Debug**:
+  - Nel fascicolo documenti, l'interruttore applica la classe `.show-tech-ids` al `<body>`, rendendo visibili in tabella gli identificativi di riga del foglio di calcolo (`RowID: #X`) e i file ID di Google Drive (`DriveID: ...`).
+  - Nelle schede dei **Nuclei** e dei **Membri**, gli identificativi alfanumerici delle cartelle Drive (`idCartella`) sono **completamente rimossi dall'interfaccia standard** per non ingombrare la vista dell'operatore, e compaiono esclusivamente quando la **Modalità Debug** è attiva (`body.debug-mode-active`) con il prefisso `🐞`. In alternativa, l'operatore può aprire direttamente le cartelle tramite gli appositi pulsanti `📁 Cartella Nucleo` e `📁 Cartella`.
 
 ---
 
