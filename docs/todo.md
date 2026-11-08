@@ -1,6 +1,7 @@
 # BUG
+* Diagnostica da errore
 
-# Miglioramenti
+# Funzionalità
 * (Fatto) Modalità di debug real-time con intercettore RPC (latenza ms e payload), ispettore stato database in memoria, diagnostica compressione Canvas e IA Gemini Flash, trappola errori globali, benchmark ping server, pulsante esportazione report e toggle ID tecnici (scorciatoia Ctrl+Shift+D, navbar e modale impostazioni)
 * Permettere un solo intestatario per nucleo
 * Dare suggerimenti sul da farsi con IA dopo aver compilato i campi
@@ -41,3 +42,6 @@
 * (Completato) Unificazione modello documenti in `src/Domain/documents.js` (SSOT per nome, categoria, archetipo, icona, hasValue, hasExpiration, regex, scope...)
 * (Completato) Smart Document Intelligence tramite Gemini Flash via Apps Script (UrlFetchApp)
 * Sincronizzare dati con google contatti
+
+# Prestazioni
+* Ci mette molti secondi a caricare nuclei e beneficiari anche se ora come ora sono solo una ventina. Dovrò fare qualcosa per quando saranno centinaia o migliaia. Probabilmente c'è qualcosa che posso fare lato client o lato database per velocizzare le cose, non so, magari quando i nuclei diventano tanti posso permettere di caricare solo una parte di essi, o di caricarli con una ricerca, ecc... oppure ci sono problemi che rallentano il caricamento
