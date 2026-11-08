@@ -145,6 +145,40 @@ git push origin main
 
 ---
 
+### 2.3 Testing Unitario e Protocollo di Collaudo WebApp
+
+Per garantire massima affidabilità senza esporre la WebApp al pubblico a riposo, il progetto adotta una strategia a doppio livello:
+
+#### 1. Test Unitari Offline ad Alta Velocità (`npm test`)
+La logica di dominio, i modelli, i calcolatori fiscali e gli algoritmi di fuzzy matching sono convalidati localmente tramite il test runner nativo di **Node.js v25** (`node:test` e `node:assert`), senza alcuna dipendenza pesante o mock instabile di Google:
+```bash
+# Esecuzione istantanea suite di test (~300ms)
+npm test
+
+# Modalità osservatore continuo durante lo sviluppo
+npm run test:watch
+```
+*(Documentazione completa in [`tests/README.md`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/tests/README.md))*
+
+#### 2. Protocollo di Collaudo da Browser (Deployment Fisso e Sicurezza)
+Quando è necessario collaudare le funzionalità interattive direttamente dal browser:
+- **Deployment ID Ufficiale Fisso**: `AKfycbzkY426RSsiBF19i2GRLd69idx3GbMKj4fZQIcg2G3INwXVSjTiRd-4MEtmp9IA0MFwMw`
+- **URL WebApp Collaudo**: `https://script.google.com/macros/s/AKfycbzkY426RSsiBF19i2GRLd69idx3GbMKj4fZQIcg2G3INwXVSjTiRd-4MEtmp9IA0MFwMw/exec`
+- **Nucleo di Test Riservato (SSOT)**: **Nucleo #3 (Lorenzo Mazza)**. Qualsiasi test live, spostamento file Drive o diagnostica deve operare esclusivamente su questo nucleo.
+
+```bash
+# 1. Apertura temporanea per il collaudo (imposta ANYONE_ANONYMOUS e aggiorna il deployment fisso)
+npm run deploy:open
+
+# 2. [Eseguire il collaudo da browser su Nucleo #3]
+
+# 3. Chiusura tassativa dell'accesso prima del commit (ripristina MYSELF e aggiorna il deployment)
+npm run deploy:close
+```
+*(Documentazione completa in [`scripts/README.md`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/scripts/README.md))*
+
+---
+
 ## 3. Filosofia Architetturale e Design Pattern
 
 Il progetto adotta un'architettura enterprise a livelli, insolitamente pulita e strutturata per l'ambiente monolitico di Google Apps Script (GAS), dove normalmente tutto il codice condivide il global namespace.
@@ -425,6 +459,10 @@ Tutti i file di documentazione e specifica in formato Markdown presenti nel repo
 ### 8.3 Specifiche Tecniche della Web App e Modelli Dati
 - [**Requisiti e Funzionamento Web App**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/webapp.md) ([`src/View/WebApp/webapp.md`](src/View/WebApp/webapp.md)):  
   Specifiche architetturali, tecnologie frontend (Bootstrap 5, Single Page Application), principi di sincronizzazione tra oggetti JavaScript e fogli di calcolo Google, e backlog delle funzionalità.
+- [**Infrastruttura di Testing Offline**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/tests/README.md) ([`tests/README.md`](tests/README.md)):  
+  Guida alla suite di test unitari con Node.js runner nativo (`node:test`), script loader `loadSrc.js` e test suite di dominio e modelli.
+- [**Script Operativi e Deployment**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/scripts/README.md) ([`scripts/README.md`](scripts/README.md)):  
+  Automazione apertura e chiusura deployment di collaudo con ID fisso e gestione atomica del manifest `appsscript.json`.
 - [**Specifiche Modello: Dati Beneficiari**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Person/Beneficiari/Istruzioni.md) ([`src/Models/Person/Beneficiari/Istruzioni.md`](src/Models/Person/Beneficiari/Istruzioni.md)):  
   Tabella dettagliata di ogni campo dell'anagrafica beneficiario (tipi di dato, obbligatorietà, autocompletamento da CF, gestione documenti posseduti, status lavorativo e titolo di studio).
 - [**Specifiche Modello: Nucleo Familiare**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Nucleo/Istruzioni.md) ([`src/Models/Nucleo/Istruzioni.md`](src/Models/Nucleo/Istruzioni.md)):  

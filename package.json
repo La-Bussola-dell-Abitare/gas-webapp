@@ -1,10 +1,13 @@
 {
   "name": "appsscript",
   "version": "1.0.0",
-  "description": "",
+  "description": "Gestionale La Bussola dell'Abitare - Google Apps Script WebApp",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test \"tests/unit/*.test.js\"",
+    "test:watch": "node --test --watch \"tests/unit/*.test.js\"",
+    "deploy:open": "node scripts/deploy.js open",
+    "deploy:close": "node scripts/deploy.js close"
   },
   "keywords": [],
   "author": "",

@@ -8,3 +8,7 @@ Per le linee guida complete di sviluppo, documentazione continua e convenzioni a
 - **UML & Riferimenti**: Aggiornare contestualmente i diagrammi UML (`docs/uml_*.md`) e gli indici in `README.md` e `webapp.md`.
 - **SSOT**: Dominio centralizzato in `src/Domain/`.
 - **Concorrenza Apps Script**: Proteggere le scritture con `LockService` e aggregare le letture di bootstrap in `getInitialAppData`.
+- **Protocollo di Testing e Collaudo (SSOT)**:
+  - **Deployment ID**: `AKfycbzkY426RSsiBF19i2GRLd69idx3GbMKj4fZQIcg2G3INwXVSjTiRd-4MEtmp9IA0MFwMw`
+  - **Nucleo di Test**: **Nucleo #3 (Lorenzo Mazza)** tassativo per qualsiasi prova interattiva o manipolazione dati/Drive.
+  - **Comandi**: `npm test` per test offline, `npm run deploy:open` per abilitare il collaudo da browser, `npm run deploy:close` obbligatorio prima del commit Git.

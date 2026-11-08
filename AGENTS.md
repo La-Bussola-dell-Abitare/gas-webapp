@@ -48,3 +48,33 @@ Se le modifiche impattano l'architettura, aggiornare tempestivamente i diagrammi
 3. **Convenzioni Link e Formattazione Markdown**:
    - Utilizzare sempre link cliccabili con protocollo `file:///` e forward slash (es. `[country.js](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Domain/country.js)`).
    - Formattare codice, simboli e percorsi sempre tra backtick.
+
+---
+
+## 3. Protocollo di Testing e Deployment Collaudo (SSOT)
+
+Tutti gli agenti e sviluppatori devono attenersi rigorosamente al seguente protocollo per qualsiasi ciclo di verifica e collaudo:
+
+1. **Deployment ID Fisso per Collaudo WebApp**:
+   - **Deployment ID Ufficiale**: `AKfycbzkY426RSsiBF19i2GRLd69idx3GbMKj4fZQIcg2G3INwXVSjTiRd-4MEtmp9IA0MFwMw`
+   - **URL WebApp Collaudo**: `https://script.google.com/macros/s/AKfycbzkY426RSsiBF19i2GRLd69idx3GbMKj4fZQIcg2G3INwXVSjTiRd-4MEtmp9IA0MFwMw/exec`
+
+2. **Nucleo di Test Riservato**:
+   - Qualsiasi operazione di collaudo live, test di caricamento documenti IA, diagnostica, bonifica o creazione incontri deve essere eseguita **tassativamente ed esclusivamente** su:
+     - **Nucleo #3: Lorenzo Mazza**
+   - Non operare, modificare o spostare file di nessun altro nucleo o beneficiario reale.
+
+3. **Ciclo Operativo di Sviluppo e Rilascio**:
+   - **Durante lo sviluppo / refactoring**: Eseguire test unitari rapidi locali con `npm test` (`node --test "tests/unit/*.test.js"`).
+   - **Prima del collaudo da browser**:
+     ```bash
+     npm run deploy:open
+     ```
+     *(Apre temporaneamente l'accesso impostando `access: "ANYONE_ANONYMOUS"`, effettua `clasp push` e aggiorna il deployment fisso).*
+   - **Esecuzione collaudo**: Testare le funzionalità da browser sull'URL ufficiale verificando il comportamento sul **Nucleo #3**.
+   - **Chiusura obbligatoria prima del commit**:
+     ```bash
+     npm run deploy:close
+     ```
+     *(Ripristina `access: "MYSELF"`, effettua `clasp push` e ritira l'accesso pubblico sul deployment fisso).*
+   - **Commit e Push Git**: Il manifest `src/appsscript.json` non deve **mai** essere committato con `access: "ANYONE_ANONYMOUS"`.
