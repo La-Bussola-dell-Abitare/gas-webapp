@@ -311,6 +311,7 @@ function getInitialAppData(forceRefresh) {
     const nuclei = getNucleiObjects();
     const beneficiaries = getBeneficiariObjects();
     const appointments = getAppointmentsList();
+    const documenti = getDocumentiObjects();
 
     return {
       success: true,
@@ -319,7 +320,8 @@ function getInitialAppData(forceRefresh) {
       meetings: meetings || [],
       nuclei: nuclei || [],
       beneficiaries: beneficiaries || [],
-      appointments: appointments || []
+      appointments: appointments || [],
+      documenti: documenti || []
     };
   } catch (err) {
     Logger.log("Errore getInitialAppData: " + (err instanceof Error ? err.message : String(err)));
@@ -845,5 +847,126 @@ function scanNucleoDocuments(nucleoId) {
   } catch (err) {
     Logger.log("Errore scanNucleoDocuments: " + (err instanceof Error ? err.message : String(err)));
     return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Recupera l'elenco dei documenti censiti nel foglio 'Documenti' come array di oggetti POJO.
+ * Se viene specificato un codice fiscale, filtra i soli documenti di quell'intestatario.
+ * @param {string} [cf] - Codice Fiscale dell'intestatario (opzionale).
+ * @return {Record<string, any>[]}
+ */
+function getDocumentiObjects(cf) {
+  try {
+    if (typeof DocumentoRepository === "undefined") return [];
+    const list = cf ? DocumentoRepository.getByCF(cf) : DocumentoRepository.getAll();
+    return list.map(doc => doc.toObject());
+  } catch (err) {
+    Logger.log("Errore getDocumentiObjects: " + (err instanceof Error ? err.message : String(err)));
+    return [];
+  }
+}
+
+/**
+ * Registra o aggiorna un documento nel foglio 'Documenti'.
+ * @param {Record<string, any>} data - Dati del documento inviati dal frontend.
+ * @return {{ success: boolean; message: string; data?: Record<string, any> }}
+ */
+function submitDocumento(data) {
+  try {
+    if (typeof DocumentoRepository === "undefined") {
+      throw new Error("Modulo DocumentoRepository non disponibile.");
+    }
+    return DocumentoRepository.add(data);
+  } catch (err) {
+    Logger.log("Errore submitDocumento: " + (err instanceof Error ? err.message : String(err)));
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Rimuove un documento dal foglio 'Documenti' per ID.
+ * @param {number|string} id - ID del documento da eliminare.
+ * @return {{ success: boolean; message: string }}
+ */
+function removeDocumento(id) {
+  try {
+    if (typeof DocumentoRepository === "undefined") {
+      throw new Error("Modulo DocumentoRepository non disponibile.");
+    }
+    return DocumentoRepository.removeById(id);
+  } catch (err) {
+    Logger.log("Errore removeDocumento: " + (err instanceof Error ? err.message : String(err)));
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Esegue l'audit diagnostico di conformità Drive e scadenze per un singolo nucleo familiare.
+ * @param {string|number} nucleoId - ID del nucleo da analizzare.
+ * @return {Record<string, any>} Report con stato e lista anomalie.
+ */
+function auditNucleoDrive(nucleoId) {
+  try {
+    if (typeof DriveReconciler === "undefined") {
+      throw new Error("Modulo DriveReconciler non disponibile.");
+    }
+    return { success: true, report: DriveReconciler.auditNucleo(nucleoId) };
+  } catch (err) {
+    Logger.log("Errore auditNucleoDrive: " + (err instanceof Error ? err.message : String(err)));
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Esegue la bonifica e riconciliazione automatica delle cartelle e dei documenti di un nucleo.
+ * @param {string|number} nucleoId - ID del nucleo familiare.
+ * @param {Object} [options] - Opzioni di riconciliazione.
+ * @return {{ success: boolean; actionsApplied: string[]; errors: string[] }}
+ */
+function reconcileNucleoDrive(nucleoId, options) {
+  try {
+    if (typeof DriveReconciler === "undefined") {
+      throw new Error("Modulo DriveReconciler non disponibile.");
+    }
+    return DriveReconciler.reconcileNucleo(nucleoId, options);
+  } catch (err) {
+    Logger.log("Errore reconcileNucleoDrive: " + (err instanceof Error ? err.message : String(err)));
+    return { success: false, actionsApplied: [], errors: [err instanceof Error ? err.message : String(err)] };
+  }
+}
+
+/**
+ * Analizza un documento caricato tramite Google Gemini (Vision & OCR)
+ * estraendo automaticamente i dati anagrafici e i metadati documentali in formato JSON.
+ * 
+ * @param {string} base64Data - File codificato in Base64.
+ * @param {string} [mimeType="application/pdf"] - Tipo MIME del file.
+ * @param {string} [fileName="documento.pdf"] - Nome originario del file.
+ * @return {Record<string, any>} Dati estratti conformi allo schema di dominio.
+ */
+function smartClassifyDocument(base64Data, mimeType, fileName) {
+  try {
+    if (typeof DocumentIntelligence === "undefined") {
+      throw new Error("Modulo DocumentIntelligence non disponibile.");
+    }
+    return DocumentIntelligence.smartClassifyBase64(base64Data, mimeType, fileName);
+  } catch (err) {
+    Logger.log("Errore smartClassifyDocument: " + (err instanceof Error ? err.message : String(err)));
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Restituisce lo stato di disponibilità del servizio Google Gemini.
+ * @return {{ available: boolean; model: string }}
+ */
+function checkGeminiStatus() {
+  try {
+    const isAvail = (typeof DocumentIntelligence !== "undefined") && DocumentIntelligence.isAvailable();
+    const model = (typeof CONFIG !== "undefined" && CONFIG.GEMINI && CONFIG.GEMINI.MODEL) || "gemini-2.0-flash";
+    return { available: isAvail, model: model };
+  } catch (e) {
+    return { available: false, model: "gemini-2.0-flash" };
   }
 }

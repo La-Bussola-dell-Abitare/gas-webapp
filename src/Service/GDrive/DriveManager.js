@@ -215,6 +215,24 @@ class DriveManager {
     // 5. Memorizza l'ID file nella colonna 'Firma' del foglio Beneficiari
     BeneficiarioRepository.updateDriveInfo(targetCF, { firma: fileId });
 
+    // 6. Sincronizza il documento nel foglio 'Documenti'
+    try {
+      if (typeof DocumentoRepository !== "undefined") {
+        const existingDocs = DocumentoRepository.getByCF(targetCF);
+        const existingFirma = existingDocs.find(d => d.tipo === "Firma Autografa" || d.tipo === "Firma");
+        DocumentoRepository.add({
+          id: existingFirma ? existingFirma.id : undefined,
+          intestatario: targetCF,
+          tipo: "Firma Autografa",
+          categoria: "Anagrafica",
+          idDrive: fileId,
+          note: "Firma acquisita digitalmente"
+        });
+      }
+    } catch (docRepoErr) {
+      Logger.log("saveBeneficiarySignature - registrazione Documenti: " + (docRepoErr instanceof Error ? docRepoErr.message : String(docRepoErr)));
+    }
+
     return {
       success: true,
       fileId: fileId,

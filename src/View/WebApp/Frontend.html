@@ -753,6 +753,65 @@
             </div>
           </div>
 
+          <!-- Fascicolo Documentale Completo e Gestione Scadenze -->
+          <div class="col-12">
+            <div class="card card-custom mb-4">
+              <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+                <span>📁 Fascicolo Documentale e Gestione Scadenze</span>
+                <div>
+                  <button class="btn btn-outline-primary btn-xs py-1 px-2 me-2" onclick="runArchiveHealthCheck(this)">
+                    <i class="bi bi-shield-check me-1"></i>Verifica Conformità Drive
+                  </button>
+                  <button class="btn btn-primary btn-xs py-1 px-2" onclick="openDocumentoModal('', '')">
+                    <i class="bi bi-plus-circle me-1"></i>+ Registra Documento
+                  </button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="row g-2 mb-3">
+                  <div class="col-md-5">
+                    <input type="text" class="form-control form-control-sm font-outfit" id="search-documenti" placeholder="Cerca per codice fiscale, tipo o note..." oninput="renderAllDocumentiTable()">
+                  </div>
+                  <div class="col-md-4">
+                    <select class="form-select form-select-sm" id="filter-doc-categoria" onchange="renderAllDocumentiTable()">
+                      <option value="">Tutte le Categorie</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <select class="form-select form-select-sm" id="filter-doc-stato" onchange="renderAllDocumentiTable()">
+                      <option value="">Tutti gli Stati</option>
+                      <option value="SCADUTO">🔴 Scaduti</option>
+                      <option value="IN_SCADENZA">🟡 In Scadenza (≤ 60 gg)</option>
+                      <option value="VALIDO">🟢 Validi</option>
+                      <option value="PERMANENTE">⚪ Senza Scadenza</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle small table-sm mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th style="width: 50px;">ID</th>
+                        <th>Intestatario</th>
+                        <th>Tipo Documento</th>
+                        <th>Categoria</th>
+                        <th>Valore</th>
+                        <th>Scadenza</th>
+                        <th>Stato</th>
+                        <th>Drive</th>
+                        <th class="text-end" style="width: 90px;">Azioni</th>
+                      </tr>
+                    </thead>
+                    <tbody id="table-documenti-body">
+                      <tr><td colspan="9" class="text-center text-muted py-3">Caricamento documenti in corso...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Monitoraggio Ufficiale ed Esportazione -->
           <div class="col-xl-6">
             <div class="card card-custom mb-4">
@@ -885,6 +944,28 @@
           <form id="modal-ben-form" onsubmit="handleModalBenSubmit(event)">
             <input type="hidden" id="ben-id-nucleo">
             <input type="hidden" id="ben-is-update" value="false">
+
+            <!-- Dropzone Document Intelligence con IA (Gemini Flash) -->
+            <div id="ai-smart-fill-ben" class="p-3 mb-3 border rounded-3 bg-light border-primary border-opacity-50">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                  <span class="fs-4 me-2">✨</span>
+                  <div>
+                    <strong class="font-outfit small text-primary d-block">Compilazione Automatica con IA (Gemini Flash)</strong>
+                    <span class="text-muted text-xs">Trascina qui il documento (CIE, Permesso di Soggiorno, ISEE, Patente) per autocompilare la scheda</span>
+                  </div>
+                </div>
+                <div>
+                  <input type="file" id="ai-upload-ben-input" accept="image/*,application/pdf" class="d-none" onchange="handleSmartDocUpload(event, 'ben-')">
+                  <button type="button" class="btn btn-sm btn-outline-primary font-outfit" onclick="document.getElementById('ai-upload-ben-input').click()">
+                    <i class="bi bi-cloud-arrow-up me-1"></i> Carica Documento
+                  </button>
+                </div>
+              </div>
+              <div id="ai-loading-ben" class="text-center py-2 d-none text-primary small font-outfit">
+                <span class="spinner-border spinner-border-sm me-1"></span> Lettura e analisi visiva in corso con Gemini Flash (~1 sec)...
+              </div>
+            </div>
             <div class="row g-3">
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Codice Fiscale *</label>
@@ -1062,6 +1143,17 @@
                       <div class="mt-1">
                         <a id="ben-firma-link" href="#" target="_blank" class="text-xs text-primary">Visualizza file firma su Google Drive</a>
                       </div>
+                  <div class="card bg-light p-2 mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <strong class="small">📄 Fascicolo Documentale Personale:</strong>
+                      <button type="button" class="btn btn-xs btn-outline-primary" onclick="openNewDocumentoModalForCurrentBen()">
+                        + Aggiungi Documento
+                      </button>
+                    </div>
+                    <div id="ben-documenti-list" class="small">
+                      <p class="text-muted text-xs m-0">Nessun documento caricato per questo beneficiario.</p>
+                    </div>
+                  </div>
                     </div>
                   </div>
                 </div>
@@ -1399,6 +1491,103 @@
     </div>
   </div>
 
+  
+  <!-- Modal Gestione Documento (Nuovo / Modifica) -->
+  <div class="modal fade" id="modal-documento-edit" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title font-outfit" id="modal-doc-title">📄 Registra Documento</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="doc-edit-form" onsubmit="handleDocumentoSubmit(event)">
+            <input type="hidden" id="doc-id">
+            <input type="hidden" id="doc-id-drive">
+            
+            <div class="mb-3">
+              <label class="form-label font-outfit small">Intestatario (Codice Fiscale) *</label>
+              <input type="text" class="form-control text-uppercase" id="doc-intestatario" required maxlength="16" placeholder="Codice Fiscale">
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-md-7">
+                <label class="form-label font-outfit small">Tipologia Documento *</label>
+                <select class="form-select" id="doc-tipo" required onchange="handleDocTipoChange()">
+                  <option value="">Seleziona...</option>
+                </select>
+              </div>
+              <div class="col-md-5">
+                <label class="form-label font-outfit small">Categoria</label>
+                <input type="text" class="form-control bg-light" id="doc-categoria" readonly>
+              </div>
+            </div>
+
+            <div class="mb-3 d-none" id="doc-valore-container">
+              <label class="form-label font-outfit small" id="doc-valore-label">Valore Economico (€)</label>
+              <div class="input-group">
+                <span class="input-group-text">€</span>
+                <input type="number" step="0.01" min="0" class="form-control" id="doc-valore" placeholder="Es. 8500.00">
+              </div>
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label font-outfit small">Data Emissione</label>
+                <input type="date" class="form-control" id="doc-data-emissione">
+              </div>
+              <div class="col-6">
+                <label class="form-label font-outfit small">Data Scadenza</label>
+                <input type="date" class="form-control" id="doc-data-scadenza">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label font-outfit small">Note / Ente Emittente</label>
+              <input type="text" class="form-control" id="doc-note" placeholder="Es. Comune di Roma, INPS, Questura...">
+            </div>
+
+            <div class="modal-footer px-0 pb-0 mt-3">
+              <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annulla</button>
+              <button type="submit" class="btn btn-primary btn-sm" id="btn-save-documento">
+                <span class="spinner-border spinner-border-sm me-1 d-none" id="spin-save-doc"></span>
+                Salva Documento
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Diagnostica e Riconciliazione Drive -->
+  <div class="modal fade" id="modal-diagnostica-drive" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title font-outfit">
+            <i class="bi bi-shield-check text-primary me-2"></i>Diagnostica e Riconciliazione Drive
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="modal-diagnostica-body">
+          <div class="text-center py-4" id="diagnostica-spinner">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted font-outfit small">Audit in corso su Google Drive e fogli di calcolo...</p>
+          </div>
+          <div id="diagnostica-content" class="d-none"></div>
+        </div>
+        <div class="modal-footer bg-light py-2" id="modal-diagnostica-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Chiudi</button>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-reconcile-now" onclick="executeCurrentReconciliation(this)">
+            <span class="spinner-border spinner-border-sm me-1 d-none" id="spin-reconcile"></span>
+            ⚡ Bonifica e Riorganizza Ora
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="toast-container-custom" id="toast-container"></div>
 
   <!-- Bootstrap and Client Scripts -->
@@ -1412,6 +1601,7 @@
     let dbOperators = [];     // stringhe operatori completi
     let dbLookups = {};       // liste di valori dai Named Ranges
     let dbAppointments = [];  // oggetti Appuntamento
+    let dbDocumenti = [];     // oggetti Documento con stato scadenze
     let isDataLoading = false; // Flag stato caricamento dati
     let activeTabId = 'tab-incontri';
 
@@ -1510,6 +1700,8 @@
               dbNuclei = res.nuclei || [];
               dbBeneficiaries = res.beneficiaries || [];
               dbAppointments = res.appointments || [];
+            dbDocumenti = res.documenti || [];
+            renderAllDocumentiTable();
 
               try { populateAllLookups(dbLookups); } catch (e) { console.warn("Lookup err:", e); }
               try { populateOperatorsDropdowns(); } catch (e) { console.warn("Operators err:", e); }
@@ -2527,6 +2719,7 @@
               <div class="text-xs text-muted m-0">Intestatario CF: ${n.intestatario}</div>
             </div>
             <div>
+              <button class="btn btn-outline-primary btn-xs py-0 px-2 me-1" onclick="runNucleoHealthCheck('${n.id}', this)" title="Diagnostica e Riconciliazione Cartella Drive">🔍 Diagnostica</button>
               <button class="btn btn-outline-success btn-xs py-0 px-2 me-1" onclick="openNucleoDriveFolder('${n.id}', this)" title="Apri Cartella Google Drive del Nucleo">📁 Cartella Nucleo</button>
               <button class="btn btn-outline-primary btn-xs py-0 px-2 me-1" onclick="openAddMemberModal('${n.id}')">+ Aggiungi Persona</button>
               <button class="btn btn-outline-secondary btn-xs py-0 px-2" onclick="editNucleoUI('${encodeURIComponent(JSON.stringify(n))}')">Modifica Nucleo</button>
@@ -3046,6 +3239,7 @@
       document.getElementById('ben-is-update').value = 'false';
       document.getElementById('ben-cf').disabled = false;
       document.getElementById('modal-ben-title').textContent = `Aggiungi Membro al Nucleo #${nucleoId}`;
+      if (typeof renderBeneficiarioDocumenti === 'function') renderBeneficiarioDocumenti('');
       setSelectValue(document.getElementById('ben-cittadinanza'), 'Italia');
       setSelectPhonePrefix(document.getElementById('ben-prefisso-tel'), '+39', 'Italia');
 
@@ -3121,6 +3315,7 @@
       }
 
       document.getElementById('modal-ben-title').textContent = `Modifica Membro: ${ben.nome} ${ben.cognome}`;
+      if (typeof renderBeneficiarioDocumenti === 'function') renderBeneficiarioDocumenti(ben.cf);
       new bootstrap.Modal(document.getElementById('modal-beneficiario')).show();
     }
 
@@ -3788,6 +3983,491 @@
           showToast('Errore Google Drive: ' + (err?.message || String(err)), 'danger');
         })
         .getBeneficiarioDriveFolder(cleanCF);
+    }
+
+// =========================================================================
+    // MODULO FASCICOLO DOCUMENTALE, SCADENZE E DOCUMENT INTELLIGENCE (GEMINI)
+    // =========================================================================
+
+    let currentReconcileNucleoId = null;
+
+    /**
+     * Popola il dropdown dei tipi documento nel modal di modifica.
+     */
+    function initDocumentCatalogDropdown() {
+      const select = document.getElementById('doc-tipo');
+      if (!select) return;
+      select.innerHTML = '<option value="">Seleziona tipo documento...</option>';
+      
+      const tipi = (typeof TipiDocumenti !== 'undefined' && Array.isArray(TipiDocumenti)) 
+        ? TipiDocumenti 
+        : [
+            "Carta d'Identità", "Permesso di Soggiorno", "Patente di Guida", "Passaporto",
+            "Tessera Sanitaria", "Codice Fiscale", "Attestazione ISEE", "Firma Autografa",
+            "Contratto di Locazione", "Busta Paga", "CUD / Certificazione Unica", "Altro"
+          ];
+
+      tipi.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = t;
+        select.appendChild(opt);
+      });
+
+      // Popola anche il filtro categorie in tab-documenti
+      const catSelect = document.getElementById('filter-doc-categoria');
+      if (catSelect && catSelect.options.length <= 1) {
+        const cats = ["Anagrafica", "Soggiorno", "Economica", "Abitativa", "Lavoro", "Sanitaria", "Legale", "Altro"];
+        cats.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = c;
+          catSelect.appendChild(opt);
+        });
+      }
+    }
+
+    /**
+     * Gestisce il cambio di tipo documento nel form modale.
+     */
+    function handleDocTipoChange() {
+      const tipo = document.getElementById('doc-tipo').value;
+      const catInput = document.getElementById('doc-categoria');
+      const valContainer = document.getElementById('doc-valore-container');
+      const valLabel = document.getElementById('doc-valore-label');
+
+      const isEconomic = /(isee|locazione|affitto|busta.*paga|cud)/i.test(tipo);
+      if (isEconomic) {
+        valContainer.classList.remove('d-none');
+        valLabel.textContent = /isee/i.test(tipo) ? 'Valore ISEE Attestato (€) *' : 'Valore Economico (€)';
+      } else {
+        valContainer.classList.add('d-none');
+      }
+
+      // Inferenza categoria
+      if (/carta.*identit|patente|passaporto|codice.*fiscale|firma/i.test(tipo)) {
+        catInput.value = 'Anagrafica';
+      } else if (/permesso.*sogg|pds|titolo/i.test(tipo)) {
+        catInput.value = 'Soggiorno';
+      } else if (/isee|cud|busta.*paga|conto/i.test(tipo)) {
+        catInput.value = 'Economica';
+      } else if (/locazione|affitto|sfratto|ospitalit/i.test(tipo)) {
+        catInput.value = 'Abitativa';
+      } else if (/tessera.*sanit/i.test(tipo)) {
+        catInput.value = 'Sanitaria';
+      } else {
+        catInput.value = 'Altro';
+      }
+    }
+
+    /**
+     * Apre la modale per registrare o modificare un documento.
+     */
+    function openDocumentoModal(cf, docId) {
+      initDocumentCatalogDropdown();
+      document.getElementById('doc-id').value = docId || '';
+      document.getElementById('doc-id-drive').value = '';
+      document.getElementById('doc-intestatario').value = cf || '';
+      document.getElementById('doc-tipo').value = '';
+      document.getElementById('doc-categoria').value = '';
+      document.getElementById('doc-valore').value = '';
+      document.getElementById('doc-data-emissione').value = '';
+      document.getElementById('doc-data-scadenza').value = '';
+      document.getElementById('doc-note').value = '';
+      document.getElementById('doc-valore-container').classList.add('d-none');
+
+      if (docId && dbDocumenti) {
+        const found = dbDocumenti.find(d => String(d.id) === String(docId));
+        if (found) {
+          document.getElementById('doc-intestatario').value = found.intestatario || '';
+          document.getElementById('doc-tipo').value = found.tipo || '';
+          document.getElementById('doc-categoria').value = found.categoria || '';
+          document.getElementById('doc-valore').value = found.valore !== null ? found.valore : '';
+          document.getElementById('doc-data-emissione').value = found.dataEmissione || '';
+          document.getElementById('doc-data-scadenza').value = found.dataScadenza || '';
+          document.getElementById('doc-id-drive').value = found.idDrive || '';
+          document.getElementById('doc-note').value = found.note || '';
+          handleDocTipoChange();
+        }
+      }
+
+      document.getElementById('modal-doc-title').textContent = docId ? ('Modifica Documento #' + docId) : '📄 Registra Nuovo Documento';
+      new bootstrap.Modal(document.getElementById('modal-documento-edit')).show();
+    }
+
+    function openNewDocumentoModalForCurrentBen() {
+      const cf = document.getElementById('ben-cf').value;
+      openDocumentoModal(cf, '');
+    }
+
+    /**
+     * Salva il documento nel foglio 'Documenti' via RPC.
+     */
+    function handleDocumentoSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-save-documento');
+      const spin = document.getElementById('spin-save-doc');
+      btn.disabled = true;
+      spin.classList.remove('d-none');
+
+      const payload = {
+        id: document.getElementById('doc-id').value || null,
+        intestatario: document.getElementById('doc-intestatario').value.trim().toUpperCase(),
+        tipo: document.getElementById('doc-tipo').value,
+        categoria: document.getElementById('doc-categoria').value,
+        valore: document.getElementById('doc-valore').value || null,
+        dataEmissione: document.getElementById('doc-data-emissione').value || '',
+        dataScadenza: document.getElementById('doc-data-scadenza').value || '',
+        idDrive: document.getElementById('doc-id-drive').value || '',
+        note: document.getElementById('doc-note').value.trim()
+      };
+
+      google.script.run
+        .withSuccessHandler(res => {
+          btn.disabled = false;
+          spin.classList.add('d-none');
+          if (res && res.success) {
+            showToast('Documento salvato con successo!', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('modal-documento-edit')).hide();
+            reloadData();
+            if (payload.intestatario) {
+              renderBeneficiarioDocumenti(payload.intestatario);
+            }
+          } else {
+            showToast((res && res.message) || 'Errore salvataggio documento', 'danger');
+          }
+        })
+        .withFailureHandler(err => {
+          btn.disabled = false;
+          spin.classList.add('d-none');
+          showToast('Errore di connessione: ' + (err.message || err), 'danger');
+        })
+        .submitDocumento(payload);
+    }
+
+    /**
+     * Rimuove un documento dal foglio.
+     */
+    function handleRemoveDocumento(id, cf) {
+      if (!confirm('Sei sicuro di voler eliminare questo documento dal registro?')) return;
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res && res.success) {
+            showToast('Documento rimosso!', 'info');
+            reloadData();
+            if (cf) renderBeneficiarioDocumenti(cf);
+          } else {
+            showToast((res && res.message) || 'Errore rimozione', 'danger');
+          }
+        })
+        .withFailureHandler(err => {
+          showToast('Errore: ' + (err.message || err), 'danger');
+        })
+        .removeDocumento(id);
+    }
+
+    /**
+     * Renderizza l'elenco dei documenti di un beneficiario nella sua modale.
+     */
+    function renderBeneficiarioDocumenti(cf) {
+      const container = document.getElementById('ben-documenti-list');
+      if (!container) return;
+      if (!cf) {
+        container.innerHTML = '<p class="text-muted text-xs m-0">Nessun documento caricato per questo beneficiario.</p>';
+        return;
+      }
+
+      const docs = (dbDocumenti || []).filter(d => (d.intestatario || '').toUpperCase() === cf.toUpperCase());
+      if (docs.length === 0) {
+        container.innerHTML = '<p class="text-muted text-xs m-0">Nessun documento registrato per ' + cf + '.</p>';
+        return;
+      }
+
+      let html = '<div class="list-group list-group-flush">';
+      docs.forEach(doc => {
+        let badgeScadenza = '';
+        if (doc.statoScadenza === 'SCADUTO') {
+          badgeScadenza = '<span class="badge bg-danger">🔴 Scaduto (' + (doc.dataScadenza || '') + ')</span>';
+        } else if (doc.statoScadenza === 'IN_SCADENZA') {
+          badgeScadenza = '<span class="badge bg-warning text-dark">🟡 Scade tra ' + doc.giorniAllaScadenza + ' gg</span>';
+        } else if (doc.statoScadenza === 'VALIDO') {
+          badgeScadenza = '<span class="badge bg-success">🟢 Valido fino al ' + (doc.dataScadenza || '') + '</span>';
+        } else {
+          badgeScadenza = '<span class="badge bg-secondary">⚪ Permanente</span>';
+        }
+
+        const driveBtn = doc.idDrive ? ('<a href="' + doc.urlDrive + '" target="_blank" class="btn btn-xs btn-outline-info py-0 px-2 me-1" title="Apri su Drive">📄 Drive</a>') : '';
+
+        html += `
+          <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-1">
+            <div>
+              <div class="fw-semibold">${doc.emoji || '📄'} ${doc.tipo} ${doc.valore ? ('<span class="badge bg-info text-dark ms-1">€ ' + doc.valore.toLocaleString('it-IT') + '</span>') : ''}</div>
+              <div class="text-xs text-muted mt-1">${badgeScadenza} ${doc.note ? ('<span class="ms-1 font-italic">(' + doc.note + ')</span>') : ''}</div>
+            </div>
+            <div class="btn-group btn-group-sm">
+              ${driveBtn}
+              <button class="btn btn-outline-secondary py-0 px-1 btn-xs" onclick="openDocumentoModal('${doc.intestatario}', '${doc.id}')">✏️</button>
+              <button class="btn btn-outline-danger py-0 px-1 btn-xs" onclick="handleRemoveDocumento('${doc.id}', '${doc.intestatario}')">🗑️</button>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    /**
+     * Renderizza la tabella complessiva dei documenti in tab-documenti.
+     */
+    function renderAllDocumentiTable() {
+      const tbody = document.getElementById('table-documenti-body');
+      if (!tbody) return;
+
+      const search = (document.getElementById('search-documenti')?.value || '').toLowerCase().trim();
+      const filterCat = (document.getElementById('filter-doc-categoria')?.value || '').toLowerCase().trim();
+      const filterStato = document.getElementById('filter-doc-stato')?.value || '';
+
+      const filtered = (dbDocumenti || []).filter(d => {
+        const matchSearch = `${d.id || ''} ${d.intestatario || ''} ${d.tipo || ''} ${d.note || ''}`.toLowerCase().includes(search);
+        const matchCat = !filterCat || (d.categoria || '').toLowerCase() === filterCat;
+        const matchStato = !filterStato || d.statoScadenza === filterStato;
+        return matchSearch && matchCat && matchStato;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-3">Nessun documento trovato.</td></tr>';
+        return;
+      }
+
+      let html = '';
+      filtered.forEach(d => {
+        let badge = '';
+        if (d.statoScadenza === 'SCADUTO') badge = '<span class="badge bg-danger">🔴 Scaduto</span>';
+        else if (d.statoScadenza === 'IN_SCADENZA') badge = '<span class="badge bg-warning text-dark">🟡 In scadenza (' + d.giorniAllaScadenza + ' gg)</span>';
+        else if (d.statoScadenza === 'VALIDO') badge = '<span class="badge bg-success">🟢 Valido</span>';
+        else badge = '<span class="badge bg-secondary">⚪ Permanente</span>';
+
+        const driveLink = d.idDrive 
+          ? ('<a href="' + d.urlDrive + '" target="_blank" class="btn btn-xs btn-outline-info py-0 px-2" title="Apri file su Drive">📄 Apri</a>') 
+          : '<span class="text-muted text-xs">Nessun file</span>';
+
+        html += `
+          <tr>
+            <td><strong>#${d.id}</strong></td>
+            <td><span class="font-monospace fw-semibold">${d.intestatario}</span></td>
+            <td>${d.emoji || '📄'} ${d.tipo}</td>
+            <td><span class="badge bg-light text-dark border">${d.categoria}</span></td>
+            <td>${d.valore !== null ? ('<strong>€ ' + d.valore.toLocaleString('it-IT') + '</strong>') : '-'}</td>
+            <td>${d.dataScadenza || '-'}</td>
+            <td>${badge}</td>
+            <td>${driveLink}</td>
+            <td class="text-end">
+              <button class="btn btn-xs btn-outline-secondary py-0 px-1 me-1" onclick="openDocumentoModal('${d.intestatario}', '${d.id}')" title="Modifica">✏️</button>
+              <button class="btn btn-xs btn-outline-danger py-0 px-1" onclick="handleRemoveDocumento('${d.id}', '${d.intestatario}')" title="Elimina">🗑️</button>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    }
+
+    /**
+     * Upload e analisi automatica del documento tramite IA Gemini Flash.
+     */
+    function handleSmartDocUpload(event, prefix) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const loadingEl = document.getElementById(prefix === 'ben-' ? 'ai-loading-ben' : 'ai-loading-nuc');
+      if (loadingEl) loadingEl.classList.remove('d-none');
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Data = e.target.result;
+
+        google.script.run
+          .withSuccessHandler(res => {
+            if (loadingEl) loadingEl.classList.add('d-none');
+            event.target.value = '';
+
+            if (res && res.success && res.data) {
+              const d = res.data;
+              const p = d.datiPersona || {};
+              const doc = d.datiDocumento || {};
+
+              // Autocompila i campi anagrafici
+              if (p.codiceFiscale) document.getElementById(prefix + 'cf').value = p.codiceFiscale.toUpperCase();
+              if (p.nome) document.getElementById(prefix + 'nome').value = p.nome;
+              if (p.cognome) document.getElementById(prefix + 'cognome').value = p.cognome;
+              if (p.dataNascita) document.getElementById(prefix + 'data-nascita').value = p.dataNascita;
+              if (p.luogoNascita) document.getElementById(prefix + 'luogo-nascita').value = p.luogoNascita;
+              if (p.sesso && ['M', 'F'].includes(p.sesso.toUpperCase())) document.getElementById(prefix + 'sesso').value = p.sesso.toUpperCase();
+              if (p.residenza && document.getElementById(prefix + 'residenza')) document.getElementById(prefix + 'residenza').value = p.residenza;
+
+              // Seleziona la cittadinanza se presente
+              if (p.cittadinanza && typeof selectCountryByText === 'function') {
+                selectCountryByText(p.cittadinanza, prefix);
+              }
+
+              // Spunta i checkbox di possesso documento
+              if (/carta.*identit/i.test(d.tipoDocumento)) {
+                const sel = document.getElementById(prefix + 'doc-carta');
+                if (sel) sel.value = 'elettronica';
+              } else if (/permesso.*sogg/i.test(d.tipoDocumento)) {
+                const chk = document.getElementById(prefix + 'doc-permesso');
+                if (chk) chk.checked = true;
+              } else if (/patente/i.test(d.tipoDocumento)) {
+                const chk = document.getElementById(prefix + 'doc-patente');
+                if (chk) chk.checked = true;
+              } else if (/passaporto/i.test(d.tipoDocumento)) {
+                const chk = document.getElementById(prefix + 'doc-passaporto');
+                if (chk) chk.checked = true;
+              } else if (/tessera.*sanit/i.test(d.tipoDocumento)) {
+                const chk = document.getElementById(prefix + 'doc-tessera');
+                if (chk) chk.checked = true;
+              }
+
+              showToast('✨ ' + d.tipoDocumento + ' riconosciuto con successo! Campi compilati automaticamente.', 'success');
+            } else {
+              showToast((res && res.message) || 'Impossibile estrarre i dati con IA.', 'warning');
+            }
+          })
+          .withFailureHandler(err => {
+            if (loadingEl) loadingEl.classList.add('d-none');
+            event.target.value = '';
+            showToast('Errore analisi IA: ' + (err.message || err), 'danger');
+          })
+          .smartClassifyDocument(base64Data, file.type, file.name);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    /**
+     * Esegue l'audit diagnostico su una cartella nucleo e mostra la modale di riconciliazione.
+     */
+    function runNucleoHealthCheck(nucleoId, btnEl) {
+      currentReconcileNucleoId = nucleoId;
+      const modal = new bootstrap.Modal(document.getElementById('modal-diagnostica-drive'));
+      modal.show();
+
+      const spinner = document.getElementById('diagnostica-spinner');
+      const content = document.getElementById('diagnostica-content');
+      const btnRec = document.getElementById('btn-reconcile-now');
+      spinner.classList.remove('d-none');
+      content.classList.add('d-none');
+      btnRec.disabled = true;
+
+      google.script.run
+        .withSuccessHandler(res => {
+          spinner.classList.add('d-none');
+          content.classList.remove('d-none');
+
+          if (!res || !res.success || !res.report) {
+            content.innerHTML = '<div class="alert alert-danger">Errore durante la diagnosi: ' + ((res && res.message) || 'Rapporto non disponibile') + '</div>';
+            return;
+          }
+
+          const rep = res.report;
+          let badgeStatus = '';
+          if (rep.status === 'HEALTHY') badgeStatus = '<span class="badge bg-success fs-6">🟢 Conforme</span>';
+          else if (rep.status === 'WARNING') badgeStatus = '<span class="badge bg-warning text-dark fs-6">🟡 Richiede Riconciliazione</span>';
+          else badgeStatus = '<span class="badge bg-danger fs-6">🔴 Criticità Rilevate</span>';
+
+          let issuesHtml = '';
+          if (rep.issues.length === 0) {
+            issuesHtml = '<div class="alert alert-success m-0"><i class="bi bi-check-circle me-1"></i>Tutti i file e le cartelle sono perfettamente sincronizzati e conformi agli standard.</div>';
+            btnRec.disabled = true;
+          } else {
+            btnRec.disabled = false;
+            issuesHtml = '<div class="list-group list-group-flush mb-3">';
+            rep.issues.forEach(iss => {
+              const bgClass = iss.severity === 'danger' ? 'list-group-item-danger' : (iss.severity === 'warning' ? 'list-group-item-warning' : 'list-group-item-light');
+              issuesHtml += `
+                <div class="list-group-item ${bgClass} py-2">
+                  <div class="fw-semibold">${iss.message}</div>
+                  ${iss.fileName ? ('<div class="text-xs text-muted font-monospace mt-1">File: ' + iss.fileName + '</div>') : ''}
+                </div>
+              `;
+            });
+            issuesHtml += '</div>';
+          }
+
+          content.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
+              <div>
+                <h6 class="m-0 font-outfit">Nucleo #${rep.nucleoId} - ${rep.intestatario}</h6>
+                <div class="text-xs text-muted"><a href="${rep.folderUrl}" target="_blank" class="text-primary">Apri cartella su Google Drive ↗</a></div>
+              </div>
+              <div>${badgeStatus}</div>
+            </div>
+            <div class="row g-2 mb-3 text-center">
+              <div class="col-3"><div class="border rounded p-2 bg-light"><div class="fs-5 fw-bold">${rep.stats.totalFiles}</div><div class="text-xs text-muted">File Totali</div></div></div>
+              <div class="col-3"><div class="border rounded p-2 bg-light"><div class="fs-5 fw-bold text-warning">${rep.stats.misplacedFiles}</div><div class="text-xs text-muted">File Fuori Posto</div></div></div>
+              <div class="col-3"><div class="border rounded p-2 bg-light"><div class="fs-5 fw-bold text-danger">${rep.stats.missingFolders}</div><div class="text-xs text-muted">Cartelle Assenti</div></div></div>
+              <div class="col-3"><div class="border rounded p-2 bg-light"><div class="fs-5 fw-bold text-danger">${rep.stats.expiredDocs}</div><div class="text-xs text-muted">Doc Scaduti</div></div></div>
+            </div>
+            <h6>Dettaglio Anomalie:</h6>
+            ${issuesHtml}
+          `;
+        })
+        .withFailureHandler(err => {
+          spinner.classList.add('d-none');
+          content.classList.remove('d-none');
+          content.innerHTML = '<div class="alert alert-danger">Errore RPC: ' + (err.message || err) + '</div>';
+        })
+        .auditNucleoDrive(nucleoId);
+    }
+
+    /**
+     * Esegue la riconciliazione automatica del nucleo attualmente aperto nella modale.
+     */
+    function executeCurrentReconciliation(btn) {
+      if (!currentReconcileNucleoId) return;
+      const spin = document.getElementById('spin-reconcile');
+      btn.disabled = true;
+      spin.classList.remove('d-none');
+
+      google.script.run
+        .withSuccessHandler(res => {
+          btn.disabled = false;
+          spin.classList.add('d-none');
+          if (res && res.success) {
+            showToast('⚡ Bonifica completata con successo! Azioni applicate: ' + res.actionsApplied.length, 'success');
+            runNucleoHealthCheck(currentReconcileNucleoId, null);
+            reloadData();
+          } else {
+            showToast('Errore durante la bonifica: ' + ((res && res.errors && res.errors.join(', ')) || 'Errore generico'), 'danger');
+          }
+        })
+        .withFailureHandler(err => {
+          btn.disabled = false;
+          spin.classList.add('d-none');
+          showToast('Errore: ' + (err.message || err), 'danger');
+        })
+        .reconcileNucleoDrive(currentReconcileNucleoId, { useAI: true });
+    }
+
+    /**
+     * Esegue l'audit complessivo dell'archivio.
+     */
+    function runArchiveHealthCheck(btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Verifica in corso...';
+      
+      google.script.run
+        .withSuccessHandler(res => {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="bi bi-shield-check me-1"></i>Verifica Conformità Drive';
+          if (res && res.totalNuclei) {
+            showToast(`Audit completato su ${res.totalNuclei} nuclei: ${res.healthyNuclei} conformi, ${res.warningNuclei} da riordinare, ${res.criticalNuclei} con anomalie.`, res.criticalNuclei > 0 ? 'warning' : 'success');
+          }
+        })
+        .withFailureHandler(err => {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="bi bi-shield-check me-1"></i>Verifica Conformità Drive';
+          showToast('Errore audit archivio: ' + (err.message || err), 'danger');
+        })
+        .auditArchive();
     }
 </script>
 </body>

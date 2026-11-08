@@ -97,4 +97,48 @@ const CONFIG = Object.freeze({
     return _CONFIG_DRIVE_CACHE.templateSegnalazione;
   },
 
+  /** @type {string} Nome del foglio Google dedicato ai documenti e scadenze */
+  SHEET_DOCUMENTI: "Documenti",
+
+  /**
+   * Intestazioni standardizzate per il foglio 'Documenti'.
+   * @readonly
+   * @type {readonly string[]}
+   */
+  HEADERS_DOCUMENTI: Object.freeze([
+    "ID Documento",
+    "Intestatario",
+    "Tipo",
+    "Categoria",
+    "Valore",
+    "Data Emissione",
+    "Data Scadenza",
+    "ID Drive",
+    "Note",
+    "Data Inserimento"
+  ]),
+
+  /**
+   * Configurazione per Google Gemini (Document Intelligence & OCR).
+   */
+  GEMINI: Object.freeze({
+    MODEL: "gemini-2.0-flash",
+    API_URL: "https://generativelanguage.googleapis.com/v1beta/models/",
+    /**
+     * Recupera la chiave API da ScriptProperties o fallback.
+     * @return {string}
+     */
+    getApiKey: function() {
+      try {
+        if (typeof PropertiesService !== "undefined" && PropertiesService.getScriptProperties) {
+          const props = PropertiesService.getScriptProperties();
+          return props.getProperty("GEMINI_API_KEY") || props.getProperty("GOOGLE_API_KEY") || "";
+        }
+      } catch (e) {
+        Logger.log("Config: errore lettura ScriptProperties per Gemini: " + e.message);
+      }
+      return "";
+    }
+  })
+
 });
