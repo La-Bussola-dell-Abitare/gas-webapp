@@ -260,11 +260,22 @@ class DriveManager {
 
       const fName = file.getName();
       let matchedType = null;
+      let docRecord = null;
 
-      for (const [typeKey, regex] of Object.entries(patterns)) {
-        if (!documents[typeKey] && regex.test(fName)) {
-          matchedType = typeKey;
-          break;
+      if (typeof findDocumentType === "function") {
+        const found = findDocumentType(fName);
+        if (found && found.id !== "ALTRO" && found.scope !== "nucleo") {
+          matchedType = found.id.toLowerCase();
+          docRecord = found;
+        }
+      }
+
+      if (!matchedType) {
+        for (const [typeKey, regex] of Object.entries(patterns)) {
+          if (!documents[typeKey] && regex.test(fName)) {
+            matchedType = typeKey;
+            break;
+          }
         }
       }
 
@@ -273,7 +284,14 @@ class DriveManager {
         name: fName,
         url: file.getUrl(),
         lastUpdated: file.getLastUpdated().toISOString(),
-        mimeType: file.getMimeType()
+        mimeType: file.getMimeType(),
+        tipo: docRecord ? docRecord.name : (matchedType || "Altro"),
+        categoria: docRecord ? docRecord.categoria : "Altro",
+        archetipo: docRecord ? docRecord.archetipo : "UNICO",
+        icona: docRecord ? docRecord.icona : "bi-file-earmark",
+        emoji: docRecord ? docRecord.emoji : "📄",
+        hasValue: docRecord ? docRecord.hasValue : false,
+        hasExpiration: docRecord ? docRecord.hasExpiration : false
       };
 
       if (matchedType) {
@@ -331,11 +349,22 @@ class DriveManager {
 
       const fName = file.getName();
       let matchedType = null;
+      let docRecord = null;
 
-      for (const [typeKey, regex] of Object.entries(patterns)) {
-        if (!documents[typeKey] && regex.test(fName)) {
-          matchedType = typeKey;
-          break;
+      if (typeof findDocumentType === "function") {
+        const found = findDocumentType(fName);
+        if (found && found.id !== "ALTRO" && (found.scope === "nucleo" || found.scope === "entrambi")) {
+          matchedType = found.id.toLowerCase();
+          docRecord = found;
+        }
+      }
+
+      if (!matchedType) {
+        for (const [typeKey, regex] of Object.entries(patterns)) {
+          if (!documents[typeKey] && regex.test(fName)) {
+            matchedType = typeKey;
+            break;
+          }
         }
       }
 
@@ -343,7 +372,14 @@ class DriveManager {
         id: file.getId(),
         name: fName,
         url: file.getUrl(),
-        mimeType: file.getMimeType()
+        mimeType: file.getMimeType(),
+        tipo: docRecord ? docRecord.name : (matchedType || "Altro"),
+        categoria: docRecord ? docRecord.categoria : "Altro",
+        archetipo: docRecord ? docRecord.archetipo : "UNICO",
+        icona: docRecord ? docRecord.icona : "bi-file-earmark",
+        emoji: docRecord ? docRecord.emoji : "📄",
+        hasValue: docRecord ? docRecord.hasValue : false,
+        hasExpiration: docRecord ? docRecord.hasExpiration : false
       };
 
       if (matchedType) {
