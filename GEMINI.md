@@ -12,3 +12,4 @@ Per le linee guida complete di sviluppo, documentazione continua e convenzioni a
   - **Deployment ID**: `AKfycbzkY426RSsiBF19i2GRLd69idx3GbMKj4fZQIcg2G3INwXVSjTiRd-4MEtmp9IA0MFwMw`
   - **Nucleo di Test**: **Nucleo #3 (Lorenzo Mazza)** tassativo per qualsiasi prova interattiva o manipolazione dati/Drive.
   - **Comandi**: `npm test` per test offline, `npm run deploy:open` per abilitare il collaudo da browser, `npm run deploy:close` obbligatorio prima del commit Git.
+- **Messaggi di Commit Descrittivi**: I commit Git devono tassativamente seguire la struttura Conventional Commits con corpo descrittivo a elenco puntato (cosa è stato fatto, motivazioni, dettagli implementativi e verifiche effettuate), vietando messaggi generici o privi di contesto.

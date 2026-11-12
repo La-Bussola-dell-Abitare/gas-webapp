@@ -78,3 +78,43 @@ Tutti gli agenti e sviluppatori devono attenersi rigorosamente al seguente proto
      ```
      *(Ripristina `access: "MYSELF"`, effettua `clasp push` e ritira l'accesso pubblico sul deployment fisso).*
    - **Commit e Push Git**: Il manifest `src/appsscript.json` non deve **mai** essere committato con `access: "ANYONE_ANONYMOUS"`.
+
+---
+
+## 4. Standard dei Messaggi di Commit Git (Descrittivi e Dettagliati)
+
+> [!IMPORTANT]
+> **I messaggi di commit Git non devono mai essere generici, telegrafici o privi di contesto (es. vietati "fix", "aggiornamenti", "modifiche varie").** Devono documentare puntualmente **cosa** è stato modificato, **il motivo** dell'intervento e **i dettagli implementativi**.
+
+### 4.1 Struttura Obbligatoria del Messaggio
+I commit devono adottare lo standard **Conventional Commits** arricchito da un corpo descrittivo a punti:
+
+1. **Header (Oggetto)**:
+   - Formato: `<tipo>(<ambito>): <sintesi chiara e concisa>`
+   - Tipi ammessi: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`.
+   - Limite raccomandato: massimo 72 caratteri.
+   - Esempi corretti:
+     - `feat(ui): aggiunta anteprima file e diagnostica granulare drive`
+     - `fix(ui): allineamento a filo 24px del toast e z-index sovraordinato ai modali`
+     - `fix(core): bonifica chiamate RPC e correzione troncamento template GAS`
+
+2. **Body (Corpo del Messaggio - Obbligatorio per modifiche strutturali o funzionali)**:
+   - Separato dall'header da una riga vuota.
+   - Organizzato in elenco puntato (`- `) che dettagli:
+     - **Problema riscontrato o richiesta funzionale**: breve spiegazione del contesto o dell'anomalia.
+     - **Cosa è stato fatto**: elenco analitico delle modifiche apportate ai file e ai moduli.
+     - **Dettagli tecnici o architetturali**: motivazione di scelte specifiche (es. elevazione `z-index`, gestione concorrenza, prevenzione comment stripping GAS, ecc.).
+     - **Allineamenti documentali e test**: menzione dei test eseguiti (`npm test`) e della documentazione aggiornata.
+
+3. **Esempio di Commit Conforme**:
+   ```text
+   fix(ui): correzione cambio tab, rimozione blocchi orfani e allineamento toast a filo destro (24px)
+
+   - Correzione navigazione a schede: pulsanti semantici native button e scoping .active
+   - Risoluzione troncamento template GAS: helper getDriveFileUrl senza // nei template literals
+   - Rimozione di 31 iniezioni orfane che bloccavano le chiamate RPC con ReferenceError
+   - Elevazione stacking context toast a z-index 10050 per galleggiare sopra i modali
+   - Allineamento elastico del toast container a filo destro a 24px esatti
+   - Scrittura atomica sicura per appsscript.json in scripts/deploy.js
+   - Aggiornamento documentazione tecnica di modulo in README.md e webapp.md
+   ```
