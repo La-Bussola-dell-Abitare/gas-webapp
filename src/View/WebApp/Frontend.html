@@ -6010,25 +6010,37 @@
       duplicateGroups.forEach((dg, idx) => {
         const prim = dg.primary;
         const dup = dg.duplicate;
+        const isHashMatch = dg.type === 'EXACT_HASH';
+        const typeLabel = isHashMatch ? 'Hash MD5 Identico (Clone 100%)' : (dg.type === 'EXACT' ? 'Identico in Byte' : 'Stesso Documento e Periodo');
+        const badgeClass = isHashMatch ? 'bg-danger' : (dg.type === 'EXACT' ? 'bg-warning text-dark' : 'bg-info text-dark');
         out += `
           <div class="card border shadow-sm">
             <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
               <span class="text-xs fw-bold font-outfit text-dark">
-                <i class="bi bi-copy text-danger me-1"></i>Gruppo Duplicato #${idx + 1} (${dg.type === 'EXACT' ? 'Identico in Byte' : 'Stesso Documento e Periodo'})
+                <i class="bi bi-copy text-danger me-1"></i>Gruppo Duplicato #${idx + 1} (${typeLabel})
               </span>
-              <span class="badge ${dg.type === 'EXACT' ? 'bg-danger' : 'bg-warning text-dark'} text-xs font-monospace">${escapeHtml(dg.reason)}</span>
+              <div class="d-flex align-items-center gap-1">
+                ${isHashMatch ? '<span class="badge bg-danger"><i class="bi bi-fingerprint me-1"></i>Clone 100%</span>' : ''}
+                <span class="badge ${badgeClass} text-xs font-monospace">${escapeHtml(dg.reason)}</span>
+              </div>
             </div>
             <div class="card-body p-2">
               <div class="row g-2 text-xs">
                 <div class="col-md-6 border-end">
                   <div class="fw-semibold text-success mb-1"><i class="bi bi-file-earmark-check me-1"></i>File Conservato (Originale):</div>
                   <div class="font-monospace fw-bold">${escapeHtml(prim.name)}</div>
-                  <div class="text-muted">Cartella: <strong>${escapeHtml(prim.folderName)}</strong> | Dimensione: <strong>${prim.size || 0} B</strong></div>
+                  <div class="text-muted">
+                    Cartella: <strong>${escapeHtml(prim.folderName)}</strong> | Dimensione: <strong>${prim.size || 0} B</strong>
+                    ${prim.md5 ? ` | <span class="font-monospace text-xs" title="${escapeHtml(prim.md5)}"><i class="bi bi-fingerprint text-primary me-1"></i>MD5: ${escapeHtml(prim.md5.slice(0, 8))}...</span>` : ''}
+                  </div>
                 </div>
                 <div class="col-md-6">
                   <div class="fw-semibold text-danger mb-1"><i class="bi bi-file-earmark-x me-1"></i>File Riconosciuto Duplicato:</div>
                   <div class="font-monospace fw-bold">${escapeHtml(dup.name)}</div>
-                  <div class="text-muted">Cartella: <strong>${escapeHtml(dup.folderName)}</strong> | Dimensione: <strong>${dup.size || 0} B</strong></div>
+                  <div class="text-muted">
+                    Cartella: <strong>${escapeHtml(dup.folderName)}</strong> | Dimensione: <strong>${dup.size || 0} B</strong>
+                    ${dup.md5 ? ` | <span class="font-monospace text-xs" title="${escapeHtml(dup.md5)}"><i class="bi bi-fingerprint text-primary me-1"></i>MD5: ${escapeHtml(dup.md5.slice(0, 8))}...</span>` : ''}
+                  </div>
                 </div>
               </div>
               <div class="mt-2 pt-2 border-top d-flex align-items-center gap-3">

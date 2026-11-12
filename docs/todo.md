@@ -27,7 +27,7 @@
     * (Fatto) Riconciliazione documenti e file system Google Drive con IA
         * (Fatto) Controllare tramite OCR o IA che tipo di documenti sono e che informazioni hanno (Google Gemini Flash multimodale)
         * (Fatto) Dargli il nome corretto secondo le specifiche (`buildDocumentFileName`)
-        * (Fatto) Controllare se ci sono documenti doppioni (notifica all'utente con scelta interattiva: cestina, archivia in _Archivio, mantieni)
+        * (Fatto) Controllare se ci sono documenti doppioni con deduplicazione Two-Tier (metadato nativo md5Checksum da Google Drive REST API v3 senza scaricare byte, badge 'Hash MD5 Identico - Clone 100%', azzeramento falsi positivi e scelta interattiva: cestina, archivia in _Archivio, mantieni)
         * (Fatto) Riconciliare anche i nomi delle cartelle che potrebbero essere sbagliati (inversioni Cognome Nome, nomi mancanti, refusi con fuzzy matching `analyzeFolderName`)
         * (Fatto) Fare in modo che i file vengano spostati nelle cartelle giuste (scope persona in cartella membro, scope nucleo nella radice con `file.moveTo`)
         * (Fatto) Controllare che tutti i documenti siano stati caricati nel foglio "Documenti" (se non ci sono, aggiungerli con campi editabili)
@@ -39,6 +39,12 @@
     * fare in modo che documenti e dati caricati manualmente siano considerati
         * creazione dati nuclei familiari, beneficiari
     * creazione incontri da eventi calendar
+    * controlli
+        * controllare che tutti i file nelle cartelle desiderate (beneficiari, modulistica...) siano presenti nel google sheet
+        * rinominare tutti i file secondo gli standard
+        * controllare che le cartelle siano organizzate secondo gli standard
+        * controllare i dati nei documenti se corrispondono o meno a quelli presenti nel google sheet (in caso contrario proporre correzioni interattivamente)
+
 
 # Ragionamenti
 * (Completato) Unificazione modello nazioni in `src/Domain/country.js` (SSOT per nome stato, cittadinanza, ISO, prefisso telefonico e bandiera)

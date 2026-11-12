@@ -285,6 +285,7 @@ classDiagram
     }
 
     class DriveReconciler {
+        +getDriveFileMetadata(fileId, cache)$ Object
         +auditNucleo(nucleoId, options)$ NucleoAuditReport
         +inspectFileWithAI(fileId)$ Object
         +executeApprovedPlan(nucleoId, approvedPlan)$ Object

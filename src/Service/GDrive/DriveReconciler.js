@@ -64,6 +64,59 @@
 class DriveReconciler {
 
   /**
+   * Recupera i metadati di un file da Google Drive API v3 senza scaricare il contenuto del file.
+   * Utilizza UrlFetchApp con il token OAuth nativo di ScriptApp ed effettua il caching in memoria.
+   * Restituisce null in caso di errore, file non trovato o in ambienti di test privi dei servizi GAS.
+   * 
+   * @param {string} fileId - ID univoco del file in Google Drive.
+   * @param {Map<string, Object>} [cache] - Cache in memoria opzionale per la durata dell'audit.
+   * @return {{ id: string, name: string, size: number|null, md5Checksum: string|null, mimeType: string }|null}
+   */
+  static getDriveFileMetadata(fileId, cache = null) {
+    if (!fileId) return null;
+    if (cache && typeof cache.get === "function" && cache.has(fileId)) {
+      return cache.get(fileId);
+    }
+
+    // In ambienti privi di UrlFetchApp o ScriptApp (es. Node.js unit tests offline), ritorna graceful null
+    if (typeof UrlFetchApp === "undefined" || typeof ScriptApp === "undefined") {
+      return null;
+    }
+
+    try {
+      const url = "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(fileId) + "?fields=id,name,size,md5Checksum,mimeType";
+      const response = UrlFetchApp.fetch(url, {
+        method: "get",
+        headers: { Authorization: "Bearer " + ScriptApp.getOAuthToken() },
+        muteHttpExceptions: true
+      });
+
+      if (response && response.getResponseCode && response.getResponseCode() === 200) {
+        const meta = JSON.parse(response.getContentText());
+        const result = {
+          id: meta.id || fileId,
+          name: meta.name || "",
+          size: meta.size ? Number(meta.size) : null,
+          md5Checksum: meta.md5Checksum || null,
+          mimeType: meta.mimeType || ""
+        };
+        if (cache && typeof cache.set === "function") {
+          cache.set(fileId, result);
+        }
+        return result;
+      } else if (response && response.getResponseCode && typeof Logger !== "undefined") {
+        Logger.log("[DriveReconciler.getDriveFileMetadata] Risposta HTTP " + response.getResponseCode() + " per fileId " + fileId + ": " + response.getContentText());
+      }
+    } catch (e) {
+      if (typeof Logger !== "undefined") {
+        Logger.log("[DriveReconciler.getDriveFileMetadata] Errore richiesta metadati per fileId " + fileId + ": " + e.message);
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Esegue l'audit diagnostico completo per un singolo nucleo familiare.
    * Scansiona la cartella radice del nucleo e tutte le relative sottocartelle personali dei membri,
    * incrociando i file con il foglio 'Documenti' e l'anagrafica.
@@ -324,17 +377,18 @@ class DriveReconciler {
       return String(d);
     };
 
-    // 7. Rilevamento duplicati (esatti per dimensione e semantici per persona/tipo/anno)
+    // 7. Rilevamento duplicati (Two-Tier: Tier 1 Byte Size -> Tier 2 Drive API md5Checksum & Semantici)
     const sizeMap = {};
     const semanticMap = {};
     const flaggedDuplicateIds = new Set();
+    const md5MetadataCache = new Map();
 
     for (let i = 0; i < allScannedFiles.length; i++) {
       const item = allScannedFiles[i];
       const docRec = (typeof findDocumentType === "function") ? findDocumentType(item.fileName) : null;
       const docTipo = docRec ? docRec.name : "Altro";
 
-      // Match esatto su dimensione file (byte)
+      // Match preliminare su dimensione file (byte)
       if (item.size > 0) {
         if (!sizeMap[item.size]) {
           sizeMap[item.size] = [item];
@@ -359,29 +413,130 @@ class DriveReconciler {
       }
     }
 
-    // Processa duplicati esatti
+    // Processa duplicati esatti (Strategia a 2 Livelli: solo i file con la medesima dimensione interrogano l'MD5)
     for (const [sizeVal, fileList] of Object.entries(sizeMap)) {
       if (fileList.length > 1) {
-        const primary = fileList[0];
-        for (let k = 1; k < fileList.length; k++) {
-          const dup = fileList[k];
-          if (!flaggedDuplicateIds.has(dup.fileId)) {
-            flaggedDuplicateIds.add(dup.fileId);
-            const dupInfo = {
-              type: "EXACT",
-              reason: `Stessa dimensione in byte (${sizeVal} B)`,
-              primary: { id: primary.fileId, name: primary.fileName, folderName: primary.folderName, lastUpdated: formatSafeDate(primary.lastUpdated), size: primary.size },
-              duplicate: { id: dup.fileId, name: dup.fileName, folderName: dup.folderName, lastUpdated: formatSafeDate(dup.lastUpdated), size: dup.size }
-            };
-            duplicateGroups.push(dupInfo);
-            issues.push({
-              type: "DUPLICATE_FILE",
-              severity: "warning",
-              fileId: dup.fileId,
-              fileName: dup.fileName,
-              message: `Possibile file duplicato: '${dup.fileName}' ha identica dimensione (${sizeVal} B) di '${primary.fileName}'.`,
-              extra: Object.assign({}, dupInfo)
-            });
+        const md5Groups = {};
+        const noMd5List = [];
+
+        for (let fIdx = 0; fIdx < fileList.length; fIdx++) {
+          const item = fileList[fIdx];
+          const meta = DriveReconciler.getDriveFileMetadata(item.fileId, md5MetadataCache);
+          const checksum = meta ? meta.md5Checksum : null;
+          if (checksum) {
+            if (!md5Groups[checksum]) {
+              md5Groups[checksum] = [item];
+            } else {
+              md5Groups[checksum].push(item);
+            }
+          } else {
+            noMd5List.push(item);
+          }
+        }
+
+        // 7a. Duplicati con Hash MD5 identico (Certezza matematica 100% clone bit-a-bit)
+        for (const [md5Hash, hashGroup] of Object.entries(md5Groups)) {
+          if (hashGroup.length > 1) {
+            const primary = hashGroup[0];
+            for (let k = 1; k < hashGroup.length; k++) {
+              const dup = hashGroup[k];
+              if (!flaggedDuplicateIds.has(dup.fileId)) {
+                flaggedDuplicateIds.add(dup.fileId);
+                const dupInfo = {
+                  type: "EXACT_HASH",
+                  reason: `Hash MD5 identico (${md5Hash.slice(0, 8)}...) - ${sizeVal} B`,
+                  certainty: 1.0,
+                  md5: md5Hash,
+                  primary: {
+                    id: primary.fileId,
+                    name: primary.fileName,
+                    folderName: primary.folderName,
+                    lastUpdated: formatSafeDate(primary.lastUpdated),
+                    size: primary.size,
+                    md5: md5Hash
+                  },
+                  duplicate: {
+                    id: dup.fileId,
+                    name: dup.fileName,
+                    folderName: dup.folderName,
+                    lastUpdated: formatSafeDate(dup.lastUpdated),
+                    size: dup.size,
+                    md5: md5Hash
+                  }
+                };
+                duplicateGroups.push(dupInfo);
+                issues.push({
+                  type: "DUPLICATE_FILE",
+                  severity: "warning",
+                  fileId: dup.fileId,
+                  fileName: dup.fileName,
+                  message: `File duplicato confermato (MD5 identico ${md5Hash.slice(0, 8)}...): '${dup.fileName}' è un clone esatto di '${primary.fileName}'.`,
+                  extra: Object.assign({}, dupInfo)
+                });
+              }
+            }
+          }
+        }
+
+        // 7b. File senza MD5 (Google Docs nativi, file speciali o ambiente offline senza API Drive)
+        if (noMd5List.length > 1) {
+          const isOffline = (typeof UrlFetchApp === "undefined");
+          const nameMap = {};
+
+          for (let noIdx = 0; noIdx < noMd5List.length; noIdx++) {
+            const item = noMd5List[noIdx];
+            const key = isOffline ? "SAME_SIZE" : (item.fileName || "").trim().toLowerCase();
+            if (!nameMap[key]) {
+              nameMap[key] = [item];
+            } else {
+              nameMap[key].push(item);
+            }
+          }
+
+          for (const [groupKey, nGroup] of Object.entries(nameMap)) {
+            if (nGroup.length > 1) {
+              const primary = nGroup[0];
+              for (let k = 1; k < nGroup.length; k++) {
+                const dup = nGroup[k];
+                if (!flaggedDuplicateIds.has(dup.fileId)) {
+                  flaggedDuplicateIds.add(dup.fileId);
+                  const reasonStr = isOffline 
+                    ? `Stessa dimensione in byte (${sizeVal} B)`
+                    : `Stessa dimensione (${sizeVal} B) e stesso nome file`;
+                  const dupInfo = {
+                    type: "EXACT",
+                    reason: reasonStr,
+                    certainty: isOffline ? 0.7 : 0.9,
+                    md5: null,
+                    primary: {
+                      id: primary.fileId,
+                      name: primary.fileName,
+                      folderName: primary.folderName,
+                      lastUpdated: formatSafeDate(primary.lastUpdated),
+                      size: primary.size,
+                      md5: null
+                    },
+                    duplicate: {
+                      id: dup.fileId,
+                      name: dup.fileName,
+                      folderName: dup.folderName,
+                      lastUpdated: formatSafeDate(dup.lastUpdated),
+                      size: dup.size,
+                      md5: null
+                    }
+                  };
+                  duplicateGroups.push(dupInfo);
+                  issues.push({
+                    type: "DUPLICATE_FILE",
+                    severity: "warning",
+                    fileId: dup.fileId,
+                    fileName: dup.fileName,
+                    message: `Possibile file duplicato: '${dup.fileName}' ha identica dimensione (${sizeVal} B) di '${primary.fileName}'.`,
+                    extra: Object.assign({}, dupInfo)
+                  });
+                }
+              }
+            }
           }
         }
       }

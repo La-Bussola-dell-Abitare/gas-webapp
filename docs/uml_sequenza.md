@@ -444,7 +444,11 @@ sequenceDiagram
 
     DR->>GDrive: Scansiona cartella radice nucleo e sottocartelle membri
     DR->>Utils: analyzeFolderName(folderName, nome, cognome) -> rileva inversioni / refusi
-    DR->>Utils: computeFileMd5(fileBlob) -> rileva duplicati per hash o semantica
+    DR->>GDrive: Raggruppamento preliminare per dimensione in byte
+    opt Se 2+ file hanno identica dimensione (Tier 2)
+        DR->>GDrive: UrlFetchApp Drive API v3 metadati (fields: md5Checksum) -> verifica clone bit-a-bit (EXACT_HASH)
+    end
+    DR->>DR: Rileva duplicati semantici (stesso soggetto + tipo documento + anno)
     
     opt Se Deep Scan IA attivo o su richiesta
         DR->>AI: analyzeBlobs([file.getBlob()])

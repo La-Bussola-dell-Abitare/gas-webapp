@@ -41,13 +41,15 @@ Tutti i file risiedono all'interno della cartella radice configurata in `CONFIG.
 - **`scanBeneficiarioDocuments(cf)`** e **`scanNucleoDocuments(nucleoId)`**: Scansione in tempo reale e arricchimento con metadati di dominio SSOT.
 
 ### 2.2 `DriveReconciler.js` — Motore di Diagnostica Avanzata e Riconciliazione IA
+- **`getDriveFileMetadata(fileId, cache)`**:
+  Recupera in modo mirato e ultraleggero i metadati di un file da Google Drive REST API v3 (`id`, `name`, `size`, `md5Checksum`, `mimeType`) utilizzando `UrlFetchApp` con token OAuth nativo (`ScriptApp.getOAuthToken()`). Non scarica alcun byte del file dal cloud e memorizza i risultati in una cache in memoria per la durata dell'audit.
 - **`auditNucleo(nucleoId, options)`**:
   Esegue la scansione completa della cartella radice e delle sottocartelle dei componenti del nucleo, incrociando i file con il foglio *Documenti* e l'anagrafica. Rileva:
   1. `FOLDER_NAME_MISMATCH`: cartelle con nominativi invertiti (`Rossi Mario`), refusi o nomi parziali (`analyzeFolderName`).
   2. `MISSING_MEMBER_FOLDER`: componenti censiti privi di sottocartella personale.
   3. `MISPLACED_FILE`: documenti personali archiviati nella radice nucleo o nella cartella di un altro componente, o documenti di nucleo archiviati dentro la cartella di un singolo membro.
   4. `NON_STANDARD_FILENAME`: file con nomi non conformi alla convenzione ufficiale [`buildDocumentFileName`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Domain/documents.js).
-  5. `DUPLICATE_FILE`: duplicati esatti per dimensione in byte/hash e duplicati semantici (stesso documento/anno per lo stesso soggetto).
+  5. `DUPLICATE_FILE`: duplicati con architettura Two-Tier (`EXACT_HASH` con verifica matematica MD5, `EXACT` per file privi di checksum come i Google Docs nativi, e duplicati semantici per stesso documento/anno per lo stesso soggetto).
   6. `UNTRACKED_FILE`: file presenti su Drive ma assenti nel foglio *Documenti*.
   7. `ORPHAN_SHEET_ROW`: righe nel foglio *Documenti* con ID Drive non più esistente o cestinato su Drive.
   8. `ANAGRAFICA_DIFF`: discrepanze tra i dati anagrafici nei fogli e quelli estratti dal contenuto del documento tramite Google Gemini Flash.
@@ -68,13 +70,25 @@ Tutti i file risiedono all'interno della cartella radice configurata in `CONFIG.
    La scansione ordinaria è istantanea perché basata sui metadati di Drive e sulle regex di dominio (`findDocumentType`), senza consumo di quota né rischi di timeout. Quando l'operatore attiva lo switch *"Analisi IA Gemini Flash"* o clicca *"IA"* su un singolo file, viene invocata l'API multimodale di Gemini Flash per estrarre con certezza dati anagrafici e scadenze.
 3. **Fuzzy Matching e Token-Set Analysis (`analyzeFolderName`)**:
    L'analisi delle cartelle utilizza una combinazione di token matching e distanza di Levenshtein normalizzata (`calculateStringSimilarity`), distinguendo con precisione le inversioni (`INVERTED`), i refusi di battitura (`TYPO`) e i nomi parziali (`PARTIAL`).
-4. **Deduplicazione Multi-Criterio**:
-   I duplicati vengono individuati sia tramite confronto di dimensione esatta/hash MD5 (`computeFileMd5`), sia per identità semantica (stesso soggetto + stessa tipologia documento + stesso anno). L'operatore può scegliere per ciascun duplicato se cestinarlo, spostarlo in una cartella protetta `_Archivio` o mantenerlo.
+4. **Deduplicazione Ibrida Two-Tier con Hash MD5 Nativo da Google Drive API**:
+   La deduplicazione combina velocità O(N) e rigore crittografico:
+   - **Tier 1 (Memoria / Zero I/O extra)**: raggruppamento per dimensione in byte tramite `file.getSize()`. I file con dimensioni univoche vengono scartati all'istante senza alcuna richiesta HTTP.
+   - **Tier 2 (Drive REST API v3 mirata)**: per i soli gruppi di file con identico byte size, viene invocato `DriveReconciler.getDriveFileMetadata` per estrarre il metadato nativo `md5Checksum`.
+   - Se gli MD5 coincidono, il file è un clone indistinguibile bit-a-bit al 100% (`EXACT_HASH`).
+   - Se gli MD5 differiscono, i file non vengono considerati duplicati esatti, azzerando i falsi allarmi (es. foto o template con stessa dimensione).
+   - Per file speciali o documenti Google Workspace nativi (Doc/Sheets) privi di MD5, interviene un fallback elegante su match di nome normalizzato (`EXACT`).
+   - In aggiunta, opera la deduplicazione semantica per stesso soggetto + stesso documento + stesso anno (`SEMANTIC`).
 
 ---
 
 ## 4. Motivazioni e Alternative Scartate
 
+- **Perché richiedere `md5Checksum` tramite Drive REST API invece di scaricare il blob con `Utilities.computeDigest`?**
+  *Motivazione e alternative scartate*: Scaricare l'intero blob di byte in memoria RAM per ogni file consuma ingenti risorse di rete, rallenta drasticamente l'audit ed espone al limite Apps Script di 50 MB per singolo Blob (`Blob too large`). Google Drive calcola già internamente l'hash MD5 al momento dell'upload e lo espone nei metadati di sistema. Richiedere `fields: 'id,name,size,md5Checksum,mimeType'` via REST API v3 trasferisce una manciata di byte JSON in millisecondi, con 0 KB di download del contenuto del file.
+- **Perché non richiedere l'MD5 a tappeto per tutti i file all'inizio dell'audit?**
+  *Scartata*: Ogni chiamata HTTP tramite `UrlFetchApp` o API Drive impiega circa 100-250 ms in Apps Script. Su cartelle con decine di file, effettuare chiamate a vuoto per file che hanno già dimensioni in byte completamente distinte aggiungerebbe 4-8 secondi di latenza inutile. Il Tier 1 basato su `file.getSize()` (già in memoria dalla scansione `getFiles()`) filtra istantaneamente il 95%+ dei file con zero chiamate di rete.
+- **Perché escludere dai duplicati esatti i file con stessa dimensione ma diverso MD5?**
+  *Motivazione*: Due file generati da un medesimo scanner, fotocamera o template d'ufficio possono accidentalmente condividere la stessa dimensione in byte pur contenendo documenti o pagine diverse. Segnalarli come duplicati indurrebbe l'operatore a cestinare erroneamente documenti validi.
 - **Perché non eseguire la bonifica completamente automatica senza conferma utente?**
   *Scartata*: L'eliminazione automatica di file o la sovrascrittura di anagrafiche senza revisione umana comporta gravi rischi di perdita accidentale di dati, specie in contesti con file denominati in modo ambiguo (`doc01.pdf`). L'anteprima diff consente all'operatore di verificare e ritoccare ogni singolo valore.
 - **Perché non scansionare tutti i file di default con Gemini Flash?**

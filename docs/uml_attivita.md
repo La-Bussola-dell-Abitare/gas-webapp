@@ -180,7 +180,7 @@ flowchart TD
         direction TB
         InspectRoot[Scansione file e cartelle radice nucleo e sottocartelle membri]
         FuzzyCheck[Fuzzy Matching analyzeFolderName: rileva cartelle invertite, refusi, parziali]
-        DupCheck[Deduplicazione computeFileMd5 e semantica tipo/anno]
+        DupCheck[Deduplicazione Two-Tier MD5 Drive REST API e semantica tipo/anno]
         InspectSheets[Cross-check bidirezionale con il foglio 'Documenti': non censiti e righe orfane]
         AICheck[Analisi OCR multimodale Gemini Flash: estrazione metadati e diff anagrafica]
         
@@ -240,4 +240,45 @@ flowchart TD
     HealingEngine --> ReAudit[Rilancio audit automatico di verifica]
     ReAudit --> NotifySuccess[Notifica Toast con riassunto delle azioni applicate]
     NotifySuccess --> End([Cartelle, File, Fogli e Anagrafiche Perfettamente Sincronizzati])
+```
+
+---
+
+## 5. Attività 5: Algoritmo di Deduplicazione File Ibrido a Due Livelli (Two-Tier MD5 & Semantico)
+
+Descrive la logica di deduplicazione a due livelli implementata in [`DriveReconciler.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/GDrive/DriveReconciler.js). La strategia combina velocità in memoria (Tier 1 su dimensione byte) con la precisione crittografica (Tier 2 su `md5Checksum` da Drive API v3) senza scaricare i blob dal cloud, azzerando i falsi positivi.
+
+```mermaid
+flowchart TD
+    Start([Inizio Rilevamento Duplicati]) --> Tier1[Tier 1: Raggruppamento file per size in memoria]
+    Tier1 --> CheckSizeCount{Numero di file con<br/>identica dimensione > 1?}
+
+    %% RAMO DIMENSIONE UNIVOCA
+    CheckSizeCount -- "No (Dimensione univoca)" --> SingleSize[Nessun duplicato per dimensione<br/>Zero chiamate HTTP effettuate]
+    SingleSize --> SemanticCheck
+
+    %% RAMO CANDIDATI DUPLICATI
+    CheckSizeCount -- "Sì (Gruppo candidato)" --> Tier2[Tier 2: Invocazione getDriveFileMetadata<br/>Recupero md5Checksum via REST API v3]
+    Tier2 --> CheckMD5Available{md5Checksum disponibile<br/>per i file del gruppo?}
+
+    %% SOTTO-RAMO NATIVO O SPECIALE SENZA MD5
+    CheckMD5Available -- "No (Google Docs nativi o offline)" --> CheckDocName{Nomi file normalizzati<br/>sono identici?}
+    CheckDocName -- "Sì" --> FlagExactDoc[Segnalazione duplicato EXACT<br/>Stessa dimensione e stesso nome]
+    CheckDocName -- "No" --> DiscardNoMD5[Nessun duplicato: contenuti presumibilmente diversi]
+    FlagExactDoc --> SemanticCheck
+    DiscardNoMD5 --> SemanticCheck
+
+    %% SOTTO-RAMO FILE BINARI CON MD5
+    CheckMD5Available -- "Sì (File binari: PDF, immagini, scansioni)" --> CompareMD5{Gli hash MD5 coincidono?<br/>md5_A === md5_B}
+    CompareMD5 -- "Sì (Match 100%)" --> FlagExactHash[Segnalazione duplicato EXACT_HASH<br/>Clone bit-a-bit matematico con certezza 1.0]
+    CompareMD5 -- "No (MD5 differenti)" --> DiscardHash[Scartati: Stessa dimensione ma contenuto diverso<br/>Falso positivo evitato con successo!]
+
+    FlagExactHash --> SemanticCheck
+    DiscardHash --> SemanticCheck
+
+    %% ANALISI SEMANTICA AGGIUNTIVA
+    SemanticCheck[Verifica Semantica: stesso soggetto + tipo documento + anno] --> CheckSemMatch{Doppione semantico<br/>non già flaggato come esatto?}
+    CheckSemMatch -- "Sì" --> FlagSemantic[Segnalazione duplicato SEMANTIC<br/>Stesso documento per lo stesso periodo]
+    CheckSemMatch -- "No" --> EndAudit([Fine Rilevamento Duplicati])
+    FlagSemantic --> EndAudit
 ```
