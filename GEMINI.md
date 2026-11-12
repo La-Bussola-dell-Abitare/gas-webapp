@@ -11,5 +11,6 @@ Per le linee guida complete di sviluppo, documentazione continua e convenzioni a
 - **Protocollo di Testing e Collaudo (SSOT)**:
   - **Deployment ID**: `AKfycbzkY426RSsiBF19i2GRLd69idx3GbMKj4fZQIcg2G3INwXVSjTiRd-4MEtmp9IA0MFwMw`
   - **Nucleo di Test**: **Nucleo #3 (Lorenzo Mazza)** tassativo per qualsiasi prova interattiva o manipolazione dati/Drive.
+  - **Aggiornamento ed Esecuzione Giudiziosa dei Test**: Aggiornare costantemente i test unitari (`tests/`) man mano che si apportano modifiche al codice. Eseguire però i test solo quando ritenuto opportuno e necessario, evitando esecuzioni ridondanti e limitando i test complessi da browser (che richiedono il ciclo di deploy clasp) solo a fine modulo o su specifica richiesta dell'utente.
   - **Comandi**: `npm test` per test offline, `npm run deploy:open` per abilitare il collaudo da browser, `npm run deploy:close` obbligatorio prima del commit Git.
 - **Messaggi di Commit (Titolo Breve e Descrizione Esaustiva)**: I commit Git devono combinare un titolo breve e compatto nel primo `-m` (max 50-72 caratteri, es. `<tipo>(<ambito>): <sintesi>`) con una descrizione estesa, esaustiva e a punti nel secondo `-m` (motivo/problema, elenco analitico delle modifiche apportate, dettagli tecnici e test eseguiti). Sono vietati sia i titoli prolissi che i commit privi di corpo descrittivo.

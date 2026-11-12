@@ -64,15 +64,18 @@ Tutti gli agenti e sviluppatori devono attenersi rigorosamente al seguente proto
      - **Nucleo #3: Lorenzo Mazza**
    - Non operare, modificare o spostare file di nessun altro nucleo o beneficiario reale.
 
-3. **Ciclo Operativo di Sviluppo e Rilascio**:
-   - **Durante lo sviluppo / refactoring**: Eseguire test unitari rapidi locali con `npm test` (`node --test`).
-   - **Prima del collaudo da browser**:
+3. **Ciclo Operativo, Aggiornamento ed Esecuzione Giudiziosa dei Test**:
+   - **Aggiornamento Continuo della Suite di Test (`tests/`)**:
+     - Man mano che si aggiungono funzionalità, logiche di dominio o si correggono bug (es. vincoli di unicità, semafori scadenze, formattazione dati, controlli di conformità), è obbligatorio aggiornare contestualmente i relativi test unitari in `tests/unit/` per garantire che il nuovo comportamento sia formalmente coperto da asserzioni.
+   - **Esecuzione Selettiva dei Test (Minimizzare l'Overhead)**:
+     - **Test Unitari Locali (`npm test`)**: Eseguirli solo quando si ritiene opportuno (es. a conclusione logica di una modifica o prima di finalizzare un rilascio), evitando esecuzioni ridondanti a ogni singola micro-istruzione.
+     - **Test Live da Browser e Cicli Clasp (`npm run deploy:open` / CDP)**: Richiedono tempo, latenza di rete e consumo di quota Apps Script. Vanno eseguiti **solo ed esclusivamente quando strettamente necessario** (es. verifica finale di un'interfaccia complessa o su esplicita richiesta dell'utente), mai durante le fasi intermedie di sviluppo.
+   - **Apertura Temporanea per Collaudo da Browser**:
      ```bash
      npm run deploy:open
      ```
      *(Apre temporaneamente l'accesso impostando `access: "ANYONE_ANONYMOUS"`, effettua `clasp push` e aggiorna il deployment fisso).*
-   - **Esecuzione collaudo**: Se ritenuto utile, testare le funzionalità da browser sull'URL ufficiale verificando il comportamento sul **Nucleo #3**.
-   - **Chiusura obbligatoria prima del commit**:
+   - **Chiusura Obbligatoria prima del Commit**:
      ```bash
      npm run deploy:close
      ```
