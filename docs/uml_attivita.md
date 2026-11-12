@@ -142,9 +142,12 @@ flowchart TD
     
     %% Flusso con IA
     Choice -- "Sì (CIE, PdS, ISEE, Patente, TS)" --> DragDrop[Operatore trascina uno o più file nella dropzone IA ✨]
-    DragDrop --> Compress[Compressione client-side su HTML5 Canvas<br/>max 1600px, JPEG 0.82 in <50ms]
-    Compress --> CallGemini[Chiamata RPC: smartClassifyDocuments -> Gemini Flash 2.5]
-    CallGemini --> BatchVision[Analisi multimodale unificata con Schema JSON forzato]
+    DragDrop --> Compress[Verifica limite 10MB e compressione client Canvas<br/>max 1400px, JPEG 0.78]
+    Compress --> CallGemini[Chiamata RPC: smartClassifyDocuments]
+    CallGemini --> RetryCascade{Gemini risponde 200 OK<br/>o errore 503 / Timeout?}
+    RetryCascade -- "200 OK" --> BatchVision[Analisi multimodale unificata con Schema JSON forzato]
+    RetryCascade -- "503 / 429 / Timeout" --> FallbackLoop[Backoff esponenziale e switch automatico<br/>su modello a cascata fallback]
+    FallbackLoop --> CallGemini
     BatchVision --> Normalize[Normalizzazione deterministica Title Case & Toponomastica<br/>es. D'Angelo, Reggio nell'Emilia PR]
     Normalize --> Autofill[Autocompilazione campi anagrafici, ISEE, residenza e bandierina]
     Autofill --> AddQueue[Aggiunta file al vassoio documenti pendenti con badge rimovibili]

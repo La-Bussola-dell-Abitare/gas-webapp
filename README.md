@@ -66,7 +66,7 @@ Per abilitare la lettura automatica con IA dei documenti di identità, permessi 
 4. Aggiungere la proprietà:
    - Proprietà: `GEMINI_API_KEY`
    - Valore: *(la tua chiave API Google AI Studio)*
-   - *(Opzionale)* `GEMINI_MODEL`: `gemini-3.8-flash` (impostato di default)
+   - *(Opzionale)* `GEMINI_MODEL`: `gemini-2.0-flash` (impostato di default, con fallback automatico a cascata)
 
 ---
 

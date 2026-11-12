@@ -5367,9 +5367,12 @@
      * @param {number} [quality=0.82] - Qualità compressione JPEG (0..1)
      * @return {Promise<{ base64Data: string; mimeType: string; name: string; size: number }>}
      */
-    function optimizeFileForUpload(file, maxDimension = 1600, quality = 0.82) {
+    function optimizeFileForUpload(file, maxDimension = 1400, quality = 0.78) {
       return new Promise((resolve, reject) => {
         if (!file) return reject(new Error("File non valido"));
+        if (file.size > 10 * 1024 * 1024) {
+          return reject(new Error(`Il file '${file.name}' supera i 10MB. Ridurre la dimensione del documento per evitare timeout.`));
+        }
         const isImage = file.type.startsWith('image/') || /\.(jpg|jpeg|png|webp|heic|bmp)$/i.test(file.name);
         if (!isImage) {
           const reader = new FileReader();
@@ -5671,13 +5674,18 @@
             if (loadingEl) loadingEl.classList.add('d-none');
             const inputEl = document.getElementById(isBen ? 'ai-upload-ben-input' : 'ai-upload-nuc-input');
             if (inputEl) inputEl.value = '';
+            const errText = (err && (err.message || err)) || 'Errore sconosciuto';
             if (typeof DebugManager !== 'undefined' && DebugManager.logAI) {
               DebugManager.logAI('DOCUMENT_INTELLIGENCE_ERROR', {
-                message: 'Errore analisi IA: ' + (err.message || err),
-                error: (err.message || err)
+                message: 'Errore analisi IA: ' + errText,
+                error: errText
               });
             }
-            showToast('Errore analisi IA: ' + (err.message || err), 'danger');
+            if (/503|timeout|overload|exceeded/i.test(errText)) {
+              showToast('I server di Google Gemini sono temporaneamente congestionati (503 / timeout). Riprova tra pochi istanti.', 'warning');
+            } else {
+              showToast('Errore analisi IA: ' + errText, 'danger');
+            }
           })
           .smartClassifyDocuments(optimizedFiles);
 

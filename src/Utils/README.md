@@ -39,7 +39,7 @@ const CONFIG = Object.freeze({
 - **`ID_TEMPLATESCHEDASEGNALAZIONE`** e **`FOLDER_SCHEDASEGNALAZIONE_ID`**: ID template e cartella delle schede per il secondo livello.
 - **`SHEET_DOCUMENTI`** e **`HEADERS_DOCUMENTI`**: nome ufficiale (`"Documenti"`) e le 10 intestazioni standardizzate per il fascicolo relazionale.
 - **`GEMINI`**:
-  - `MODEL`: modello multimodale predefinito (`"gemini-3.8-flash"`).
+  - `MODEL`: modello multimodale predefinito ad alta disponibilità (`"gemini-2.0-flash"`).
   - `getModel()`: supporta l'override dinamico tramite la proprietà dello script `GEMINI_MODEL`.
   - `getApiKey()`: recupera in sicurezza la chiave API da `PropertiesService.getScriptProperties()`.
 

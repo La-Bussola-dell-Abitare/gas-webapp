@@ -92,6 +92,8 @@ flowchart TD
     - Pulsanti `👁️ Anteprima` e link esterno diretto `Apri in Drive ↗` (`/view`) presenti su tutti i file: per file da riordinare/rinominare, confronto affiancato originale vs duplicato, file non censiti e documento sorgente delle discrepanze anagrafiche rilevate da Gemini Flash.
 - **Creazione Nucleo Dual-Mode (`#modal-nucleo`)**: Permette di creare un nucleo associando un beneficiario già registrato oppure censendo contestualmente un nuovo intestatario in modo atomico. Include:
   - Dropzone con Intelligenza Artificiale Gemini Flash (`#ai-smart-fill-nuc`) per caricare documenti in batch (es. CIE, ISEE, Tessera Sanitaria).
+  - Ottimizzazione Canvas lato client (ridimensionamento a 1400px e qualità 0.78 per dimezzare il peso dei file mantenendo nitido l'OCR) e controllo di sicurezza anti-timeout sui PDF (massimo 10MB con messaggio guida operatore).
+  - Gestione resiliente e tollerante ai guasti con retry automatico e cascata fallback multimodale in caso di congestione temporanea (HTTP 503 o timeout dei server Google).
   - Autocompilazione istantanea sia dei dati anagrafici dell'intestatario che dei campi del nucleo (es. valore ISEE, residenza).
   - Selettore dinamico a checkbox "Servizi da attivare" popolato dalle tipologie ammesse dello sportello.
   - Vassoio di anteprima e gestione dei documenti allegati che vengono salvati direttamente nella cartella Drive corretta (nucleo o membro) e censiti nel foglio `Documenti`.

@@ -85,8 +85,15 @@ class DocumentIntelligence {
     }
 
     const apiKey = CONFIG.GEMINI.getApiKey();
-    const model = (CONFIG.GEMINI && CONFIG.GEMINI.getModel) ? CONFIG.GEMINI.getModel() : ((CONFIG.GEMINI && CONFIG.GEMINI.MODEL) || "gemini-3.8-flash");
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    const primaryModel = (CONFIG.GEMINI && CONFIG.GEMINI.getModel) ? CONFIG.GEMINI.getModel() : ((CONFIG.GEMINI && CONFIG.GEMINI.MODEL) || "gemini-2.0-flash");
+
+    // Cascata di modelli resilienti per tolleranza ai guasti (503 / 429 / timeout)
+    const candidateModels = [
+      primaryModel,
+      "gemini-2.0-flash",
+      "gemini-2.5-flash",
+      "gemini-1.5-flash"
+    ].filter((m, idx, arr) => m && arr.indexOf(m) === idx);
 
     const promptText = `
 Sei l'assistente ufficiale di Document Intelligence dello sportello sociale "La Bussola dell'Abitare" (Municipio XI di Roma Capitale).
@@ -151,137 +158,174 @@ REGOLE TASSATIVE DI FORMATTAZIONE E TITLE CASE:
       }
     };
 
-    try {
-      const options = {
-        method: "post",
-        contentType: "application/json",
-        payload: JSON.stringify(requestPayload),
-        muteHttpExceptions: true
-      };
+    let lastErrorMsg = "";
+    let lastStatusCode = 0;
 
-      const response = UrlFetchApp.fetch(endpoint, options);
-      const code = response.getResponseCode();
-      const responseText = response.getContentText();
+    for (let mIdx = 0; mIdx < candidateModels.length; mIdx++) {
+      const currentModel = candidateModels[mIdx];
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
 
-      if (code !== 200) {
-        Logger.log(`DocumentIntelligence errore HTTP ${code}: ${responseText}`);
-        return {
-          success: false,
-          message: `Errore nella chiamata all'API Gemini (HTTP ${code}): ${responseText.slice(0, 200)}`
-        };
-      }
+      const maxAttempts = 2;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          const options = {
+            method: "post",
+            contentType: "application/json",
+            payload: JSON.stringify(requestPayload),
+            muteHttpExceptions: true
+          };
 
-      const jsonResp = JSON.parse(responseText);
-      const candidates = jsonResp.candidates;
-      if (!candidates || candidates.length === 0) {
-        return { success: false, message: "Nessuna risposta generata dal modello IA." };
-      }
+          const response = UrlFetchApp.fetch(endpoint, options);
+          const code = response.getResponseCode();
+          const responseText = response.getContentText();
 
-      const rawText = candidates[0].content.parts[0].text;
-      const parsedData = JSON.parse(rawText);
+          if (code === 200) {
+            const jsonResp = JSON.parse(responseText);
+            const candidates = jsonResp.candidates;
+            if (!candidates || candidates.length === 0) {
+              lastErrorMsg = `Nessuna risposta generata dal modello IA (${currentModel}).`;
+              break;
+            }
 
-      // Normalizzazione Title Case deterministica sui dati persona
-      const p = parsedData.datiPersona || {};
-      if (typeof normalizeProperCase === "function") {
-        if (p.nome) p.nome = normalizeProperCase(p.nome);
-        if (p.cognome) p.cognome = normalizeProperCase(p.cognome);
-      }
-      if (typeof normalizeCity === "function" && p.luogoNascita) {
-        p.luogoNascita = normalizeCity(p.luogoNascita);
-      }
-      if (typeof normalizeAddress === "function" && p.residenza) {
-        p.residenza = normalizeAddress(p.residenza);
-      }
-      if (typeof normalizeFiscalCode === "function" && p.codiceFiscale) {
-        p.codiceFiscale = normalizeFiscalCode(p.codiceFiscale);
-      } else if (p.codiceFiscale) {
-        p.codiceFiscale = String(p.codiceFiscale).toUpperCase().trim();
-      }
+            const rawText = candidates[0].content && candidates[0].content.parts && candidates[0].content.parts[0] && candidates[0].content.parts[0].text;
+            if (!rawText) {
+              lastErrorMsg = `Risposta testuale assente dal modello IA (${currentModel}).`;
+              break;
+            }
 
-      // Normalizzazione elenco documenti e risoluzione categorie dal catalogo SSOT
-      const rawDocs = Array.isArray(parsedData.documenti) ? parsedData.documenti : (parsedData.datiDocumento ? [parsedData.datiDocumento] : []);
-      const normalizedDocs = rawDocs.map(doc => {
-        let tipo = doc.tipoDocumento || parsedData.tipoDocumento || "Altro";
-        let categoria = "Altro";
-        if (typeof findDocumentType === "function") {
-          const docRecord = findDocumentType(tipo);
-          if (docRecord) {
-            tipo = docRecord.name;
-            categoria = docRecord.categoria;
+            const parsedData = JSON.parse(rawText);
+
+            // Normalizzazione Title Case deterministica sui dati persona
+            const p = parsedData.datiPersona || {};
+            if (typeof normalizeProperCase === "function") {
+              if (p.nome) p.nome = normalizeProperCase(p.nome);
+              if (p.cognome) p.cognome = normalizeProperCase(p.cognome);
+            }
+            if (typeof normalizeCity === "function" && p.luogoNascita) {
+              p.luogoNascita = normalizeCity(p.luogoNascita);
+            }
+            if (typeof normalizeAddress === "function" && p.residenza) {
+              p.residenza = normalizeAddress(p.residenza);
+            }
+            if (typeof normalizeFiscalCode === "function" && p.codiceFiscale) {
+              p.codiceFiscale = normalizeFiscalCode(p.codiceFiscale);
+            } else if (p.codiceFiscale) {
+              p.codiceFiscale = String(p.codiceFiscale).toUpperCase().trim();
+            }
+
+            // Normalizzazione elenco documenti e risoluzione categorie dal catalogo SSOT
+            const rawDocs = Array.isArray(parsedData.documenti) ? parsedData.documenti : (parsedData.datiDocumento ? [parsedData.datiDocumento] : []);
+            const normalizedDocs = rawDocs.map(doc => {
+              let tipo = doc.tipoDocumento || parsedData.tipoDocumento || "Altro";
+              let categoria = "Altro";
+              if (typeof findDocumentType === "function") {
+                const docRecord = findDocumentType(tipo);
+                if (docRecord) {
+                  tipo = docRecord.name;
+                  categoria = docRecord.categoria;
+                }
+              }
+              return {
+                tipoDocumento: tipo,
+                categoria: categoria,
+                numeroDocumento: doc.numeroDocumento || "",
+                dataEmissione: doc.dataEmissione || "",
+                dataScadenza: doc.dataScadenza || "",
+                valore: (doc.valore !== undefined && doc.valore !== null && !isNaN(Number(doc.valore))) ? Number(doc.valore) : null,
+                enteRilascio: doc.enteRilascio || "",
+                note: doc.note || ""
+              };
+            });
+
+            // Se non ci sono documenti specifici ma è stato riconosciuto un tipo primario
+            if (normalizedDocs.length === 0 && parsedData.tipoDocumento) {
+              let tipo = parsedData.tipoDocumento;
+              let categoria = "Altro";
+              if (typeof findDocumentType === "function") {
+                const docRecord = findDocumentType(tipo);
+                if (docRecord) {
+                  tipo = docRecord.name;
+                  categoria = docRecord.categoria;
+                }
+              }
+              normalizedDocs.push({
+                tipoDocumento: tipo,
+                categoria: categoria,
+                numeroDocumento: "",
+                dataEmissione: "",
+                dataScadenza: "",
+                valore: null,
+                enteRilascio: "",
+                note: ""
+              });
+            }
+
+            const primaryDoc = normalizedDocs.length > 0 ? normalizedDocs[0] : {
+              tipoDocumento: "Altro",
+              categoria: "Altro",
+              numeroDocumento: "",
+              dataEmissione: "",
+              dataScadenza: "",
+              valore: null,
+              enteRilascio: "",
+              note: ""
+            };
+
+            // Individua eventuale valore ISEE tra i documenti o nei campi principali
+            let iseeVal = parsedData.valoreISEE || null;
+            if (iseeVal === null) {
+              const iseeDoc = normalizedDocs.find(d => /isee/i.test(d.tipoDocumento) && d.valore !== null);
+              if (iseeDoc) iseeVal = iseeDoc.valore;
+            }
+
+            return {
+              success: true,
+              data: {
+                tipoDocumento: primaryDoc.tipoDocumento,
+                categoria: primaryDoc.categoria,
+                datiPersona: p,
+                datiDocumento: primaryDoc,
+                documenti: normalizedDocs,
+                valoreISEE: iseeVal
+              },
+              modelUsed: currentModel
+            };
+          }
+
+          lastStatusCode = code;
+          if (code === 503 || code === 429) {
+            Logger.log(`DocumentIntelligence: modello ${currentModel} sovraccarico (HTTP ${code}), tentativo ${attempt}/${maxAttempts}`);
+            lastErrorMsg = `Modello ${currentModel} temporaneamente sovraccarico (HTTP ${code}).`;
+            if (attempt < maxAttempts) {
+              if (typeof Utilities !== "undefined" && Utilities.sleep) Utilities.sleep(1200 * attempt);
+              continue;
+            } else {
+              break; // Passa al modello alternativo successivo nella cascata
+            }
+          } else {
+            Logger.log(`DocumentIntelligence: errore HTTP ${code} con ${currentModel}: ${responseText.slice(0, 200)}`);
+            lastErrorMsg = `Errore API Gemini (${currentModel}, HTTP ${code}): ${responseText.slice(0, 200)}`;
+            break;
+          }
+
+        } catch (fetchErr) {
+          const errMsg = fetchErr instanceof Error ? fetchErr.message : String(fetchErr);
+          Logger.log(`DocumentIntelligence: eccezione chiamata a ${currentModel} (tentativo ${attempt}): ${errMsg}`);
+          lastErrorMsg = `Timeout o interruzione di rete con ${currentModel}: ${errMsg}`;
+          if (attempt < maxAttempts) {
+            if (typeof Utilities !== "undefined" && Utilities.sleep) Utilities.sleep(1000 * attempt);
+            continue;
+          } else {
+            break; // Passa al modello alternativo
           }
         }
-        return {
-          tipoDocumento: tipo,
-          categoria: categoria,
-          numeroDocumento: doc.numeroDocumento || "",
-          dataEmissione: doc.dataEmissione || "",
-          dataScadenza: doc.dataScadenza || "",
-          valore: (doc.valore !== undefined && doc.valore !== null && !isNaN(Number(doc.valore))) ? Number(doc.valore) : null,
-          enteRilascio: doc.enteRilascio || "",
-          note: doc.note || ""
-        };
-      });
-
-      // Se non ci sono documenti specifici ma è stato riconosciuto un tipo primario
-      if (normalizedDocs.length === 0 && parsedData.tipoDocumento) {
-        let tipo = parsedData.tipoDocumento;
-        let categoria = "Altro";
-        if (typeof findDocumentType === "function") {
-          const docRecord = findDocumentType(tipo);
-          if (docRecord) {
-            tipo = docRecord.name;
-            categoria = docRecord.categoria;
-          }
-        }
-        normalizedDocs.push({
-          tipoDocumento: tipo,
-          categoria: categoria,
-          numeroDocumento: "",
-          dataEmissione: "",
-          dataScadenza: "",
-          valore: null,
-          enteRilascio: "",
-          note: ""
-        });
       }
-
-      const primaryDoc = normalizedDocs.length > 0 ? normalizedDocs[0] : {
-        tipoDocumento: "Altro",
-        categoria: "Altro",
-        numeroDocumento: "",
-        dataEmissione: "",
-        dataScadenza: "",
-        valore: null,
-        enteRilascio: "",
-        note: ""
-      };
-
-      // Individua eventuale valore ISEE tra i documenti o nei campi principali
-      let iseeVal = parsedData.valoreISEE || null;
-      if (iseeVal === null) {
-        const iseeDoc = normalizedDocs.find(d => /isee/i.test(d.tipoDocumento) && d.valore !== null);
-        if (iseeDoc) iseeVal = iseeDoc.valore;
-      }
-
-      return {
-        success: true,
-        data: {
-          tipoDocumento: primaryDoc.tipoDocumento,
-          categoria: primaryDoc.categoria,
-          datiPersona: p,
-          datiDocumento: primaryDoc,
-          documenti: normalizedDocs,
-          valoreISEE: iseeVal
-        }
-      };
-
-    } catch (err) {
-      Logger.log("DocumentIntelligence.analyzeBlobs eccezione: " + err.message);
-      return {
-        success: false,
-        message: "Errore durante l'elaborazione dei documenti: " + err.message
-      };
     }
+
+    return {
+      success: false,
+      message: `I server di Google Gemini sono temporaneamente congestionati (errore 503 / timeout). Dettaglio: ${lastErrorMsg || ('HTTP ' + lastStatusCode)}. Riprova tra pochi istanti.`
+    };
   }
 
   /**

@@ -350,8 +350,8 @@ sequenceDiagram
 
     Op->>UI: Trascina uno o più file/foto (es. CIE fronte/retro, ISEE, Tessera Sanitaria)
     activate UI
-    UI->>UI: optimizeFileForUpload() ridimensiona via HTML5 Canvas (max 1600px, JPEG 0.82)
-    Note over UI: Riduzione peso da ~12MB a ~300KB in <50ms
+    UI->>UI: optimizeFileForUpload() verifica limite 10MB e ridimensiona via HTML5 Canvas (max 1400px, JPEG 0.78)
+    Note over UI: Riduzione peso del ~50% per azzerare timeout e velocizzare trasferimento
     UI->>UI: Mostra spinner "Analisi visiva in corso con Gemini Flash..."
     
     UI->>Ctrl: google.script.run.smartClassifyDocuments(filesArray)
@@ -361,11 +361,15 @@ sequenceDiagram
     Ctrl->>DI: smartClassifyMultipleBase64(filesArray)
     activate DI
 
-    DI->>DI: Prepara payload multimodale (array di inlineData Base64)
-    DI->>Gemini: UrlFetchApp.fetch(POST /models/gemini-2.5-flash:generateContent)
-    Note over DI,Gemini: Analisi batch unificata + Schema JSON vincolato con istruzioni Title Case
-    
-    Gemini-->>DI: JSON strutturato { tipoDocumento, datiPersona, datiDocumento, datiNucleo }
+    DI->>DI: Prepara payload multimodale e lista modelli a cascata (primario + fallbacks)
+    loop Tentativi e Cascata Modelli (HA)
+        DI->>Gemini: UrlFetchApp.fetch(POST /models/{model}:generateContent)
+        alt Risposta 200 OK
+            Gemini-->>DI: JSON strutturato { tipoDocumento, datiPersona, datiDocumento, datiNucleo }
+        else Errore 503 Overload / 429 / Timeout
+            DI->>DI: Backoff esponenziale (Utilities.sleep) e fallback su modello alternativo
+        end
+    end
     
     DI->>DocDomain: findDocumentType(tipoDocumento)
     DocDomain-->>DI: Record di dominio (name, categoria, archetipo, icona, scope)
