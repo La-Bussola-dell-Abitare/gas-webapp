@@ -65,7 +65,7 @@ Tutti gli agenti e sviluppatori devono attenersi rigorosamente al seguente proto
    - Non operare, modificare o spostare file di nessun altro nucleo o beneficiario reale.
 
 3. **Ciclo Operativo di Sviluppo e Rilascio**:
-   - **Durante lo sviluppo / refactoring**: Eseguire test unitari rapidi locali con `npm test` (`node --test "tests/unit/*.test.js"`).
+   - **Durante lo sviluppo / refactoring**: Eseguire test unitari rapidi locali con `npm test` (`node --test`).
    - **Prima del collaudo da browser**:
      ```bash
      npm run deploy:open
