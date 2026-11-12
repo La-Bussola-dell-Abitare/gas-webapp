@@ -81,40 +81,40 @@ Tutti gli agenti e sviluppatori devono attenersi rigorosamente al seguente proto
 
 ---
 
-## 4. Standard dei Messaggi di Commit Git (Descrittivi e Dettagliati)
+## 4. Standard dei Messaggi di Commit Git (Titolo Breve e Descrizione Esaustiva)
 
 > [!IMPORTANT]
-> **I messaggi di commit Git non devono mai essere generici, telegrafici o privi di contesto (es. vietati "fix", "aggiornamenti", "modifiche varie").** Devono documentare puntualmente **cosa** è stato modificato, **il motivo** dell'intervento e **i dettagli implementativi**.
+> **I commit Git devono sempre combinare un titolo breve e compatto con una descrizione estesa, esaustiva e dettagliata a punti.**
+> È vietato l'uso di titoli prolissi così come l'uso di commit privi di corpo descrittivo o con messaggi generici (es. vietati "fix", "aggiornamenti", "modifiche varie").
 
-### 4.1 Struttura Obbligatoria del Messaggio
-I commit devono adottare lo standard **Conventional Commits** arricchito da un corpo descrittivo a punti:
+### 4.1 Struttura del Messaggio e Convenzione del Doppio Flag `-m`
+La convenzione raccomandata prevede l'uso di due flag `-m` distinti (oppure un file di messaggio strutturato):
 
-1. **Header (Oggetto)**:
-   - Formato: `<tipo>(<ambito>): <sintesi chiara e concisa>`
+1. **Primo `-m`: Titolo / Header (Breve e Conciso)**:
+   - Formato: `<tipo>(<ambito>): <sintesi breve e chiara>`
+   - Limite raccomandato: **massimo 50-72 caratteri**.
+   - Linguaggio: indicativo presente o imperativo in italiano o inglese, focalizzato sull'obiettivo principale.
    - Tipi ammessi: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`.
-   - Limite raccomandato: massimo 72 caratteri.
    - Esempi corretti:
-     - `feat(ui): aggiunta anteprima file e diagnostica granulare drive`
-     - `fix(ui): allineamento a filo 24px del toast e z-index sovraordinato ai modali`
-     - `fix(core): bonifica chiamate RPC e correzione troncamento template GAS`
+     - `fix(ui): allineamento a filo 24px del popup toast`
+     - `feat(drive): anteprima file e diagnostica granulare`
+     - `fix(core): bonifica chiamate RPC e template GAS`
 
-2. **Body (Corpo del Messaggio - Obbligatorio per modifiche strutturali o funzionali)**:
-   - Separato dall'header da una riga vuota.
-   - Organizzato in elenco puntato (`- `) che dettagli:
-     - **Problema riscontrato o richiesta funzionale**: breve spiegazione del contesto o dell'anomalia.
-     - **Cosa è stato fatto**: elenco analitico delle modifiche apportate ai file e ai moduli.
-     - **Dettagli tecnici o architetturali**: motivazione di scelte specifiche (es. elevazione `z-index`, gestione concorrenza, prevenzione comment stripping GAS, ecc.).
-     - **Allineamenti documentali e test**: menzione dei test eseguiti (`npm test`) e della documentazione aggiornata.
+2. **Secondo `-m`: Descrizione / Body (Esaustiva, Dettagliata e a Punti)**:
+   - Deve contenere la spiegazione approfondita di tutto ciò che è stato realizzato.
+   - Organizzato obbligatoriamente in **elenco puntato (`- `)** strutturato:
+     - **Motivo o anomalia**: spiegazione chiara del contesto, dell'errore riscontrato o della richiesta dell'utente.
+     - **Cosa è stato fatto (punto per punto)**: elenco puntuale di tutte le modifiche apportate ai file e ai componenti.
+     - **Dettagli tecnici e scelte architetturali**: spiegazione delle motivazioni dietro a specifiche implementazioni (es. elevazione `z-index: 10050` contro i modali, `align-items: flex-end` per eliminare il disallineamento della larghezza fissa Bootstrap, scrittura atomica con rename contro i blocchi Windows `ERROR_USER_MAPPED_FILE`, prevenzione comment stripping GAS).
+     - **Verifiche e collaudi**: menzione esplicita dei test unitari superati (`npm test`) e delle misurazioni o collaudi live eseguiti (es. Chrome CDP, hard refresh).
 
-3. **Esempio di Commit Conforme**:
-   ```text
-   fix(ui): correzione cambio tab, rimozione blocchi orfani e allineamento toast a filo destro (24px)
-
-   - Correzione navigazione a schede: pulsanti semantici native button e scoping .active
-   - Risoluzione troncamento template GAS: helper getDriveFileUrl senza // nei template literals
-   - Rimozione di 31 iniezioni orfane che bloccavano le chiamate RPC con ReferenceError
-   - Elevazione stacking context toast a z-index 10050 per galleggiare sopra i modali
-   - Allineamento elastico del toast container a filo destro a 24px esatti
-   - Scrittura atomica sicura per appsscript.json in scripts/deploy.js
-   - Aggiornamento documentazione tecnica di modulo in README.md e webapp.md
-   ```
+### 4.2 Esempio Pratico di Invocazione Git Conforme
+```bash
+git commit -m "fix(ui): allineamento a filo 24px del popup toast" -m "- Problema: il toast di errore appariva a 129px dal margine destro a causa della larghezza fissa di 350px del toast Bootstrap allineato a sinistra nel flex container da 440px
+- Allineamento: impostato align-items: flex-end sul container .toast-container-custom e rimossa la larghezza fissa (ora width: auto con max-width: calc(100vw - 48px))
+- Flessibilità toast: impostato width: auto, min-width: 320px e max-width: 480px sui singoli toast per adattamento elastico al testo
+- Elevazione z-index: mantenuto z-index 10050 per garantire che il toast galleggi sopra qualsiasi modale o backdrop oscurante
+- Scrittura sicura: integrata la funzione safeWriteFile in scripts/deploy.js per evitare blocchi NTFS user-mapped section durante il deploy
+- Test e verifiche: misurazione Chrome CDP sul browser live confermata a 24px esatti dal limite della finestra (1883px clientWidth - 1859px toastRight = 24px)
+- Documentazione: aggiornati README.md di modulo (sez. 3.6) e webapp.md (sez. 4.1)"
+```
