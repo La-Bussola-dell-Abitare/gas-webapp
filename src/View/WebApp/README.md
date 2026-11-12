@@ -26,9 +26,9 @@ Rappresenta una **Single Page Application (SPA)** eseguita all'interno dell'infr
 - **Soluzione Adottata**: In `showTab(tabId)`, la rimozione della classe `.active` è limitata al selettore `.app-header .app-top-nav .nav-link`.
 - **Motivazione**: Un selettore generico `.nav-link` azzerava anche le classi attive delle sottoschede interne alle finestre modali (es. le 4 schede di `#modal-diagnostica-drive`), provocando anomalie grafiche e la mancata evidenziazione della tab corrente.
 
-### 3.3 Accesso Rapido alla Diagnostica Drive per il Nucleo di Test (#3 Lorenzo Mazza)
-- **Soluzione Adottata**: Inserimento di pulsanti diretti ad alta visibilità sia nella navbar superiore che nell'intestazione della scheda *Nuclei e Persone* (`🔍 Diagnostica #3`).
-- **Motivazione**: Consente a sviluppatori e collaudatori di eseguire istantaneamente l'audit diagnostico e la riconciliazione granulare sul nucleo designato dal protocollo SSOT (`Nucleo #3: Lorenzo Mazza`) con un singolo click, senza dover navigare tra le liste.
+### 3.3 Integrazione Granulare della Diagnostica Drive nelle Card dei Nuclei
+- **Soluzione Adottata**: Il pulsante di diagnostica e riconciliazione (`🔍 Diagnostica`) è integrato dinamicamente all'interno della scheda di ciascun nucleo familiare (`renderNucleiList`) tramite la chiamata contestuale `runNucleoHealthCheck('${n.id}', this)`.
+- **Pulizia UI**: Rimossi i pulsanti scorciatoia temporanei (`Diagnostica #3`) precedentemente inseriti nella navbar e nell'intestazione del tab per non alterare l'interfaccia utente con elementi specifici di collaudo.
 
 ### 3.4 Vincolo Critico Google Apps Script: Divieto di `//` nei Template Literals (Backtick)
 - **Problema Riscontrato**: Il pre-processore di `HtmlService.createTemplateFromFile().evaluate()` esegue una rimozione dei commenti di riga basata su regex. Se una stringa letterale ES6 con backtick contiene il doppio slash (es. ``const url = `https://drive.google.com/...`;`` o ``<a href="https://drive.google.com/file/d/${id}/view">``), il parser considera `//` come l'inizio di un commento JavaScript ed elimina arbitrariamente tutto il resto della riga fino al newline. Questo generava una stringa monca (``<a href="https:``) e scatenava un fatale `SyntaxError: Unexpected identifier 'https'` a runtime, bloccando l'intero script del browser prima che qualsiasi funzione (inclusa `showTab` o `window.onload`) venisse registrata.

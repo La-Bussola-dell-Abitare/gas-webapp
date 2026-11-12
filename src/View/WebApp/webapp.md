@@ -160,7 +160,7 @@ flowchart TD
   - Rendering vettoriale della bandiera sia nel bottone di selezione che nella lista dei suggerimenti.
   - Separazione pulita tra prefisso telefonico (es. `+39`, `+212`) e numero locale.
 
-### 4. Navigazione a Schede Resiliente & Pulsante Rapido Diagnostica
+### 4. Navigazione a Schede Resiliente & Diagnostica Integrata dei Nuclei
 - **Componenti Nativi `<button type="button">`**:
   - I link di navigazione della navbar (`menu-incontri`, `menu-nuclei`, `menu-documenti`, `menu-appuntamenti`) utilizzano elementi semantici nativi `<button type="button">` al posto di ancore `<a>` con pseudo-protocolli `href="javascript:void(0)"`.
   - Questa scelta elimina alla radice qualsiasi interferenza con le Content Security Policy (CSP) imposte dall'ambiente iframe di Google Apps Script (`userCodeAppPanel`).
@@ -169,8 +169,8 @@ flowchart TD
   - Il cambio scheda (`showTab`) circoscrive la rimozione della classe `.active` esclusivamente ai bottoni della testata principale (`.app-header .app-top-nav .nav-link`), evitando di deselezionare inavvertitamente i tab secondari interni alle finestre modali (es. le 4 schede di `#modal-diagnostica-drive`).
 - **Rendering Reattivo Completo per Tutti i Tab**:
   - Ogni transizione a `tab-nuclei`, `tab-incontri`, `tab-appuntamenti` o `tab-documenti` invoca la rispettiva funzione di rendering (`renderNucleiList`, `renderMeetingsTable`, `renderAppointmentsTable`, `renderAllDocumentiTable`) racchiusa in blocchi `try/catch` individuali, garantendo che un eventuale errore in una tabella non blocchi la visibilità del pannello.
-- **Pulsante Rapido Diagnostica Nucleo #3 (`Lorenzo Mazza`)**:
-  - Presente sia direttamente nella navbar superiore (accanto al pulsante *Sincronizza Dati*) sia nella testata della scheda *Nuclei e Persone*, permette di avviare con un singolo click l'audit diagnostico e la riconciliazione Drive sul nucleo di test riservato (#3 Lorenzo Mazza) senza doverlo cercare nell'elenco.
+- **Integrazione Diagnostica Drive per Singolo Nucleo**:
+  - Ciascun nucleo familiare nella scheda *Nuclei e Persone* include direttamente sulla propria card il pulsante `🔍 Diagnostica` (`runNucleoHealthCheck(nucleoId, this)`), garantendo l'accesso alla suite di audit e riconciliazione granulare senza appesantire la navbar globale con pulsanti ridondanti.
 
 ### 4.1 Sistema Notifiche Toast Sovraordinato (`showToast`, `#toast-container`)
 - **Posizionamento e Stacking Context (`z-index: 10050`)**:
