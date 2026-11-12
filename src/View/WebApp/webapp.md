@@ -160,7 +160,32 @@ flowchart TD
   - Rendering vettoriale della bandiera sia nel bottone di selezione che nella lista dei suggerimenti.
   - Separazione pulita tra prefisso telefonico (es. `+39`, `+212`) e numero locale.
 
-### 4. Modalità Debug Real-Time & Pannello Diagnostica (`DebugManager`, `#debug-drawer`, `#modal-settings`)
+### 4. Navigazione a Schede Resiliente & Pulsante Rapido Diagnostica
+- **Componenti Nativi `<button type="button">`**:
+  - I link di navigazione della navbar (`menu-incontri`, `menu-nuclei`, `menu-documenti`, `menu-appuntamenti`) utilizzano elementi semantici nativi `<button type="button">` al posto di ancore `<a>` con pseudo-protocolli `href="javascript:void(0)"`.
+  - Questa scelta elimina alla radice qualsiasi interferenza con le Content Security Policy (CSP) imposte dall'ambiente iframe di Google Apps Script (`userCodeAppPanel`).
+  - Gli elementi grafici interni (icone SVG, testi) hanno proprietà CSS `pointer-events: none;` per garantire che il target dell'evento sia sempre l'elemento di navigazione.
+- **Scoping Rigoroso della Classe `.active`**:
+  - Il cambio scheda (`showTab`) circoscrive la rimozione della classe `.active` esclusivamente ai bottoni della testata principale (`.app-header .app-top-nav .nav-link`), evitando di deselezionare inavvertitamente i tab secondari interni alle finestre modali (es. le 4 schede di `#modal-diagnostica-drive`).
+- **Rendering Reattivo Completo per Tutti i Tab**:
+  - Ogni transizione a `tab-nuclei`, `tab-incontri`, `tab-appuntamenti` o `tab-documenti` invoca la rispettiva funzione di rendering (`renderNucleiList`, `renderMeetingsTable`, `renderAppointmentsTable`, `renderAllDocumentiTable`) racchiusa in blocchi `try/catch` individuali, garantendo che un eventuale errore in una tabella non blocchi la visibilità del pannello.
+- **Pulsante Rapido Diagnostica Nucleo #3 (`Lorenzo Mazza`)**:
+  - Presente sia direttamente nella navbar superiore (accanto al pulsante *Sincronizza Dati*) sia nella testata della scheda *Nuclei e Persone*, permette di avviare con un singolo click l'audit diagnostico e la riconciliazione Drive sul nucleo di test riservato (#3 Lorenzo Mazza) senza doverlo cercare nell'elenco.
+
+### 4.1 Sistema Notifiche Toast Sovraordinato (`showToast`, `#toast-container`)
+- **Posizionamento e Stacking Context (`z-index: 10050`)**:
+  - Il contenitore `#toast-container` (`.toast-container-custom`) è ancorato in alto a destra (`top: 24px; right: 24px;` su desktop e `top: 16px; left: 16px; right: 16px;` su schermi mobili).
+  - Utilizza `align-items: flex-end` con larghezza automatica (`width: auto`, `max-width: calc(100vw - 48px)`) per assicurare che tutti i toast si allineino a filo destro a esattamente **24px reali** dal margine dello schermo.
+  - Lo `z-index: 10050` garantisce che le notifiche galleggino con assoluta certezza **al di sopra** delle finestre modali (`.modal` a `1055`), delle anteprime (`#modal-preview-file` a `1070`), dei drawer diagnostici (`1090`) e del backdrop oscurato (`1050`), eliminando qualsiasi fenomeno di occlusione visiva durante la compilazione dei form di inserimento o modifica.
+  - La proprietà `pointer-events: none;` sul container garantisce che l'area trasparente non intercetti click destinati ai form sottostanti, mentre `pointer-events: auto;` sui singoli toast ne consente l'interazione diretta.
+- **Formattazione Semantica & Icone di Stato**:
+  - Ciascun toast include automaticamente un'icona SVG contestuale di Bootstrap Icons:
+    - 🔴 **Errore** (`type === "error"`): icona `bi-exclamation-octagon-fill`, sfondo rosso `bg-danger`, durata prolungata a 6,5 secondi e pulsante di chiusura immediata.
+    - 🟢 **Successo** (`type === "success"`): icona `bi-check-circle-fill`, sfondo verde `bg-success`, durata 4 secondi.
+    - 🟡 **Attenzione** (`type === "warning"`): icona `bi-exclamation-triangle-fill`, sfondo giallo `bg-warning text-dark`, durata 4 secondi.
+    - 🔵 **Info** (`type === "info"`): icona `bi-info-circle-fill`, sfondo blu `bg-primary`, durata 4 secondi.
+
+### 5. Modalità Debug Real-Time & Pannello Diagnostica (`DebugManager`, `#debug-drawer`, `#modal-settings`)
 - **Scorciatoia da Tastiera Globale**: La combinazione `Ctrl + Shift + D` (o `Cmd + Shift + D` su macOS) attiva/disattiva istantaneamente la modalità di debug senza ricaricare la pagina.
 - **Punti di Accesso UI**:
   - **Pulsante `⚙️ Impostazioni`** nella navbar: apre la modale `#modal-settings` per gestire la modalità debug, abilitare gli ID tecnici, eseguire il ping di benchmark del server (`pingBackend()`) e resettare la cache locale (`localStorage`).

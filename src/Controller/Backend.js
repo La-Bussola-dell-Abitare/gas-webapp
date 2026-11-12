@@ -572,12 +572,15 @@ function submitNucleoCompleto(payload) {
                 if (matchByCF || matchByName) {
                   benSheet.getRange(r + 1, bIdx.idNucleo + 1).setValue(nucleoId);
                   if (bIdx.rapportoIntestatario >= 0) {
-                    const currentRapp = safeString(bData[r][bIdx.rapportoIntestatario]);
-                    if (!currentRapp) {
-                      benSheet.getRange(r + 1, bIdx.rapportoIntestatario + 1).setValue("Intestatario");
-                    }
+                    benSheet.getRange(r + 1, bIdx.rapportoIntestatario + 1).setValue("Intestatario");
                   }
-                  break;
+                } else if (bIdx.idNucleo >= 0 && bIdx.rapportoIntestatario >= 0) {
+                  // Se un altro beneficiario dello stesso nucleo era registrato come Intestatario, declassa a "Altro" per garantire unicità
+                  const rowNucleo = safeString(bData[r][bIdx.idNucleo]).trim();
+                  const rowRapp = safeString(bData[r][bIdx.rapportoIntestatario]).toLowerCase().trim();
+                  if (rowNucleo === String(nucleoId).trim() && rowRapp === "intestatario") {
+                    benSheet.getRange(r + 1, bIdx.rapportoIntestatario + 1).setValue("Altro");
+                  }
                 }
               }
             }

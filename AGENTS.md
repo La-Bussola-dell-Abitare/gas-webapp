@@ -71,7 +71,7 @@ Tutti gli agenti e sviluppatori devono attenersi rigorosamente al seguente proto
      npm run deploy:open
      ```
      *(Apre temporaneamente l'accesso impostando `access: "ANYONE_ANONYMOUS"`, effettua `clasp push` e aggiorna il deployment fisso).*
-   - **Esecuzione collaudo**: Testare le funzionalità da browser sull'URL ufficiale verificando il comportamento sul **Nucleo #3**.
+   - **Esecuzione collaudo**: Se ritenuto utile, testare le funzionalità da browser sull'URL ufficiale verificando il comportamento sul **Nucleo #3**.
    - **Chiusura obbligatoria prima del commit**:
      ```bash
      npm run deploy:close

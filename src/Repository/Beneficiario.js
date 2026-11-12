@@ -133,6 +133,32 @@ class BeneficiarioRepository {
             }
         }
 
+        // Validazione vincolo intestatario singolo per nucleo familiare:
+        // Se si sta registrando o aggiornando un membro come "Intestatario", nessun altro membro dello stesso nucleo può esserlo.
+        const targetRapporto = safeString(data.rapportoIntestatario).toLowerCase().trim();
+        const targetIdNucleo = safeString(data.idNucleo).trim();
+        if (targetRapporto === "intestatario" && targetIdNucleo && idx.idNucleo >= 0 && idx.rapportoIntestatario >= 0) {
+            for (let i = 1; i < dataValues.length; i++) {
+                // Se è un aggiornamento, salta la riga stessa che stiamo modificando
+                if (isUpdate && targetRowIdx === i + 1) continue;
+
+                const row = dataValues[i];
+                const rowNucleo = safeString(row[idx.idNucleo]).trim();
+                const rowRapporto = safeString(row[idx.rapportoIntestatario]).toLowerCase().trim();
+                const rowCF = idx.cf >= 0 && idx.cf < row.length ? safeString(row[idx.cf]).toUpperCase().trim() : "";
+
+                // Salta se corrisponde al CF del beneficiario target
+                if (targetCF && rowCF === targetCF) continue;
+
+                if (rowNucleo === targetIdNucleo && rowRapporto === "intestatario") {
+                    const rowNome = idx.nome >= 0 && idx.nome < row.length ? safeString(row[idx.nome]).trim() : "";
+                    const rowCognome = idx.cognome >= 0 && idx.cognome < row.length ? safeString(row[idx.cognome]).trim() : "";
+                    const nominativoIntestatario = (rowNome || rowCognome) ? `${rowNome} ${rowCognome}`.trim() : (rowCF || `riga ${i + 1}`);
+                    throw new Error(`Il nucleo familiare #${targetIdNucleo} ha già un intestatario registrato (${nominativoIntestatario}). È consentito un solo intestatario per nucleo.`);
+                }
+            }
+        }
+
         // Ricerca della prima riga vuota nel foglio (evitando di andare all'ultima riga assoluta se ci sono righe vuote precedenti)
         let firstEmptyRowIdx = -1;
         for (let r = 1; r < dataValues.length; r++) {

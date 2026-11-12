@@ -141,6 +141,13 @@
       transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
       display: inline-flex;
       align-items: center;
+      background: transparent;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .app-header .nav-link > * {
+      pointer-events: none;
     }
 
     .app-header .nav-link:hover {
@@ -403,15 +410,40 @@
     /* Toast Notification */
     .toast-container-custom {
       position: fixed;
-      bottom: 24px;
+      top: 24px;
       right: 24px;
-      z-index: 1050;
+      z-index: 10050; /* Superiore a tutti i modal (1055, 1070), drawer (1090) e backdrop (1050) */
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end; /* Allinea a filo destro: esattamente 24px dal limite dello schermo */
+      gap: 10px;
+      max-width: calc(100vw - 48px);
+      width: auto;
     }
 
-    .toast {
-      border-radius: 14px;
-      box-shadow: var(--shadow-lg);
-      border: none;
+    @media (max-width: 576px) {
+      .toast-container-custom {
+        top: 16px;
+        right: 16px;
+        left: 16px;
+        max-width: none;
+        align-items: stretch;
+      }
+    }
+
+    .toast-container-custom .toast {
+      pointer-events: auto;
+      width: auto;
+      min-width: 320px;
+      max-width: 480px;
+      margin: 0;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      font-size: 0.90rem;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
     }
 
     .spinner-border-sm {
@@ -601,7 +633,12 @@
             <span>Sincronizza Dati</span>
           </button>
           <button class="btn btn-sm btn-outline-light d-flex align-items-center gap-1 shadow-sm px-2"
-            title="Impostazioni e Diagnostica" onclick="openSettingsModal()">
+            title="Diagnostica e Riconciliazione Drive (Nucleo #3: Lorenzo Mazza)" onclick="runNucleoHealthCheck('3', this)">
+            <i class="bi bi-shield-check text-warning"></i>
+            <span class="d-none d-md-inline text-xs fw-semibold">Diagnostica #3</span>
+          </button>
+          <button class="btn btn-sm btn-outline-light d-flex align-items-center gap-1 shadow-sm px-2"
+            title="Impostazioni e Diagnostica di Sistema" onclick="openSettingsModal()">
             <i class="bi bi-gear-fill"></i>
             <span class="d-none d-md-inline text-xs">Impostazioni</span>
           </button>
@@ -617,7 +654,7 @@
       <nav class="app-top-nav">
         <ul class="nav">
           <li class="nav-item">
-            <a class="nav-link active" href="javascript:void(0)" id="menu-incontri" onclick="showTab('tab-incontri')">
+            <button type="button" class="nav-link active" id="menu-incontri" onclick="showTab('tab-incontri')">
               <svg class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -626,20 +663,20 @@
                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
               </svg>
               Incontri e Visite
-            </a>
+            </button>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="javascript:void(0)" id="menu-nuclei" onclick="showTab('tab-nuclei')">
+            <button type="button" class="nav-link" id="menu-nuclei" onclick="showTab('tab-nuclei')">
               <svg class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                 <polyline points="9 22 9 12 15 12 15 22"></polyline>
               </svg>
               Nuclei e Persone
-            </a>
+            </button>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="javascript:void(0)" id="menu-documenti" onclick="showTab('tab-documenti')">
+            <button type="button" class="nav-link" id="menu-documenti" onclick="showTab('tab-documenti')">
               <svg class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -649,10 +686,10 @@
                 <polyline points="10 9 9 9 8 9"></polyline>
               </svg>
               Documenti e Stampa
-            </a>
+            </button>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="javascript:void(0)" id="menu-appuntamenti" onclick="showTab('tab-appuntamenti')">
+            <button type="button" class="nav-link" id="menu-appuntamenti" onclick="showTab('tab-appuntamenti')">
               <svg class="me-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -661,7 +698,7 @@
                 <line x1="3" y1="10" x2="21" y2="10"></line>
               </svg>
               Appuntamenti
-            </a>
+            </button>
           </li>
         </ul>
       </nav>
@@ -798,15 +835,18 @@
             <div class="card card-custom">
               <div
                 class="card-header card-header-custom d-flex flex-wrap justify-content-between align-items-center gap-2">
-                <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center gap-2">
                   <span class="fs-6 fw-semibold font-outfit">Mappatura Nuclei Familiari</span>
                   <button type="button" class="btn btn-primary btn-sm font-outfit" onclick="openAddNucleoModal()">
                     + Aggiungi Nucleo
                   </button>
+                  <button type="button" class="btn btn-outline-primary btn-sm font-outfit" onclick="runNucleoHealthCheck('3', this)" title="Diagnostica e Riconciliazione Cartella Drive (Nucleo #3 Lorenzo Mazza)">
+                    <i class="bi bi-shield-check me-1"></i>🔍 Diagnostica Nucleo #3
+                  </button>
                 </div>
                 <div class="d-flex align-items-center" style="min-width: 250px;">
                   <input type="text" class="form-control form-control-sm" id="search-nuclei"
-                    placeholder="Filtra nuclei..." oninput="renderNucleiList()">
+                    placeholder="Cerca per nome, cognome, CF, via, ID..." oninput="renderNucleiList()">
                 </div>
               </div>
               <div class="card-body" id="nuclei-cards-container">
@@ -1804,7 +1844,7 @@
             <div class="spinner-border text-primary" role="status"></div>
             <div class="text-muted text-xs mt-2 font-outfit">Caricamento anteprima da Google Drive...</div>
           </div>
-          <iframe id="preview-file-iframe" src="" style="width: 100%; height: 100%; border: none;" onload="onPreviewIframeLoaded()"></iframe>
+          <iframe id="preview-file-iframe" src="" style="width: 100%; height: 100%; border: none;"></iframe>
         </div>
         <div class="modal-footer bg-light py-1 px-3 justify-content-between">
           <span class="text-xs text-muted font-monospace" id="preview-file-info"></span>
@@ -2306,7 +2346,7 @@
               return chained[prop];
             }
           });
-          google.script.run = rootProxy;
+      google.script.run = rootProxy;
         } catch (e) {
           console.warn('Impossibile agganciare Proxy su google.script.run:', e);
         }
@@ -2324,7 +2364,7 @@
         }
 
         const clientStartTime = Date.now();
-        google.script.run
+      google.script.run
           .withSuccessHandler(res => {
             if (btn) {
               btn.disabled = false;
@@ -2583,7 +2623,7 @@
         const el = document.getElementById(item.id);
         if (el) {
           el.onclick = function (e) {
-            e.preventDefault();
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
             showTab(item.target);
           };
         }
@@ -2620,7 +2660,7 @@
 
       // 1. Tenta prima la chiamata unificata getInitialAppData (1 solo roundtrip atomico)
       try {
-        google.script.run
+      google.script.run
           .withSuccessHandler(function (res) {
             if (res && res.success) {
               dbLookups = res.lookups || {};
@@ -3286,8 +3326,9 @@
 
     // Gestione Tab di Navigazione
     function showTab(tabId) {
+      console.log("Navigazione tab verso:", tabId);
       activeTabId = tabId;
-      document.querySelectorAll('.app-header .nav-link, .nav-link').forEach(link => link.classList.remove('active'));
+      document.querySelectorAll('.app-header .app-top-nav .nav-link').forEach(link => link.classList.remove('active'));
       document.querySelectorAll('.tab-pane-custom').forEach(pane => pane.classList.add('d-none'));
 
       // Trova link menu
@@ -3316,6 +3357,10 @@
           renderMeetingsTable();
         } else if (tabId === 'tab-appuntamenti') {
           renderAppointmentsTable();
+        } else if (tabId === 'tab-documenti') {
+          if (typeof renderAllDocumentiTable === 'function') {
+            renderAllDocumentiTable();
+          }
         }
       } catch (err) {
         console.error("Errore durante il rendering del tab " + tabId + ":", err);
@@ -3335,9 +3380,13 @@
         return;
       }
 
+      const tokens = val.split(/\s+/).filter(Boolean);
       const filtered = dbBeneficiaries.filter(b => {
-        const full = ((b.name || b.nome || '') + ' ' + (b.surname || b.cognome || '') + ' ' + (b.cf || '')).toLowerCase();
-        return full.includes(val);
+        const nome = (b.name || b.nome || '').trim();
+        const cognome = (b.surname || b.cognome || '').trim();
+        const cf = (b.cf || '').trim();
+        const full = `${nome} ${cognome} ${cognome} ${nome} ${cf}`.toLowerCase();
+        return tokens.every(token => full.includes(token));
       });
 
       if (filtered.length === 0) {
@@ -3507,12 +3556,12 @@
 
       if (editIdVal) {
         const originalKey = JSON.parse(editIdVal);
-        google.script.run
+      google.script.run
           .withSuccessHandler(withSuccess)
           .withFailureHandler(withFailure)
           .submitMeetingUpdate(originalKey, data);
       } else {
-        google.script.run
+      google.script.run
           .withSuccessHandler(withSuccess)
           .withFailureHandler(withFailure)
           .submitMeeting(data);
@@ -3607,9 +3656,28 @@
         return;
       }
 
+      const tokens = search ? search.split(/\s+/).filter(Boolean) : [];
+
       const filtered = dbNuclei.filter(n => {
-        const matchStr = `${n.id || ''} ${n.intestatario || ''} ${n.residenza || ''} ${n.descrizioneCaso || ''}`.toLowerCase();
-        return matchStr.includes(search);
+        if (tokens.length === 0) return true;
+
+        // Membri associati al nucleo
+        const members = (dbBeneficiaries || []).filter(b => matchMemberToNucleo(b, n));
+
+        // Testo aggregato ricercabile per tutti i membri
+        let membersText = '';
+        for (let i = 0; i < members.length; i++) {
+          const m = members[i];
+          const mNome = (m.name || m.nome || '').trim();
+          const mCognome = (m.surname || m.cognome || '').trim();
+          const mCF = (m.cf || '').trim();
+          const mTel = (m.telefono || '').trim();
+          membersText += ` ${mNome} ${mCognome} ${mCognome} ${mNome} ${mCF} ${mTel}`;
+        }
+
+        const fullSearchableText = `${n.id || ''} ${n.intestatario || ''} ${n.residenza || ''} ${n.domicilio || ''} ${n.descrizioneCaso || ''} ${n.obiettiviProgettualita || ''} ${n.tipologiaRichiesta || ''} ${n.assistenteSociale || ''} ${membersText}`.toLowerCase();
+
+        return tokens.every(token => fullSearchableText.includes(token));
       });
 
       if (filtered.length === 0) {
@@ -4221,6 +4289,47 @@
         .submitNucleoCompleto(payload);
     }
 
+    /**
+     * Aggiorna dinamicamente le opzioni del select 'ben-rapporto' per rispettare
+     * il vincolo di un solo intestatario per ciascun nucleo familiare.
+     * @param {Object|null} nucleoObj - Oggetto nucleo familiare
+     * @param {Object|null} currentBen - Beneficiario in modifica (o null se nuovo membro)
+     */
+    function updateRapportoIntestatarioOptions(nucleoObj, currentBen) {
+      const select = document.getElementById('ben-rapporto');
+      if (!select) return;
+
+      const optIntestatario = Array.from(select.options).find(o => (o.value || '').toLowerCase() === 'intestatario');
+      if (!optIntestatario) return;
+
+      if (!nucleoObj) {
+        optIntestatario.disabled = false;
+        optIntestatario.textContent = 'Intestatario';
+        return;
+      }
+
+      // Trova l'eventuale intestatario attuale del nucleo
+      const members = (dbBeneficiaries || []).filter(b => matchMemberToNucleo(b, nucleoObj));
+      const existingIntestatario = members.find(m => isMemberIntestatario(m, nucleoObj));
+
+      // Verifica se il membro in modifica coincide con l'intestatario già censito
+      const isCurrentTheIntestatario = currentBen && existingIntestatario && (
+        (currentBen.cf && existingIntestatario.cf && currentBen.cf.toUpperCase() === existingIntestatario.cf.toUpperCase())
+      );
+
+      if (existingIntestatario && !isCurrentTheIntestatario) {
+        const intName = `${existingIntestatario.name || existingIntestatario.nome || ''} ${existingIntestatario.surname || existingIntestatario.cognome || ''}`.trim() || existingIntestatario.cf || 'presente';
+        optIntestatario.disabled = true;
+        optIntestatario.textContent = `Intestatario (Già presente: ${intName})`;
+        if ((select.value || '').toLowerCase() === 'intestatario') {
+          select.value = '';
+        }
+      } else {
+        optIntestatario.disabled = false;
+        optIntestatario.textContent = 'Intestatario';
+      }
+    }
+
     // Gestione Membro (Modal)
     function openAddMemberModal(nucleoId) {
       document.getElementById('modal-ben-form').reset();
@@ -4240,6 +4349,9 @@
         document.getElementById('ben-residenza').value = nucleoObj.residenza || '';
         document.getElementById('ben-domicilio').value = nucleoObj.domicilio || '';
       }
+
+      // Regola vincolo intestatario singolo nel dropdown relazioni
+      updateRapportoIntestatarioOptions(nucleoObj, null);
 
       new bootstrap.Modal(document.getElementById('modal-beneficiario')).show();
     }
@@ -4279,6 +4391,11 @@
       setSelectValue(document.getElementById('ben-lavoro'), ben.statoLavorativo || '');
       setSelectValue(document.getElementById('ben-studio'), ben.titoloStudio || '');
       document.getElementById('ben-servizi').value = ben.assistenteSociale || 'No';
+
+      // Regola vincolo intestatario singolo nel dropdown relazioni
+      const nucleoObj = dbNuclei.find(n => String(n.id).trim() === String(ben.idNucleo || '').trim())
+                     || dbNuclei.find(n => matchMemberToNucleo(ben, n));
+      updateRapportoIntestatarioOptions(nucleoObj, ben);
 
       // Aggiornamento stato firma e fascicolo Drive
       const firmaBadge = document.getElementById('ben-firma-status-badge');
@@ -4334,6 +4451,24 @@
         isUpdate: document.getElementById('ben-is-update').value === 'true',
         documenti: (typeof pendingBenDocuments !== 'undefined') ? [...pendingBenDocuments] : []
       };
+
+      // Validazione client-side vincolo intestatario singolo per nucleo
+      if (data.rapportoIntestatario && data.rapportoIntestatario.toLowerCase() === 'intestatario' && data.idNucleo) {
+        const nucleoObj = dbNuclei.find(n => String(n.id).trim() === String(data.idNucleo).trim());
+        if (nucleoObj) {
+          const members = (dbBeneficiaries || []).filter(b => matchMemberToNucleo(b, nucleoObj));
+          const otherIntestatario = members.find(m => 
+            isMemberIntestatario(m, nucleoObj) && 
+            (!data.cf || (m.cf || '').toUpperCase() !== data.cf.toUpperCase())
+          );
+          if (otherIntestatario) {
+            const intName = `${otherIntestatario.name || otherIntestatario.nome || ''} ${otherIntestatario.surname || otherIntestatario.cognome || ''}`.trim() || otherIntestatario.cf;
+            showToast(`Il nucleo #${data.idNucleo} ha già un intestatario registrato (${intName}). È consentito un solo intestatario per nucleo.`, "error");
+            submitBtn.disabled = false;
+            return;
+          }
+        }
+      }
 
       google.script.run
         .withSuccessHandler(function (res) {
@@ -4639,27 +4774,55 @@
     // Toast Utility
     function showToast(message, type = "info") {
       const container = document.getElementById('toast-container');
+      if (!container) return;
       const toast = document.createElement('div');
 
       let bgClass = "bg-primary";
-      if (type === "success") bgClass = "bg-success";
-      if (type === "error") bgClass = "bg-danger";
-      if (type === "warning") bgClass = "bg-warning text-dark";
+      let icon = '<i class="bi bi-info-circle-fill fs-5 me-2"></i>';
+      if (type === "success") {
+        bgClass = "bg-success";
+        icon = '<i class="bi bi-check-circle-fill fs-5 me-2"></i>';
+      } else if (type === "error") {
+        bgClass = "bg-danger";
+        icon = '<i class="bi bi-exclamation-octagon-fill fs-5 me-2"></i>';
+      } else if (type === "warning") {
+        bgClass = "bg-warning text-dark";
+        icon = '<i class="bi bi-exclamation-triangle-fill fs-5 me-2"></i>';
+      } else if (type === "secondary") {
+        bgClass = "bg-secondary";
+        icon = '<i class="bi bi-bell-fill fs-5 me-2"></i>';
+      }
 
-      toast.className = `toast show align-items-center text-white ${bgClass} border-0 mb-2`;
+      toast.className = `toast show align-items-center text-white ${bgClass} border-0 mb-2 shadow-lg`;
       toast.role = "alert";
       toast.innerHTML = `
-        <div class="d-flex">
-          <div class="toast-body">${message}</div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        <div class="d-flex align-items-center p-2">
+          <div class="d-flex align-items-center flex-grow-1">
+            ${icon}
+            <div class="toast-body p-0 fw-medium">${message}</div>
+          </div>
+          <button type="button" class="btn-close ${type === 'warning' ? '' : 'btn-close-white'} ms-2 m-auto" aria-label="Chiudi"></button>
         </div>
       `;
+
+      const closeBtn = toast.querySelector('.btn-close');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 250);
+        });
+      }
+
       container.appendChild(toast);
 
+      // Durata visualizzazione: 6.5s per errori, 4s per altri
+      const duration = (type === 'error') ? 6500 : 4000;
       setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 500);
-      }, 4000);
+        if (toast.parentElement) {
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 300);
+        }
+      }, duration);
     }
     // Gestione auto-focus ricerca all'apertura del dropdown prefissi
     document.addEventListener('shown.bs.dropdown', function (event) {
@@ -5572,7 +5735,7 @@
 
         if (loadingText) loadingText.textContent = `Analisi visiva e OCR in corso con Gemini Flash (${optimizedFiles.length} doc)...`;
 
-        google.script.run
+      google.script.run
           .withSuccessHandler(res => {
             if (loadingEl) loadingEl.classList.add('d-none');
 
@@ -5925,13 +6088,19 @@
     /**
      * Apre il modale di anteprima integrata per un file Google Drive.
      */
+    
+    function getDriveFileUrl(fileId) {
+      if (!fileId) return '#';
+      return 'https://drive.google.com/file/d/' + encodeURIComponent(fileId) + '/view';
+    }
+
     function openFilePreview(fileId, fileName) {
       if (!fileId) {
         showToast('ID file Google Drive non disponibile per l\'anteprima', 'warning');
         return;
       }
-      const viewUrl = `https://drive.google.com/file/d/${fileId}/view`;
-      const previewUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+      const viewUrl = 'https://drive.google.com/file/d/' + encodeURIComponent(fileId) + '/view';
+      const previewUrl = 'https://drive.google.com/file/d/' + encodeURIComponent(fileId) + '/preview';
 
       const titleEl = document.getElementById('preview-file-title');
       const extLink = document.getElementById('preview-file-external-link');
@@ -5943,10 +6112,15 @@
       if (titleEl) titleEl.textContent = fileName || 'Anteprima File Drive';
       if (extLink) extLink.href = viewUrl;
       if (fallbackLink) fallbackLink.href = viewUrl;
-      if (infoEl) infoEl.textContent = `ID Drive: ${fileId}`;
+      if (infoEl) infoEl.textContent = 'ID Drive: ' + fileId;
 
       if (spinner) spinner.classList.remove('d-none');
-      if (iframe) iframe.src = previewUrl;
+      if (iframe) {
+        iframe.onload = function () {
+          if (spinner) spinner.classList.add('d-none');
+        };
+        iframe.src = previewUrl;
+      }
 
       const modalEl = document.getElementById('modal-preview-file');
       if (modalEl) {
@@ -5979,6 +6153,7 @@
       const spinner = document.getElementById('preview-file-spinner');
       if (spinner) spinner.classList.add('d-none');
     }
+    window.onPreviewIframeLoaded = onPreviewIframeLoaded;
 
     /**
      * Esegue un piano parziale di riconciliazione (singolo caso o categoria) aggiornando reattivamente l'audit.
@@ -6369,7 +6544,7 @@
                 <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-2" data-file-id="${escapeHtml(mf.fileId)}" data-file-name="${escapeHtml(mf.fileName)}" onclick="previewFileFromBtn(this)" title="Anteprima file">
                   <i class="bi bi-eye"></i>
                 </button>
-                <a href="https://drive.google.com/file/d/${escapeHtml(mf.fileId)}/view" target="_blank" class="btn btn-outline-secondary btn-xs py-0 px-2" title="Apri in Drive ↗">
+                <a href="${getDriveFileUrl(mf.fileId)}" target="_blank" class="btn btn-outline-secondary btn-xs py-0 px-2" title="Apri in Drive ↗">
                   <i class="bi bi-box-arrow-up-right"></i>
                 </a>
                 <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2 fw-semibold text-nowrap" data-file-id="${escapeHtml(mf.fileId)}" data-target-folder="${escapeHtml(mf.targetFolderId)}" data-file-name="${escapeHtml(mf.fileName)}" data-target-name="${escapeHtml(mf.targetFolderName)}" onclick="applySingleFileMoveFromBtn(this)" title="Applica subito questo spostamento">
@@ -6408,7 +6583,7 @@
                 <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-2" data-file-id="${escapeHtml(ns.fileId)}" data-file-name="${escapeHtml(ns.currentName)}" onclick="previewFileFromBtn(this)" title="Anteprima file">
                   <i class="bi bi-eye"></i>
                 </button>
-                <a href="https://drive.google.com/file/d/${escapeHtml(ns.fileId)}/view" target="_blank" class="btn btn-outline-secondary btn-xs py-0 px-2" title="Apri in Drive ↗">
+                <a href="${getDriveFileUrl(ns.fileId)}" target="_blank" class="btn btn-outline-secondary btn-xs py-0 px-2" title="Apri in Drive ↗">
                   <i class="bi bi-box-arrow-up-right"></i>
                 </a>
                 <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2 fw-semibold text-nowrap" data-file-id="${escapeHtml(ns.fileId)}" data-input-id="rec-ns-name-${idx}" onclick="applySingleFileRenameFromBtn(this)" title="Applica subito questa ridenominazione">
@@ -6479,7 +6654,7 @@
                       <button type="button" class="btn btn-outline-success btn-xs py-0 px-2" data-file-id="${escapeHtml(prim.id)}" data-file-name="${escapeHtml(prim.name)}" onclick="previewFileFromBtn(this)" title="Anteprima Originale">
                         <i class="bi bi-eye me-1"></i>Anteprima
                       </button>
-                      <a href="https://drive.google.com/file/d/${escapeHtml(prim.id)}/view" target="_blank" class="btn btn-outline-secondary btn-xs py-0 px-1" title="Apri su Drive ↗">
+                      <a href="${getDriveFileUrl(prim.id)}" target="_blank" class="btn btn-outline-secondary btn-xs py-0 px-1" title="Apri su Drive ↗">
                         <i class="bi bi-box-arrow-up-right"></i>
                       </a>
                     </div>
@@ -6497,7 +6672,7 @@
                       <button type="button" class="btn btn-outline-danger btn-xs py-0 px-2" data-file-id="${escapeHtml(dup.id)}" data-file-name="${escapeHtml(dup.name)}" onclick="previewFileFromBtn(this)" title="Anteprima Duplicato">
                         <i class="bi bi-eye me-1"></i>Anteprima
                       </button>
-                      <a href="https://drive.google.com/file/d/${escapeHtml(dup.id)}/view" target="_blank" class="btn btn-outline-secondary btn-xs py-0 px-1" title="Apri su Drive ↗">
+                      <a href="${getDriveFileUrl(dup.id)}" target="_blank" class="btn btn-outline-secondary btn-xs py-0 px-1" title="Apri su Drive ↗">
                         <i class="bi bi-box-arrow-up-right"></i>
                       </a>
                     </div>
@@ -6604,7 +6779,7 @@
                   <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-1" data-file-id="${escapeHtml(ut.fileId)}" data-file-name="${escapeHtml(ut.fileName)}" onclick="previewFileFromBtn(this)" title="Anteprima file">
                     <i class="bi bi-eye"></i>
                   </button>
-                  <a href="https://drive.google.com/file/d/${escapeHtml(ut.fileId)}/view" target="_blank" class="btn btn-outline-secondary btn-xs py-0 px-1" title="Apri in Drive ↗">
+                  <a href="${getDriveFileUrl(ut.fileId)}" target="_blank" class="btn btn-outline-secondary btn-xs py-0 px-1" title="Apri in Drive ↗">
                     <i class="bi bi-box-arrow-up-right"></i>
                   </a>
                   <span class="text-xs text-muted ms-1">${escapeHtml(ut.folderName)}</span>
@@ -6730,7 +6905,7 @@
                   <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-1" data-file-id="${escapeHtml(df.sourceDocFileId)}" data-file-name="${escapeHtml(df.sourceDocName)}" onclick="previewFileFromBtn(this)" title="Anteprima documento di origine">
                     <i class="bi bi-eye"></i>
                   </button>
-                  <a href="https://drive.google.com/file/d/${escapeHtml(df.sourceDocFileId)}/view" target="_blank" class="btn btn-outline-secondary btn-xs py-0 px-1" title="Apri in Drive ↗">
+                  <a href="${getDriveFileUrl(df.sourceDocFileId)}" target="_blank" class="btn btn-outline-secondary btn-xs py-0 px-1" title="Apri in Drive ↗">
                     <i class="bi bi-box-arrow-up-right"></i>
                   </a>
                 ` : ''}

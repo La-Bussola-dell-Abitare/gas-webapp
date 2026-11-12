@@ -34,7 +34,21 @@ if (action === 'open') {
   console.log('🔒 [TEST DEPLOY] Ripristino accesso riservato (MYSELF) prima del commit...');
 }
 
-fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+// Scrittura sicura atomica per prevenire blocchi Windows "user-mapped section open"
+function safeWriteFile(filePath, data) {
+  const tmpPath = filePath + '.tmp.' + Date.now();
+  const oldPath = filePath + '.old.' + Date.now();
+  fs.writeFileSync(tmpPath, data, 'utf8');
+  try {
+    fs.renameSync(filePath, oldPath);
+    fs.renameSync(tmpPath, filePath);
+    try { fs.unlinkSync(oldPath); } catch (e) {}
+  } catch (err) {
+    fs.writeFileSync(filePath, data, 'utf8');
+  }
+}
+
+safeWriteFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
 
 try {
   console.log(`🚀 [CLASP] Eseguo push e deploy sull'ID: ${DEPLOYMENT_ID}...`);
