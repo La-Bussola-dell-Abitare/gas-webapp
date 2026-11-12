@@ -1,0 +1,49 @@
+name: Unit Tests & Security Checks
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test on Node.js ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20, 22]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate appsscript.json Security
+        run: |
+          echo "Verifica configurazione di sicurezza in src/appsscript.json..."
+          node -e '
+            const manifest = require("./src/appsscript.json");
+            const access = manifest.webapp && manifest.webapp.access;
+            if (access === "ANYONE_ANONYMOUS") {
+              console.error("\x1b[31m[ERRORE SICUREZZA] Il manifest src/appsscript.json ha access impostato su ANYONE_ANONYMOUS!\x1b[0m");
+              console.error("Secondo le regole in AGENTS.md, prima di effettuare il commit o push è obbligatorio eseguire `npm run deploy:close` per ripristinare access a MYSELF.");
+              process.exit(1);
+            }
+            console.log("\x1b[32m[OK] Manifest conforme: access è impostato su " + (access || "MYSELF") + "\x1b[0m");
+          '
+
+      - name: Run unit test suite
+        run: npm test

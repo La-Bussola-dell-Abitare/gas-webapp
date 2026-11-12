@@ -7,6 +7,7 @@ on:
 
 jobs:
   deploy:
+    name: Validate Tests and Push to Google Apps Script
     runs-on: ubuntu-latest
 
     steps:
@@ -17,6 +18,26 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate appsscript.json Security
+        run: |
+          echo "Verifica configurazione di sicurezza in src/appsscript.json prima del deploy..."
+          node -e '
+            const manifest = require("./src/appsscript.json");
+            const access = manifest.webapp && manifest.webapp.access;
+            if (access === "ANYONE_ANONYMOUS") {
+              console.error("\x1b[31m[ERRORE SICUREZZA] Deploy bloccato: src/appsscript.json ha access impostato su ANYONE_ANONYMOUS!\x1b[0m");
+              process.exit(1);
+            }
+            console.log("\x1b[32m[OK] Manifest conforme per il deploy: access=" + (access || "MYSELF") + "\x1b[0m");
+          '
+
+      - name: Run unit test suite
+        run: npm test
 
       - name: Install clasp
         run: npm install -g @google/clasp
@@ -49,7 +70,3 @@ jobs:
         run: |
           clasp status
           clasp push --force
-
-#      - name: Deploy to Google Apps Script
-#        run: |
-#          clasp deploy --description "Auto deploy on commit ${{ github.sha }}" || true

@@ -71,7 +71,7 @@ Per caricare ed eseguire questi file in Node.js senza modificare il codice sorge
 ```bash
 npm test
 ```
-*Output tipico: 32 test passati in ~300ms.*
+*Output tipico: 39 test passati in ~300ms.*
 
 ### Modalità Watch (Riesecuzione Automatica durante lo Sviluppo)
 ```bash
@@ -94,3 +94,18 @@ describe('Domain/documents.js', () => {
   });
 });
 ```
+
+---
+
+## 6. Integrazione Continuous Integration (GitHub Actions)
+
+La suite di test viene eseguita automaticamente in ambiente cloud tramite GitHub Actions per garantire l'integrità del codice prima di ogni merge o deploy:
+
+- [**`.github/workflows/test.yml`**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/.github/workflows/test.yml):
+  - Viene scatenato su ogni `push` (qualsiasi branch), ogni `pull_request` verso `main` e manualmente via `workflow_dispatch`.
+  - Testa la suite in parallelo sulle versioni LTS di **Node.js (20 e 22)** su ambiente Ubuntu.
+  - Include un pre-check di sicurezza per verificare che il manifest [`src/appsscript.json`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/appsscript.json) abbia `access: "MYSELF"` e non `ANYONE_ANONYMOUS`.
+- [**`.github/workflows/clasp-push.yml`**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/.github/workflows/clasp-push.yml):
+  - Esegue `npm test` come gate blocker preventivo prima di autenticare Clasp ed eseguire il push del codice sorgente su Google Apps Script. Se anche un solo test fallisce, il push viene interrotto.
+
+*(Per i dettagli sull'infrastruttura di automazione, consultare [`.github/workflows/README.md`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/.github/workflows/README.md)).*

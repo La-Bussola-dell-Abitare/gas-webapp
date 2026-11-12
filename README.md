@@ -50,7 +50,9 @@ Il progetto è sviluppato in locale (JavaScript moderno ES6+ con annotazioni JSD
 - [`.clasp.json`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/.clasp.json): Collega il workspace locale allo script Google tramite `scriptId` e imposta la cartella sorgente `./src`.
 - [`.claspignore`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/.claspignore): Definisce i file esclusi dall'invio su Apps Script (`node_modules`, `package.json`, cartelle `dist`, test locali).
 - [`src/appsscript.json`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/appsscript.json): Manifest del progetto (motore V8, fuso orario `Europe/Rome`, permessi Web App).
-- [`.github/workflows/clasp-push.yml`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/.github/workflows/clasp-push.yml): Workflow GitHub Actions che sincronizza automaticamente il codice su Apps Script a ogni `git push` sul branch `main`.
+- [`.github/workflows/test.yml`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/.github/workflows/test.yml): Workflow di Continuous Integration che esegue i test unitari offline e la verifica di sicurezza del manifest ad ogni push o Pull Request.
+- [`.github/workflows/clasp-push.yml`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/.github/workflows/clasp-push.yml): Workflow di Continuous Deployment che convalida i test ed effettua il push su Google Apps Script ad ogni push su `main`.
+- [`.github/workflows/README.md`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/.github/workflows/README.md): Documentazione tecnica delle pipeline CI/CD e delle automazioni GitHub Actions.
 
 ---
 
@@ -123,7 +125,9 @@ npx @google/clasp deploy -i <DEPLOYMENT_ID> --description "Hotfix v2.2.1"
 ---
 
 #### Ciclo di Versioning Git e CI/CD Automatico
-Il repository è configurato per rilasciare automaticamente su Apps Script tramite GitHub Actions ad ogni push su `main`:
+Il repository è configurato con due pipeline GitHub Actions automatiche:
+1. **Continuous Integration (`test.yml`)**: Esegue ad ogni `push` e `pull_request` la suite di 39 test unitari offline e verifica che il manifest `src/appsscript.json` non contenga accessi pubblici anomali (`access: "MYSELF"`).
+2. **Continuous Deployment (`clasp-push.yml`)**: Ad ogni `push` sul branch `main`, verifica preventivamente i test (`npm test`) e solo in caso di esito positivo sincronizza il codice sorgente su Google Apps Script tramite Clasp:
 
 ```bash
 # Aggiungere i file modificati allo stage
@@ -132,7 +136,7 @@ git add .
 # Creare il commit con un messaggio descrittivo
 git commit -m "feat(nucleo): aggiunta gestione note e validazione CF"
 
-# Effettuare il push su GitHub (attiva il workflow clasp-push.yml)
+# Effettuare il push su GitHub (attiva i workflow test.yml e clasp-push.yml)
 git push origin main
 ```
 
@@ -471,3 +475,7 @@ Tutti i file di documentazione e specifica in formato Markdown presenti nel repo
   Regole di compilazione per l'invio al secondo livello, convenzione di denominazione del file Google Doc (`Scheda segnalazione <ID_Nucleo> (<Nome Intestatario>) <- <Nome Inviante>`), cartelle Drive di destinazione e campi di testata.
 - [**Specifiche Documento: Foglio Firme Individuale**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Documenti/FoglioFirme/Istruzioni.md) ([`src/Models/Documenti/FoglioFirme/Istruzioni.md`](src/Models/Documenti/FoglioFirme/Istruzioni.md)):  
   Convenzione di denominazione (`Foglio Firme individuale AAAA/MM - Nome Beneficiario (Nome Operatore)`), struttura tabellare con data, orari, calcolo automatico della durata in ore, firma dell'operatore, firma del beneficiario e totale a fine mese.
+
+### 8.4 CI/CD, Automazione e Sicurezza
+- [**Pipeline CI/CD e Automazione GitHub Actions**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/.github/workflows/README.md) ([`.github/workflows/README.md`](.github/workflows/README.md)):  
+  Documentazione tecnica dei workflow GitHub Actions (`test.yml` e `clasp-push.yml`), configurazione delle matrici Node.js, verifica di sicurezza del manifest `appsscript.json` e fail-safe pre-deploy.
