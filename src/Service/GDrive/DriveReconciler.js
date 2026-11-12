@@ -750,7 +750,8 @@ class DriveReconciler {
               currentValue: currentCF,
               extractedValue: p.codiceFiscale,
               suggestedValue: p.codiceFiscale,
-              sourceDocName: fName
+              sourceDocName: fName,
+              sourceDocFileId: fId
             };
             diffList.push(diff);
             issues.push({
@@ -776,7 +777,8 @@ class DriveReconciler {
               currentValue: currentLuogo,
               extractedValue: p.luogoNascita,
               suggestedValue: normLuogo,
-              sourceDocName: fName
+              sourceDocName: fName,
+              sourceDocFileId: fId
             };
             diffList.push(diff);
             issues.push({
@@ -800,7 +802,8 @@ class DriveReconciler {
             currentValue: assignedMem.residenza || "",
             extractedValue: p.residenza,
             suggestedValue: normRes,
-            sourceDocName: fName
+            sourceDocName: fName,
+            sourceDocFileId: fId
           };
           diffList.push(diff);
           issues.push({
@@ -825,7 +828,8 @@ class DriveReconciler {
               currentValue: currentISEE !== null ? `${currentISEE.toFixed(2)} €` : "(non censito)",
               extractedValue: `${extractedISEE.toFixed(2)} €`,
               suggestedValue: extractedISEE,
-              sourceDocName: fName
+              sourceDocName: fName,
+              sourceDocFileId: fId
             };
             diffList.push(diff);
             issues.push({

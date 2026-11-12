@@ -201,22 +201,28 @@ flowchart TD
     
     subgraph UserReview ["Revisione Interattiva dell'Operatore"]
         direction TB
-        Tab1[1. File & Cartelle: Selezione spostamenti e ridenominazioni standard]
-        Tab2[2. Duplicati: Scelta per ciascuno tra Cestina, Archivia o Mantieni]
-        Tab3[3. Foglio Documenti: Campi editabili per nuovi file e conferma rimozione orfane]
-        Tab4[4. Anagrafica IA: Anteprima diff editabile tra dati documenti e fogli]
+        Tab1[1. File & Cartelle: Spostamenti e Ridenominazioni + Anteprime]
+        Tab2[2. Duplicati: Confronto visivo anteprime + Scelta Cestina/Archivia/Mantieni]
+        Tab3[3. Foglio Documenti: Campi editabili, anteprima file e rimozione orfane]
+        Tab4[4. Anagrafica IA: Anteprima diff editabile e documento sorgente]
         
-        Tab1 --> BuildPlan[Composizione del Piano Approvato approvedPlan]
+        Tab1 --> BuildPlan[Composizione Piano: Singolo Caso, Categoria o Globale]
         Tab2 --> BuildPlan
         Tab3 --> BuildPlan
         Tab4 --> BuildPlan
     end
     
     DashboardTabs --> UserReview
-    BuildPlan --> UserConfirm{Operatore clicca<br/>'⚡ Applica Azioni Selezionate'?}
+    BuildPlan --> UserConfirm{Modalità di Applicazione Scelta dall'Operatore?}
     
     UserConfirm -- "Annulla" --> CloseModal
-    UserConfirm -- "Conferma Piano" --> RunReconcile[Esecuzione executeDriveReconciliation sul backend]
+    UserConfirm -- "Singolo Caso (es. ⚡ Sposta / ⚡ Rinomina)" --> RunSingle[Esecuzione piano puntuale]
+    UserConfirm -- "Categoria (es. ⚡ Applica Duplicati)" --> RunCategory[Esecuzione piano di tipologia]
+    UserConfirm -- "Globale (⚡ Applica Tutte Selezioni)" --> RunGlobal[Esecuzione piano completo]
+    
+    RunSingle --> RunReconcile[Invocazione RPC executeDriveReconciliation sul backend]
+    RunCategory --> RunReconcile
+    RunGlobal --> RunReconcile
     
     subgraph HealingEngine ["Motore di Esecuzione Atomica (DriveReconciler.executeApprovedPlan)"]
         direction TB

@@ -83,7 +83,13 @@ flowchart TD
     - Per ogni duplicato, l'operatore può scegliere selettivamente: `Cestina Duplicato` (spostamento nel cestino di Google Drive e cancellazione logica dal foglio *Documenti*), `Sposta in _Archivio` (spostamento nella cartella sicura `_Archivio` del nucleo) o `Mantieni Entrambi`.
   - **Scheda 3: 📊 Sincronizzazione Foglio 'Documenti'**: censisce con un click i file presenti su Drive ma non registrati nel foglio (con campi editabili per tipo, intestatario, scadenza e valore) ed elenca le righe orfane (file cancellati su Drive) per l'eliminazione controllata.
   - **Scheda 4: 👤 Allineamento Dati Anagrafici (IA)**: mostra una tabella diff interattiva tra i dati estratti dai documenti con Gemini Flash e quelli registrati nei fogli *Beneficiari* e *Nuclei Familiari* (Codice Fiscale, Nome/Cognome Title Case, Luogo di Nascita con provincia, Residenza, Valore ISEE), permettendo di modificare i campi prima di applicare l'aggiornamento atomico.
-  - **Pulsante Dinamico `⚡ Applica Azioni Selezionate (N)`**: esegue in un'unica transazione solo le azioni selezionate dall'utente.
+  - **Applicazione Granulare delle Decisioni**:
+    - **Per Singolo Caso**: ogni singola riga di ogni scheda dispone di un pulsante di azione diretta immediata (`⚡ Crea`, `⚡ Rinomina`, `⚡ Sposta`, `⚡ Censisci`, `⚡ Elimina Riga`, `⚡ Applica`) che esegue solo quella specifica decisione con feedback visivo e aggiornamento reattivo dell'audit.
+    - **Per Categoria / Tipologia**: intestazioni di sezione dotate di pulsanti aggregati (`⚡ Crea Tutte le Cartelle`, `⚡ Rinomina Tutte`, `⚡ Sposta Tutti i File Fuori Posto`, `⚡ Applica Tutte le Azioni Duplicati`, `⚡ Censisci Tutti i File Selezionati`, `⚡ Elimina Tutte le Righe Orfane`, `⚡ Applica Tutti i Diff Anagrafici`).
+    - **Globale**: pulsante footer `⚡ Applica Azioni Selezionate (N)` per applicare l'intero set approvato in una singola transazione.
+  - **Anteprima File Google Drive Integrata (`#modal-preview-file`)**:
+    - Finestra modale con visualizzatore Google Drive `/preview` integrato per consultare istantaneamente PDF, immagini e documenti senza lasciare la schermata.
+    - Pulsanti `👁️ Anteprima` e link esterno diretto `Apri in Drive ↗` (`/view`) presenti su tutti i file: per file da riordinare/rinominare, confronto affiancato originale vs duplicato, file non censiti e documento sorgente delle discrepanze anagrafiche rilevate da Gemini Flash.
 - **Creazione Nucleo Dual-Mode (`#modal-nucleo`)**: Permette di creare un nucleo associando un beneficiario già registrato oppure censendo contestualmente un nuovo intestatario in modo atomico. Include:
   - Dropzone con Intelligenza Artificiale Gemini Flash (`#ai-smart-fill-nuc`) per caricare documenti in batch (es. CIE, ISEE, Tessera Sanitaria).
   - Autocompilazione istantanea sia dei dati anagrafici dell'intestatario che dei campi del nucleo (es. valore ISEE, residenza).

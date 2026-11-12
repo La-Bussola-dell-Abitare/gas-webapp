@@ -1783,6 +1783,42 @@
     </div>
   </div>
 
+  <!-- Modal Anteprima File Google Drive Integrata -->
+  <div class="modal fade" id="modal-preview-file" tabindex="-1" aria-hidden="true" style="z-index: 1070;">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content shadow-lg border-0">
+        <div class="modal-header bg-light py-2">
+          <div class="d-flex align-items-center gap-2 text-truncate me-2">
+            <i class="bi bi-file-earmark-text text-primary fs-5"></i>
+            <h6 class="modal-title font-outfit fw-bold text-dark m-0 text-truncate" id="preview-file-title">Anteprima File</h6>
+          </div>
+          <div class="d-flex align-items-center gap-2 ms-auto">
+            <a id="preview-file-external-link" href="#" target="_blank" class="btn btn-outline-primary btn-xs py-1 px-2">
+              <i class="bi bi-box-arrow-up-right me-1"></i>Apri in Drive ↗
+            </a>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+        </div>
+        <div class="modal-body p-0 position-relative" style="height: 72vh; background: #e9ecef;">
+          <div id="preview-file-spinner" class="position-absolute top-50 start-50 translate-middle text-center">
+            <div class="spinner-border text-primary" role="status"></div>
+            <div class="text-muted text-xs mt-2 font-outfit">Caricamento anteprima da Google Drive...</div>
+          </div>
+          <iframe id="preview-file-iframe" src="" style="width: 100%; height: 100%; border: none;" onload="onPreviewIframeLoaded()"></iframe>
+        </div>
+        <div class="modal-footer bg-light py-1 px-3 justify-content-between">
+          <span class="text-xs text-muted font-monospace" id="preview-file-info"></span>
+          <div class="d-flex align-items-center gap-2">
+            <a id="preview-file-fallback-link" href="#" target="_blank" class="text-xs text-secondary text-decoration-none">
+              <i class="bi bi-question-circle me-1"></i>Problemi di caricamento? Clicca qui per aprire in Drive ↗
+            </a>
+            <button type="button" class="btn btn-secondary btn-sm py-1 px-3" data-bs-dismiss="modal">Chiudi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ========================================================================= -->
   <!-- MODAL: IMPOSTAZIONI & DIAGNOSTICA SPORTELLO -->
   <!-- ========================================================================= -->
@@ -5879,6 +5915,356 @@
     }
 
     /**
+     * Apre il modale di anteprima integrata per un file Google Drive.
+     */
+    function openFilePreview(fileId, fileName) {
+      if (!fileId) {
+        showToast('ID file Google Drive non disponibile per l\'anteprima', 'warning');
+        return;
+      }
+      const viewUrl = `https://drive.google.com/file/d/${fileId}/view`;
+      const previewUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+
+      const titleEl = document.getElementById('preview-file-title');
+      const extLink = document.getElementById('preview-file-external-link');
+      const fallbackLink = document.getElementById('preview-file-fallback-link');
+      const infoEl = document.getElementById('preview-file-info');
+      const iframe = document.getElementById('preview-file-iframe');
+      const spinner = document.getElementById('preview-file-spinner');
+
+      if (titleEl) titleEl.textContent = fileName || 'Anteprima File Drive';
+      if (extLink) extLink.href = viewUrl;
+      if (fallbackLink) fallbackLink.href = viewUrl;
+      if (infoEl) infoEl.textContent = `ID Drive: ${fileId}`;
+
+      if (spinner) spinner.classList.remove('d-none');
+      if (iframe) iframe.src = previewUrl;
+
+      const modalEl = document.getElementById('modal-preview-file');
+      if (modalEl) {
+        if (!modalEl._hasPreviewCleanup) {
+          modalEl.addEventListener('hidden.bs.modal', () => {
+            const ifr = document.getElementById('preview-file-iframe');
+            if (ifr) ifr.src = '';
+          });
+          modalEl._hasPreviewCleanup = true;
+        }
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+      }
+    }
+
+    /**
+     * Handler per pulsanti che aprono l'anteprima leggendo i dataset HTML.
+     */
+    function previewFileFromBtn(btn) {
+      if (!btn) return;
+      const fId = btn.getAttribute('data-file-id');
+      const fName = btn.getAttribute('data-file-name') || '';
+      openFilePreview(fId, fName);
+    }
+
+    /**
+     * Callback caricamento completato dell'iframe anteprima.
+     */
+    function onPreviewIframeLoaded() {
+      const spinner = document.getElementById('preview-file-spinner');
+      if (spinner) spinner.classList.add('d-none');
+    }
+
+    /**
+     * Esegue un piano parziale di riconciliazione (singolo caso o categoria) aggiornando reattivamente l'audit.
+     */
+    function executePartialReconcilePlan(plan, btnEl, successMsg) {
+      if (!currentReconcileNucleoId) return;
+
+      let oldHtml = '';
+      if (btnEl) {
+        oldHtml = btnEl.innerHTML;
+        btnEl.disabled = true;
+        btnEl.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+      }
+
+      google.script.run
+        .withSuccessHandler(res => {
+          if (btnEl) {
+            btnEl.disabled = false;
+            btnEl.innerHTML = oldHtml;
+          }
+          if (res && res.success) {
+            const count = (res.actionsApplied || []).length;
+            const msg = successMsg || (count > 0 ? res.actionsApplied[0] : 'Operazione completata con successo!');
+            showToast(`⚡ ${msg}`, 'success');
+            runNucleoHealthCheck(currentReconcileNucleoId, null, false);
+            reloadData();
+          } else {
+            showToast('Errore durante l\'applicazione: ' + ((res && res.errors && res.errors.join(', ')) || 'Errore sconosciuto'), 'danger');
+          }
+        })
+        .withFailureHandler(err => {
+          if (btnEl) {
+            btnEl.disabled = false;
+            btnEl.innerHTML = oldHtml;
+          }
+          showToast('Errore RPC: ' + (err.message || err), 'danger');
+        })
+        .executeDriveReconciliation(currentReconcileNucleoId, plan);
+    }
+
+    // --- AZIONI PER SINGOLO CASO ---
+
+    function applySingleMissingFolderFromBtn(btn) {
+      const cf = btn.getAttribute('data-cf');
+      if (!cf) return;
+      executePartialReconcilePlan({
+        missingFolderCreations: [{ targetMemberCF: cf }]
+      }, btn, `Cartella personale creata per CF ${cf}`);
+    }
+
+    function applySingleFolderRenameFromBtn(btn) {
+      const fId = btn.getAttribute('data-folder-id');
+      const inputId = btn.getAttribute('data-input-id');
+      const input = document.getElementById(inputId);
+      const newName = input ? input.value.trim() : '';
+      if (!fId || !newName) return;
+      executePartialReconcilePlan({
+        folderRenames: [{ folderId: fId, newName: newName }]
+      }, btn, `Cartella rinominata in '${newName}'`);
+    }
+
+    function applySingleFileMoveFromBtn(btn) {
+      const fId = btn.getAttribute('data-file-id');
+      const targetFolderId = btn.getAttribute('data-target-folder');
+      const fileName = btn.getAttribute('data-file-name') || 'file';
+      const targetFolderName = btn.getAttribute('data-target-name') || 'destinazione';
+      if (!fId || !targetFolderId) return;
+      executePartialReconcilePlan({
+        fileMoves: [{ fileId: fId, targetFolderId: targetFolderId }]
+      }, btn, `File '${fileName}' spostato in '${targetFolderName}'`);
+    }
+
+    function applySingleFileRenameFromBtn(btn) {
+      const fId = btn.getAttribute('data-file-id');
+      const inputId = btn.getAttribute('data-input-id');
+      const input = document.getElementById(inputId);
+      const newName = input ? input.value.trim() : '';
+      if (!fId || !newName) return;
+      executePartialReconcilePlan({
+        fileRenames: [{ fileId: fId, newName: newName }]
+      }, btn, `File rinominato in '${newName}'`);
+    }
+
+    function applySingleDuplicateFromBtn(btn) {
+      const idx = btn.getAttribute('data-idx');
+      const checkedRadio = document.querySelector(`input[name="rec-dup-${idx}"]:checked`);
+      if (!checkedRadio) return;
+      const action = checkedRadio.value;
+      const fId = checkedRadio.getAttribute('data-file-id');
+      if (action === 'keep') {
+        showToast('Hai selezionato "Mantieni Entrambi": nessuna azione richiesta.', 'info');
+        return;
+      }
+      if (!fId) return;
+      const actionDesc = action === 'trash' ? 'cestinato' : 'spostato in _Archivio';
+      executePartialReconcilePlan({
+        duplicates: [{ fileId: fId, action: action }]
+      }, btn, `File duplicato ${actionDesc}`);
+    }
+
+    function applySingleUntrackedFromBtn(btn) {
+      const idx = btn.getAttribute('data-idx');
+      const ut = (currentReconcileReport && currentReconcileReport.untrackedList && currentReconcileReport.untrackedList[idx]);
+      if (!ut) return;
+      const cfSel = document.getElementById(`rec-ut-cf-${idx}`);
+      const tipoInp = document.getElementById(`rec-ut-tipo-${idx}`);
+      const scadInp = document.getElementById(`rec-ut-scad-${idx}`);
+      const valInp = document.getElementById(`rec-ut-valore-${idx}`);
+
+      const docReg = {
+        intestatario: cfSel ? cfSel.value.trim() : ut.suggestedData.intestatario,
+        tipo: tipoInp ? tipoInp.value.trim() : ut.suggestedData.tipo,
+        categoria: ut.suggestedData.categoria || 'Altro',
+        valore: valInp && valInp.value ? parseFloat(valInp.value) : null,
+        dataScadenza: scadInp ? scadInp.value : '',
+        idDrive: ut.fileId,
+        note: 'Censito da riconciliazione Drive'
+      };
+      executePartialReconcilePlan({
+        documentRegistrations: [docReg]
+      }, btn, `Documento '${ut.fileName}' censito nel foglio`);
+    }
+
+    function applySingleOrphanFromBtn(btn) {
+      const docId = btn.getAttribute('data-doc-id');
+      const idDrive = btn.getAttribute('data-drive-id');
+      if (!docId) return;
+      executePartialReconcilePlan({
+        orphanDeletions: [{ docId: docId, idDrive: idDrive }]
+      }, btn, `Riga ID #${docId} eliminata dal foglio Documenti`);
+    }
+
+    function applySingleDiffFromBtn(btn) {
+      const idx = btn.getAttribute('data-idx');
+      const df = (currentReconcileReport && currentReconcileReport.diffList && currentReconcileReport.diffList[idx]);
+      if (!df) return;
+      const valInp = document.getElementById(`rec-df-val-${idx}`);
+      const appliedVal = valInp ? valInp.value.trim() : df.suggestedValue;
+      const updates = {};
+      updates[df.fieldName] = appliedVal;
+
+      executePartialReconcilePlan({
+        anagraficaUpdates: [{
+          entityType: df.entityType,
+          entityId: df.entityId,
+          updates: updates
+        }]
+      }, btn, `Aggiornato ${df.fieldLabel} per ${df.entityLabel}`);
+    }
+
+    // --- AZIONI PER CATEGORIA / TIPOLOGIA ---
+
+    function applyCategoryMissingFolders(btnEl) {
+      const items = [];
+      document.querySelectorAll('.rec-missing-folder:checked').forEach(chk => {
+        const cf = chk.getAttribute('data-cf');
+        if (cf) items.push({ targetMemberCF: cf });
+      });
+      if (items.length === 0) {
+        showToast('Nessuna cartella mancante selezionata.', 'warning');
+        return;
+      }
+      executePartialReconcilePlan({ missingFolderCreations: items }, btnEl, `Create ${items.length} cartelle personali`);
+    }
+
+    function applyCategoryFolderRenames(btnEl) {
+      const items = [];
+      document.querySelectorAll('.rec-folder-rename:checked').forEach(chk => {
+        const fId = chk.getAttribute('data-folder-id');
+        const inputEl = chk.closest('.list-group-item').querySelector('input[type="text"]');
+        const newName = inputEl ? inputEl.value.trim() : '';
+        if (fId && newName) items.push({ folderId: fId, newName: newName });
+      });
+      if (items.length === 0) {
+        showToast('Nessuna cartella da rinominare selezionata.', 'warning');
+        return;
+      }
+      executePartialReconcilePlan({ folderRenames: items }, btnEl, `Rinominate ${items.length} cartelle`);
+    }
+
+    function applyCategoryFileMoves(btnEl) {
+      const items = [];
+      document.querySelectorAll('.rec-file-move:checked').forEach(chk => {
+        const fId = chk.getAttribute('data-file-id');
+        const targetF = chk.getAttribute('data-target-folder');
+        if (fId && targetF) items.push({ fileId: fId, targetFolderId: targetF });
+      });
+      if (items.length === 0) {
+        showToast('Nessun file fuori posto selezionato.', 'warning');
+        return;
+      }
+      executePartialReconcilePlan({ fileMoves: items }, btnEl, `Spostati ${items.length} file`);
+    }
+
+    function applyCategoryFileRenames(btnEl) {
+      const items = [];
+      document.querySelectorAll('.rec-file-rename:checked').forEach(chk => {
+        const fId = chk.getAttribute('data-file-id');
+        const inputEl = chk.closest('.list-group-item').querySelector('input[type="text"]');
+        const newName = inputEl ? inputEl.value.trim() : '';
+        if (fId && newName) items.push({ fileId: fId, newName: newName });
+      });
+      if (items.length === 0) {
+        showToast('Nessun file da rinominare selezionato.', 'warning');
+        return;
+      }
+      executePartialReconcilePlan({ fileRenames: items }, btnEl, `Rinominati ${items.length} file`);
+    }
+
+    function applyCategoryDuplicates(btnEl) {
+      const items = [];
+      document.querySelectorAll('.rec-dup-action:checked').forEach(radio => {
+        const action = radio.value;
+        const fId = radio.getAttribute('data-file-id');
+        if (fId && (action === 'trash' || action === 'archive')) {
+          items.push({ fileId: fId, action: action });
+        }
+      });
+      if (items.length === 0) {
+        showToast('Nessuna azione sui duplicati selezionata (tutti impostati su Mantieni).', 'info');
+        return;
+      }
+      executePartialReconcilePlan({ duplicates: items }, btnEl, `Applicate ${items.length} azioni sui duplicati`);
+    }
+
+    function applyCategoryUntracked(btnEl) {
+      const items = [];
+      document.querySelectorAll('.rec-untracked-check:checked').forEach(chk => {
+        const idx = chk.getAttribute('data-idx');
+        const ut = (currentReconcileReport && currentReconcileReport.untrackedList && currentReconcileReport.untrackedList[idx]);
+        if (ut) {
+          const cfSel = document.getElementById(`rec-ut-cf-${idx}`);
+          const tipoInp = document.getElementById(`rec-ut-tipo-${idx}`);
+          const scadInp = document.getElementById(`rec-ut-scad-${idx}`);
+          const valInp = document.getElementById(`rec-ut-valore-${idx}`);
+
+          items.push({
+            intestatario: cfSel ? cfSel.value.trim() : ut.suggestedData.intestatario,
+            tipo: tipoInp ? tipoInp.value.trim() : ut.suggestedData.tipo,
+            categoria: ut.suggestedData.categoria || 'Altro',
+            valore: valInp && valInp.value ? parseFloat(valInp.value) : null,
+            dataScadenza: scadInp ? scadInp.value : '',
+            idDrive: ut.fileId,
+            note: 'Censito da riconciliazione Drive'
+          });
+        }
+      });
+      if (items.length === 0) {
+        showToast('Nessun file non censito selezionato.', 'warning');
+        return;
+      }
+      executePartialReconcilePlan({ documentRegistrations: items }, btnEl, `Censiti ${items.length} documenti nel foglio`);
+    }
+
+    function applyCategoryOrphans(btnEl) {
+      const items = [];
+      document.querySelectorAll('.rec-orphan-check:checked').forEach(chk => {
+        const docId = chk.getAttribute('data-doc-id');
+        const idDrive = chk.getAttribute('data-drive-id');
+        if (docId) items.push({ docId: docId, idDrive: idDrive });
+      });
+      if (items.length === 0) {
+        showToast('Nessuna riga orfana selezionata.', 'warning');
+        return;
+      }
+      executePartialReconcilePlan({ orphanDeletions: items }, btnEl, `Rimosse ${items.length} righe orfane`);
+    }
+
+    function applyCategoryDiffs(btnEl) {
+      const items = [];
+      document.querySelectorAll('.rec-diff-check:checked').forEach(chk => {
+        const idx = chk.getAttribute('data-idx');
+        const df = (currentReconcileReport && currentReconcileReport.diffList && currentReconcileReport.diffList[idx]);
+        if (df) {
+          const valInp = document.getElementById(`rec-df-val-${idx}`);
+          const appliedVal = valInp ? valInp.value.trim() : df.suggestedValue;
+          const updates = {};
+          updates[df.fieldName] = appliedVal;
+
+          items.push({
+            entityType: df.entityType,
+            entityId: df.entityId,
+            updates: updates
+          });
+        }
+      });
+      if (items.length === 0) {
+        showToast('Nessun diff anagrafico selezionato.', 'warning');
+        return;
+      }
+      executePartialReconcilePlan({ anagraficaUpdates: items }, btnEl, `Applicati ${items.length} aggiornamenti anagrafici`);
+    }
+
+    /**
      * Renderizza il contenuto del Tab 1: File & Cartelle (Spostamenti e Ridenominazioni).
      */
     function renderTabFiles(missingFolders, folderMismatches, misplacedFiles, nonStandardFiles) {
@@ -5896,7 +6282,13 @@
       // Sezione Cartelle Mancanti o da Rinominare
       if (missingFolders.length > 0 || folderMismatches.length > 0) {
         out += `
-          <h6 class="fw-bold font-outfit text-dark mt-2 mb-2"><i class="bi bi-folder-check text-primary me-2"></i>Cartelle Personali & Nucleo:</h6>
+          <div class="d-flex justify-content-between align-items-center mt-2 mb-2">
+            <h6 class="fw-bold font-outfit text-dark m-0"><i class="bi bi-folder-check text-primary me-2"></i>Cartelle Personali & Nucleo:</h6>
+            <div class="d-flex gap-1">
+              ${missingFolders.length > 0 ? `<button type="button" class="btn btn-outline-primary btn-xs py-0 px-2 fw-semibold" onclick="applyCategoryMissingFolders(this)"><i class="bi bi-lightning-fill me-1"></i>Crea Tutte (${missingFolders.length})</button>` : ''}
+              ${folderMismatches.length > 0 ? `<button type="button" class="btn btn-outline-warning text-dark btn-xs py-0 px-2 fw-semibold" onclick="applyCategoryFolderRenames(this)"><i class="bi bi-lightning-fill me-1"></i>Rinomina Tutte (${folderMismatches.length})</button>` : ''}
+            </div>
+          </div>
           <div class="list-group list-group-flush border rounded mb-3">
         `;
         missingFolders.forEach((mf, idx) => {
@@ -5908,14 +6300,19 @@
                   Crea sottocartella personale per: <strong>${escapeHtml(mf.targetMemberName)}</strong> (${escapeHtml(mf.targetMemberCF)})
                 </label>
               </div>
-              <span class="badge bg-secondary font-monospace">Mancante</span>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-secondary font-monospace">Mancante</span>
+                <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2 fw-semibold" data-cf="${escapeHtml(mf.targetMemberCF)}" onclick="applySingleMissingFolderFromBtn(this)" title="Crea subito questa cartella">
+                  <i class="bi bi-lightning-fill me-1"></i>Crea
+                </button>
+              </div>
             </div>
           `;
         });
         folderMismatches.forEach((fm, idx) => {
           out += `
             <div class="list-group-item d-flex align-items-center justify-content-between py-2">
-              <div class="form-check m-0">
+              <div class="form-check m-0 flex-grow-1 me-2">
                 <input class="form-check-input rec-check rec-folder-rename" type="checkbox" id="rec-fm-${idx}" data-folder-id="${escapeHtml(fm.folderId)}" checked onchange="updateReconcileSelectionSummary()">
                 <label class="form-check-label text-xs" for="rec-fm-${idx}">
                   Rinomina cartella: <del class="text-danger">${escapeHtml(fm.currentName)}</del> &rarr;
@@ -5923,7 +6320,12 @@
                   <div class="text-xs text-muted mt-1"><i class="bi bi-info-circle me-1"></i>${escapeHtml(fm.message)}</div>
                 </label>
               </div>
-              <span class="badge bg-warning text-dark">Rinomina</span>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-warning text-dark">Rinomina</span>
+                <button type="button" class="btn btn-outline-warning text-dark btn-xs py-0 px-2 fw-semibold" data-folder-id="${escapeHtml(fm.folderId)}" data-input-id="rec-fm-name-${idx}" onclick="applySingleFolderRenameFromBtn(this)" title="Rinomina subito questa cartella">
+                  <i class="bi bi-lightning-fill me-1"></i>Rinomina
+                </button>
+              </div>
             </div>
           `;
         });
@@ -5933,13 +6335,18 @@
       // Sezione File Fuori Posto
       if (misplacedFiles.length > 0) {
         out += `
-          <h6 class="fw-bold font-outfit text-dark mt-3 mb-2"><i class="bi bi-arrows-move text-warning me-2"></i>File Fuori Posto da Riposizionare:</h6>
+          <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+            <h6 class="fw-bold font-outfit text-dark m-0"><i class="bi bi-arrows-move text-warning me-2"></i>File Fuori Posto da Riposizionare (${misplacedFiles.length}):</h6>
+            <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2 fw-semibold" onclick="applyCategoryFileMoves(this)">
+              <i class="bi bi-lightning-fill me-1"></i>Sposta Tutti i Selezionati
+            </button>
+          </div>
           <div class="list-group list-group-flush border rounded mb-3">
         `;
         misplacedFiles.forEach((mf, idx) => {
           out += `
             <div class="list-group-item d-flex align-items-center justify-content-between py-2">
-              <div class="form-check m-0">
+              <div class="form-check m-0 flex-grow-1 me-2">
                 <input class="form-check-input rec-check rec-file-move" type="checkbox" id="rec-move-${idx}" data-file-id="${escapeHtml(mf.fileId)}" data-target-folder="${escapeHtml(mf.targetFolderId)}" checked onchange="updateReconcileSelectionSummary()">
                 <label class="form-check-label text-xs" for="rec-move-${idx}">
                   Sposta <span class="fw-bold font-monospace text-dark">'${escapeHtml(mf.fileName)}'</span>
@@ -5950,7 +6357,17 @@
                   </div>
                 </label>
               </div>
-              <span class="badge bg-info text-dark">Spostamento</span>
+              <div class="d-flex align-items-center gap-1">
+                <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-2" data-file-id="${escapeHtml(mf.fileId)}" data-file-name="${escapeHtml(mf.fileName)}" onclick="previewFileFromBtn(this)" title="Anteprima file">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <a href="https://drive.google.com/file/d/${escapeHtml(mf.fileId)}/view" target="_blank" class="btn btn-outline-secondary btn-xs py-0 px-2" title="Apri in Drive ↗">
+                  <i class="bi bi-box-arrow-up-right"></i>
+                </a>
+                <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2 fw-semibold text-nowrap" data-file-id="${escapeHtml(mf.fileId)}" data-target-folder="${escapeHtml(mf.targetFolderId)}" data-file-name="${escapeHtml(mf.fileName)}" data-target-name="${escapeHtml(mf.targetFolderName)}" onclick="applySingleFileMoveFromBtn(this)" title="Applica subito questo spostamento">
+                  <i class="bi bi-lightning-fill me-1"></i>Sposta
+                </button>
+              </div>
             </div>
           `;
         });
@@ -5960,7 +6377,12 @@
       // Sezione File con Nomi Non Standard
       if (nonStandardFiles.length > 0) {
         out += `
-          <h6 class="fw-bold font-outfit text-dark mt-3 mb-2"><i class="bi bi-tag text-info me-2"></i>Nomi File da Standardizzare (Convenzione Ufficiale):</h6>
+          <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+            <h6 class="fw-bold font-outfit text-dark m-0"><i class="bi bi-tag text-info me-2"></i>Nomi File da Standardizzare (${nonStandardFiles.length}):</h6>
+            <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2 fw-semibold" onclick="applyCategoryFileRenames(this)">
+              <i class="bi bi-lightning-fill me-1"></i>Rinomina Tutti i Selezionati
+            </button>
+          </div>
           <div class="list-group list-group-flush border rounded mb-3">
         `;
         nonStandardFiles.forEach((ns, idx) => {
@@ -5974,9 +6396,20 @@
                   ${ns.targetMemberName ? `<div class="text-xs text-secondary mt-1">Componente: <strong>${escapeHtml(ns.targetMemberName)}</strong></div>` : ''}
                 </label>
               </div>
-              <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2" onclick="inspectFileInlineAI('${escapeHtml(ns.fileId)}', this)" title="Ispeziona contenuto con IA Gemini Flash">
-                <i class="bi bi-stars"></i> IA
-              </button>
+              <div class="d-flex align-items-center gap-1">
+                <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-2" data-file-id="${escapeHtml(ns.fileId)}" data-file-name="${escapeHtml(ns.currentName)}" onclick="previewFileFromBtn(this)" title="Anteprima file">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <a href="https://drive.google.com/file/d/${escapeHtml(ns.fileId)}/view" target="_blank" class="btn btn-outline-secondary btn-xs py-0 px-2" title="Apri in Drive ↗">
+                  <i class="bi bi-box-arrow-up-right"></i>
+                </a>
+                <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2 fw-semibold text-nowrap" data-file-id="${escapeHtml(ns.fileId)}" data-input-id="rec-ns-name-${idx}" onclick="applySingleFileRenameFromBtn(this)" title="Applica subito questa ridenominazione">
+                  <i class="bi bi-lightning-fill me-1"></i>Rinomina
+                </button>
+                <button type="button" class="btn btn-outline-info btn-xs py-0 px-2" onclick="inspectFileInlineAI('${escapeHtml(ns.fileId)}', this)" title="Ispeziona contenuto con IA Gemini Flash">
+                  <i class="bi bi-stars"></i> IA
+                </button>
+              </div>
             </div>
           `;
         });
@@ -6000,9 +6433,14 @@
       }
 
       let out = `
-        <div class="alert alert-warning py-2 text-xs mb-3">
-          <i class="bi bi-exclamation-triangle-fill me-1"></i>
-          Sono stati individuati <strong>${duplicateGroups.length}</strong> possibili documenti duplicati. Scegli per ciascuno l'azione da intraprendere (l'eliminazione sposta il file nel cestino di Google Drive senza cancellazione irreversibile).
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="alert alert-warning py-2 text-xs m-0 flex-grow-1 me-2">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i>
+            Individuati <strong>${duplicateGroups.length}</strong> possibili documenti duplicati. Scegli per ciascuno l'azione o applicale selettivamente.
+          </div>
+          <button type="button" class="btn btn-outline-primary btn-xs py-2 px-3 fw-semibold text-nowrap" onclick="applyCategoryDuplicates(this)">
+            <i class="bi bi-lightning-fill me-1"></i>Applica Tutte le Azioni Duplicati (${duplicateGroups.length})
+          </button>
         </div>
         <div class="d-flex flex-column gap-3">
       `;
@@ -6027,7 +6465,17 @@
             <div class="card-body p-2">
               <div class="row g-2 text-xs">
                 <div class="col-md-6 border-end">
-                  <div class="fw-semibold text-success mb-1"><i class="bi bi-file-earmark-check me-1"></i>File Conservato (Originale):</div>
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fw-semibold text-success"><i class="bi bi-file-earmark-check me-1"></i>File Conservato (Originale):</span>
+                    <div class="d-flex gap-1">
+                      <button type="button" class="btn btn-outline-success btn-xs py-0 px-2" data-file-id="${escapeHtml(prim.id)}" data-file-name="${escapeHtml(prim.name)}" onclick="previewFileFromBtn(this)" title="Anteprima Originale">
+                        <i class="bi bi-eye me-1"></i>Anteprima
+                      </button>
+                      <a href="https://drive.google.com/file/d/${escapeHtml(prim.id)}/view" target="_blank" class="btn btn-outline-secondary btn-xs py-0 px-1" title="Apri su Drive ↗">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                      </a>
+                    </div>
+                  </div>
                   <div class="font-monospace fw-bold">${escapeHtml(prim.name)}</div>
                   <div class="text-muted">
                     Cartella: <strong>${escapeHtml(prim.folderName)}</strong> | Dimensione: <strong>${prim.size || 0} B</strong>
@@ -6035,7 +6483,17 @@
                   </div>
                 </div>
                 <div class="col-md-6">
-                  <div class="fw-semibold text-danger mb-1"><i class="bi bi-file-earmark-x me-1"></i>File Riconosciuto Duplicato:</div>
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fw-semibold text-danger"><i class="bi bi-file-earmark-x me-1"></i>File Riconosciuto Duplicato:</span>
+                    <div class="d-flex gap-1">
+                      <button type="button" class="btn btn-outline-danger btn-xs py-0 px-2" data-file-id="${escapeHtml(dup.id)}" data-file-name="${escapeHtml(dup.name)}" onclick="previewFileFromBtn(this)" title="Anteprima Duplicato">
+                        <i class="bi bi-eye me-1"></i>Anteprima
+                      </button>
+                      <a href="https://drive.google.com/file/d/${escapeHtml(dup.id)}/view" target="_blank" class="btn btn-outline-secondary btn-xs py-0 px-1" title="Apri su Drive ↗">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                      </a>
+                    </div>
+                  </div>
                   <div class="font-monospace fw-bold">${escapeHtml(dup.name)}</div>
                   <div class="text-muted">
                     Cartella: <strong>${escapeHtml(dup.folderName)}</strong> | Dimensione: <strong>${dup.size || 0} B</strong>
@@ -6043,26 +6501,31 @@
                   </div>
                 </div>
               </div>
-              <div class="mt-2 pt-2 border-top d-flex align-items-center gap-3">
-                <span class="text-xs fw-bold text-secondary">Azione:</span>
-                <div class="form-check form-check-inline m-0">
-                  <input class="form-check-input rec-dup-action" type="radio" name="rec-dup-${idx}" id="rec-dup-trash-${idx}" value="trash" data-file-id="${escapeHtml(dup.id)}" checked onchange="updateReconcileSelectionSummary()">
-                  <label class="form-check-label text-xs text-danger fw-semibold" for="rec-dup-trash-${idx}">
-                    <i class="bi bi-trash3 me-1"></i>Cestina Duplicato
-                  </label>
+              <div class="mt-2 pt-2 border-top d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="d-flex align-items-center gap-3">
+                  <span class="text-xs fw-bold text-secondary">Azione:</span>
+                  <div class="form-check form-check-inline m-0">
+                    <input class="form-check-input rec-dup-action" type="radio" name="rec-dup-${idx}" id="rec-dup-trash-${idx}" value="trash" data-file-id="${escapeHtml(dup.id)}" checked onchange="updateReconcileSelectionSummary()">
+                    <label class="form-check-label text-xs text-danger fw-semibold" for="rec-dup-trash-${idx}">
+                      <i class="bi bi-trash3 me-1"></i>Cestina Duplicato
+                    </label>
+                  </div>
+                  <div class="form-check form-check-inline m-0">
+                    <input class="form-check-input rec-dup-action" type="radio" name="rec-dup-${idx}" id="rec-dup-archive-${idx}" value="archive" data-file-id="${escapeHtml(dup.id)}" onchange="updateReconcileSelectionSummary()">
+                    <label class="form-check-label text-xs text-secondary" for="rec-dup-archive-${idx}">
+                      <i class="bi bi-archive me-1"></i>Sposta in _Archivio
+                    </label>
+                  </div>
+                  <div class="form-check form-check-inline m-0">
+                    <input class="form-check-input rec-dup-action" type="radio" name="rec-dup-${idx}" id="rec-dup-keep-${idx}" value="keep" data-file-id="${escapeHtml(dup.id)}" onchange="updateReconcileSelectionSummary()">
+                    <label class="form-check-label text-xs text-dark" for="rec-dup-keep-${idx}">
+                      <i class="bi bi-check2 me-1"></i>Mantieni Entrambi
+                    </label>
+                  </div>
                 </div>
-                <div class="form-check form-check-inline m-0">
-                  <input class="form-check-input rec-dup-action" type="radio" name="rec-dup-${idx}" id="rec-dup-archive-${idx}" value="archive" data-file-id="${escapeHtml(dup.id)}" onchange="updateReconcileSelectionSummary()">
-                  <label class="form-check-label text-xs text-secondary" for="rec-dup-archive-${idx}">
-                    <i class="bi bi-archive me-1"></i>Sposta in _Archivio
-                  </label>
-                </div>
-                <div class="form-check form-check-inline m-0">
-                  <input class="form-check-input rec-dup-action" type="radio" name="rec-dup-${idx}" id="rec-dup-keep-${idx}" value="keep" data-file-id="${escapeHtml(dup.id)}" onchange="updateReconcileSelectionSummary()">
-                  <label class="form-check-label text-xs text-dark" for="rec-dup-keep-${idx}">
-                    <i class="bi bi-check2 me-1"></i>Mantieni Entrambi
-                  </label>
-                </div>
+                <button type="button" class="btn btn-outline-primary btn-xs py-1 px-2 fw-semibold" data-idx="${idx}" onclick="applySingleDuplicateFromBtn(this)" title="Applica subito l'azione selezionata per questo duplicato">
+                  <i class="bi bi-lightning-fill me-1"></i>Applica su questo duplicato
+                </button>
               </div>
             </div>
           </div>
@@ -6091,7 +6554,12 @@
       // Sezione File da Censire
       if (untrackedList.length > 0) {
         out += `
-          <h6 class="fw-bold font-outfit text-dark mt-2 mb-2"><i class="bi bi-file-earmark-plus text-primary me-2"></i>File presenti su Drive ma NON censiti nel foglio 'Documenti':</h6>
+          <div class="d-flex justify-content-between align-items-center mt-2 mb-2">
+            <h6 class="fw-bold font-outfit text-dark m-0"><i class="bi bi-file-earmark-plus text-primary me-2"></i>File su Drive NON censiti nel foglio 'Documenti' (${untrackedList.length}):</h6>
+            <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2 fw-semibold" onclick="applyCategoryUntracked(this)">
+              <i class="bi bi-lightning-fill me-1"></i>Censisci Tutti i Selezionati
+            </button>
+          </div>
           <div class="table-responsive border rounded mb-3">
             <table class="table table-sm table-hover align-middle mb-0 text-xs">
               <thead class="table-light">
@@ -6104,6 +6572,7 @@
                   <th>Tipologia</th>
                   <th>Scadenza</th>
                   <th>Valore (€)</th>
+                  <th class="text-end" style="width: 90px;">Azione</th>
                 </tr>
               </thead>
               <tbody>
@@ -6123,7 +6592,15 @@
               </td>
               <td>
                 <span class="font-monospace fw-bold text-dark">${escapeHtml(ut.fileName)}</span>
-                <div class="text-xs text-muted">Cartella: ${escapeHtml(ut.folderName)}</div>
+                <div class="d-flex align-items-center gap-1 mt-1">
+                  <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-1" data-file-id="${escapeHtml(ut.fileId)}" data-file-name="${escapeHtml(ut.fileName)}" onclick="previewFileFromBtn(this)" title="Anteprima file">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <a href="https://drive.google.com/file/d/${escapeHtml(ut.fileId)}/view" target="_blank" class="btn btn-outline-secondary btn-xs py-0 px-1" title="Apri in Drive ↗">
+                    <i class="bi bi-box-arrow-up-right"></i>
+                  </a>
+                  <span class="text-xs text-muted ms-1">${escapeHtml(ut.folderName)}</span>
+                </div>
               </td>
               <td>
                 <select class="form-select form-select-xs py-0" id="rec-ut-cf-${idx}">
@@ -6139,6 +6616,11 @@
               <td>
                 <input type="number" step="0.01" class="form-control form-control-xs py-0" style="width: 90px;" id="rec-ut-valore-${idx}" value="${sug.valore || ''}">
               </td>
+              <td class="text-end">
+                <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2 fw-semibold text-nowrap" data-idx="${idx}" onclick="applySingleUntrackedFromBtn(this)" title="Censisci subito questo documento">
+                  <i class="bi bi-lightning-fill me-1"></i>Censisci
+                </button>
+              </td>
             </tr>
           `;
         });
@@ -6152,20 +6634,30 @@
       // Sezione Righe Orfane
       if (orphanList.length > 0) {
         out += `
-          <h6 class="fw-bold font-outfit text-danger mt-3 mb-2"><i class="bi bi-trash text-danger me-2"></i>Righe Orfane nel foglio 'Documenti' (File Drive inesistenti o cestinati):</h6>
+          <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+            <h6 class="fw-bold font-outfit text-danger m-0"><i class="bi bi-trash text-danger me-2"></i>Righe Orfane nel foglio 'Documenti' (${orphanList.length}):</h6>
+            <button type="button" class="btn btn-outline-danger btn-xs py-0 px-2 fw-semibold" onclick="applyCategoryOrphans(this)">
+              <i class="bi bi-lightning-fill me-1"></i>Elimina Tutte le Righe Orfane
+            </button>
+          </div>
           <div class="list-group list-group-flush border rounded mb-3">
         `;
         orphanList.forEach((orph, idx) => {
           out += `
             <div class="list-group-item d-flex align-items-center justify-content-between py-2 list-group-item-danger">
-              <div class="form-check m-0">
+              <div class="form-check m-0 flex-grow-1 me-2">
                 <input class="form-check-input rec-check rec-orphan-check" type="checkbox" id="rec-orph-${idx}" data-doc-id="${escapeHtml(orph.docId)}" data-drive-id="${escapeHtml(orph.idDrive)}" checked onchange="updateReconcileSelectionSummary()">
                 <label class="form-check-label text-xs fw-semibold" for="rec-orph-${idx}">
                   Elimina riga ID #${escapeHtml(orph.docId)}: <strong>${escapeHtml(orph.tipo)}</strong> (Intestatario: ${escapeHtml(orph.intestatario)})
                   <div class="text-xs text-muted font-monospace mt-1">ID Drive non trovato: ${escapeHtml(orph.idDrive)}</div>
                 </label>
               </div>
-              <span class="badge bg-danger">File Mancante</span>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-danger">File Mancante</span>
+                <button type="button" class="btn btn-outline-danger btn-xs py-0 px-2 fw-semibold text-nowrap" data-doc-id="${escapeHtml(orph.docId)}" data-drive-id="${escapeHtml(orph.idDrive)}" onclick="applySingleOrphanFromBtn(this)" title="Elimina subito questa riga dal foglio">
+                  <i class="bi bi-lightning-fill me-1"></i>Elimina Riga
+                </button>
+              </div>
             </div>
           `;
         });
@@ -6189,9 +6681,14 @@
       }
 
       let out = `
-        <div class="alert alert-info py-2 text-xs mb-3">
-          <i class="bi bi-stars text-primary me-1"></i>
-          Google Gemini Flash ha rilevato le seguenti informazioni nei documenti che differiscono dai dati registrati nei fogli di calcolo. Puoi confermare l'aggiornamento o ritoccare il valore suggerito prima di applicarlo.
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="alert alert-info py-2 text-xs m-0 flex-grow-1 me-2">
+            <i class="bi bi-stars text-primary me-1"></i>
+            Google Gemini Flash ha rilevato <strong>${diffList.length}</strong> informazioni nei documenti che differiscono dai fogli di calcolo.
+          </div>
+          <button type="button" class="btn btn-outline-primary btn-xs py-2 px-3 fw-semibold text-nowrap" onclick="applyCategoryDiffs(this)">
+            <i class="bi bi-lightning-fill me-1"></i>Applica Tutti i Diff Selezionati (${diffList.length})
+          </button>
         </div>
         <div class="table-responsive border rounded mb-3">
           <table class="table table-sm table-hover align-middle mb-0 text-xs">
@@ -6205,6 +6702,7 @@
                 <th>Valore Attuale (Foglio)</th>
                 <th>Valore Rilevato nel Documento</th>
                 <th>Valore da Applicare</th>
+                <th class="text-end" style="width: 90px;">Azione</th>
               </tr>
             </thead>
             <tbody>
@@ -6218,13 +6716,28 @@
             </td>
             <td>
               <span class="fw-bold">${escapeHtml(df.entityLabel)}</span>
-              <div class="text-xs text-muted">Doc: ${escapeHtml(df.sourceDocName)}</div>
+              <div class="d-flex align-items-center gap-1 mt-1 text-xs text-muted">
+                <span class="text-truncate" style="max-width: 140px;" title="${escapeHtml(df.sourceDocName)}">Doc: ${escapeHtml(df.sourceDocName)}</span>
+                ${df.sourceDocFileId ? `
+                  <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-1" data-file-id="${escapeHtml(df.sourceDocFileId)}" data-file-name="${escapeHtml(df.sourceDocName)}" onclick="previewFileFromBtn(this)" title="Anteprima documento di origine">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <a href="https://drive.google.com/file/d/${escapeHtml(df.sourceDocFileId)}/view" target="_blank" class="btn btn-outline-secondary btn-xs py-0 px-1" title="Apri in Drive ↗">
+                    <i class="bi bi-box-arrow-up-right"></i>
+                  </a>
+                ` : ''}
+              </div>
             </td>
             <td><span class="badge bg-light text-dark border">${escapeHtml(df.fieldLabel)}</span></td>
             <td><del class="text-danger">${escapeHtml(df.currentValue || '(vuoto)')}</del></td>
             <td><span class="text-success fw-bold font-monospace">${escapeHtml(df.extractedValue)}</span></td>
             <td>
               <input type="text" class="form-control form-control-xs py-0 px-2 fw-bold text-primary font-monospace" id="rec-df-val-${idx}" value="${escapeHtml(df.suggestedValue)}">
+            </td>
+            <td class="text-end">
+              <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2 fw-semibold text-nowrap" data-idx="${idx}" onclick="applySingleDiffFromBtn(this)" title="Applica subito questo aggiornamento anagrafico">
+                <i class="bi bi-lightning-fill me-1"></i>Applica
+              </button>
             </td>
           </tr>
         `;

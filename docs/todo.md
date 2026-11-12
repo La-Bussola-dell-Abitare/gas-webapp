@@ -34,6 +34,7 @@
         * (Fatto) Controllare che nel foglio documenti non ci siano righe che si riferiscono a documenti che nel drive non ci sono (cancellazione previa autorizzazione)
         * (Fatto) Riconciliare i dati del beneficiario o del nucleo con le informazioni presenti nei documenti (tabella diff interattiva con valori editabili)
         * (Fatto) Fare in modo che il database sia coerente con Google Drive (esecuzione atomica transazionale del piano approvato)
+        * (Fatto) Applicazione granulare delle decisioni (per singolo caso con pulsanti dedicati o per tipologia/categoria) e visualizzazione anteprima dei file (modale in-app con iframe /preview e link diretto Drive /view)
     * (Fatto) organizzazione tutti i documenti (basandoci sul nome o su riconoscimento automatico via IA) nelle rispettive cartelle e con i relativi nomi
     * controllare beneficiari a cui manca qualcosa (documenti non caricati...)
     * fare in modo che documenti e dati caricati manualmente siano considerati

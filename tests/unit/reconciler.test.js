@@ -152,4 +152,49 @@ describe('DriveReconciler.js - Metadati MD5 e Deduplicazione Two-Tier', () => {
       assert.strictEqual(md5Groups['identical_hash_123'].length, 2);
     });
   });
+
+  describe('Piani Parziali di Riconciliazione (Granular Execution)', () => {
+    it('gestisce con successo un piano parziale vuoto o con singolo elemento', () => {
+      // Mock DriveApp e DriveManager
+      const createdFolders = [];
+      global.DriveManager = {
+        getOrCreateBeneficiarioFolder: (cf) => {
+          createdFolders.push(cf);
+          return { id: 'f-' + cf, name: 'Mario Rossi' };
+        }
+      };
+
+      const partialPlan = {
+        missingFolderCreations: [{ targetMemberCF: 'RSSMRA80A01H501Z' }]
+      };
+
+      const res = DriveReconciler.executeApprovedPlan('1', partialPlan);
+      assert.strictEqual(res.success, true);
+      assert.strictEqual(res.actionsApplied.length, 1);
+      assert.strictEqual(res.errors.length, 0);
+      assert.ok(res.actionsApplied[0].includes('RSSMRA80A01H501Z'));
+      assert.strictEqual(createdFolders.length, 1);
+      assert.strictEqual(createdFolders[0], 'RSSMRA80A01H501Z');
+    });
+
+    it('accetta e valida piani con singola ridenominazione cartella', () => {
+      const renamed = [];
+      global.DriveApp = {
+        getFolderById: (id) => ({
+          getName: () => 'Vecchio Nome',
+          setName: (newName) => { renamed.push({ id, newName }); }
+        })
+      };
+
+      const partialPlan = {
+        folderRenames: [{ folderId: 'folder-abc', newName: 'Nuovo Nome Conforme' }]
+      };
+
+      const res = DriveReconciler.executeApprovedPlan('1', partialPlan);
+      assert.strictEqual(res.success, true);
+      assert.strictEqual(res.actionsApplied.length, 1);
+      assert.strictEqual(renamed.length, 1);
+      assert.strictEqual(renamed[0].newName, 'Nuovo Nome Conforme');
+    });
+  });
 });

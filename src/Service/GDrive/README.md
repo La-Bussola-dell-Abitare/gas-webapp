@@ -102,6 +102,11 @@ Tutti i file risiedono all'interno della cartella radice configurata in `CONFIG.
 - **Perché auto-dedurre l'intestatario dal nome cartella Drive (`^\s*\d+\s*[-–—]?\s*(.+)$`)?**
   *Motivazione*: Se un nucleo familiare o un fascicolo di test (es. Nucleo #3) ha una cartella su Drive ma non è ancora formalmente censito con righe associate nei fogli *Nuclei Familiari* o *Beneficiari*, il sistema ricava il nome direttamente dalla cartella fisica, garantendo la visualizzazione corretta della dashboard diagnostica anziché fallire o mostrare etichette vuote.
 
+- **Perché supportare l'esecuzione granulare (singolo caso o per categoria) oltre al piano globale?**
+  *Motivazione*: Negli audit complessi con decine di file, l'operatore non sempre desidera applicare in blocco tutte le azioni. Poter applicare subito una singola decisione (es. rinominare un solo file, cestinare un duplicato o creare una cartella) o un'intera tipologia (es. solo i duplicati) senza toccare il resto delle selezioni offre un controllo totale e riduce il rischio di modifiche premature o non verificate.
+- **Perché integrare l'anteprima interna e il link diretto a Google Drive per ogni file?**
+  *Motivazione*: Consente all'operatore di verificare visivamente il documento (confronto fianco a fianco tra originale e duplicato, controllo del documento prima di censirlo nel foglio, verifica del documento sorgente da cui Gemini ha estratto un dato) senza consumare banda o memoria server, sfruttando l'endpoint `/preview` e `/view` nativo di Google Drive.
+
 ---
 
 ## 5. Esempi di Utilizzo
@@ -115,7 +120,14 @@ Logger.log("Anomalie rilevate: " + rep.issues.length);
 const fileInfo = DriveReconciler.inspectFileWithAI("1cBAWWPnRZNhj1xubIM89inMehvB-sFiE");
 Logger.log("Tipo rilevato da IA: " + fileInfo.data.tipoDocumento);
 
-// 3. Esecuzione Piano di Bonifica Approvato dall'Operatore
+// 3. Esecuzione Piano Parziale o per Singolo Caso (Granular Execution)
+const singleRenamePlan = {
+  fileRenames: [{ fileId: "file456", newName: "Carta d'Identità (scad. 2034) - Mario Rossi.pdf" }]
+};
+const resSingle = DriveReconciler.executeApprovedPlan(12, singleRenamePlan);
+Logger.log("Singola azione applicata: " + resSingle.actionsApplied[0]);
+
+// 4. Esecuzione Piano di Bonifica Approvato Completo
 const approvedPlan = {
   folderRenames: [{ folderId: "fld123", newName: "Mario Rossi" }],
   fileMoves: [{ fileId: "file456", targetFolderId: "fld123" }],

@@ -462,13 +462,24 @@ sequenceDiagram
     Ctrl-->>UI: { success: true, report: auditReport }
     deactivate Ctrl
 
-    UI->>Op: Visualizza Dashboard a 4 schede con selezioni e anteprima diff editabile
+    UI->>Op: Visualizza Dashboard a 4 schede con anteprima file e controlli granulari
+    opt Anteprima File o Documento (In-App o Tab Esterno)
+        Op->>UI: Clicca su icona "👁️ Anteprima" o link "↗️ Apri in Drive"
+        UI->>UI: Apre modal "#modal-preview-file" (iframe /preview) o nuova scheda (/view)
+    end
     Op->>UI: Modifica/conferma azioni (es. cestina duplicato, rinomina cartella, correggi CF)
-    Op->>UI: Clicca su "⚡ Applica Azioni Selezionate (N)"
-    
-    UI->>Ctrl: google.script.run.executeDriveReconciliation(nucleoId, approvedPlan)
+    alt Applicazione Singolo Caso
+        Op->>UI: Clicca su pulsante singolo (es. "⚡ Sposta", "⚡ Rinomina", "⚡ Censisci")
+        UI->>Ctrl: executeDriveReconciliation(nucleoId, singleItemPlan)
+    else Applicazione per Categoria / Tipologia
+        Op->>UI: Clicca su pulsante di testata (es. "⚡ Sposta Tutti", "⚡ Applica Duplicati")
+        UI->>Ctrl: executeDriveReconciliation(nucleoId, categoryPlan)
+    else Applicazione Globale Selezioni
+        Op->>UI: Clicca su "⚡ Applica Azioni Selezionate (Totale)"
+        UI->>Ctrl: executeDriveReconciliation(nucleoId, approvedPlan)
+    end
     activate Ctrl
-    Ctrl->>DR: executeApprovedPlan(nucleoId, approvedPlan)
+    Ctrl->>DR: executeApprovedPlan(nucleoId, plan)
     activate DR
 
     %% Esecuzione transazionale delle sole azioni approvate
