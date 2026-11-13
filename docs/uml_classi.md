@@ -301,10 +301,18 @@ classDiagram
         +smartClassifyMultipleBase64(filesArray)$ Object
     }
 
+    class DataIntegrityService {
+        +auditBeneficiari(options)$ Object
+        +autoHeal(selectedIssueIds, options)$ Object
+        -_getBenColIndexes(headers)$ Object
+    }
+
     DriveReconciler ..> DriveManager : sposta/crea
     DriveReconciler ..> DocumentoRepository : censisce
     DriveReconciler ..> DocumentIntelligence : OCR/Vision
     DriveManager ..> DocumentoRepository : registra firma e documenti
+    DataIntegrityService ..> BeneficiarioRepository : verifica dati
+    DataIntegrityService ..> NucleoFamiliare : verifica relazioni
 
     %% =========================================================================
     %% CONTROLLER
@@ -389,6 +397,7 @@ classDiagram
 - **[`DriveManager`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/GDrive/DriveManager.js):** Gestisce l'alberatura delle cartelle (`<id> - <Intestatario>` e sottocartelle `<Nome Cognome>`), l'archiviazione di firme autografe PNG trasparenti, l'archiviazione automatica di file documentali con naming standard e la scansione in tempo reale dei file con metadati.
 - **[`DriveReconciler`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/GDrive/DriveReconciler.js):** Motore avanzato di diagnostica e riconciliazione automatica e interattiva: individua cartelle invertite (`Cognome Nome`) o con refusi tramite fuzzy matching, file fuori posto nella radice nucleo, cartelle mancanti, file non standard, duplicati esatti/semantici e righe orfane nel foglio `Documenti`. Con l'ausilio di Gemini Flash (`DocumentIntelligence`), esegue l'ispezione OCR semantica e genera la tabella diff per allineare i dati anagrafici di beneficiari e nuclei.
 - **[`DocumentIntelligence`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/Document/DocumentIntelligence.js):** Servizio di Computer Vision e OCR multimodale basato su Google Gemini (`gemini-flash-latest`, con fallback su `gemini-flash-lite-latest` e `gemini-pro-latest`) con supporto multi-file, schema JSON vincolato e normalizzazione deterministica Title Case per autocompilare istantaneamente anagrafiche e nuclei.
+- **[`DataIntegrityService`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/Validation/DataIntegrityService.js):** Motore di integrità relazionale e Auto-Healing: verifica l'unicità del caponucleo, rileva beneficiari orfani, cartelle Drive mancanti o duplicate e conflitti anagrafici/CF, offrendo la correzione puntuale o l'Auto-Healing in blocco.
 
 ---
 

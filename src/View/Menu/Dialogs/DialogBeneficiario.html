@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f8f9fa; font-size: 13px; }
+    .nav-tabs .nav-link { font-weight: 600; color: #495057; border: none; border-bottom: 2px solid transparent; }
+    .nav-tabs .nav-link.active { color: #0d6efd; border-bottom: 2px solid #0d6efd; background: transparent; }
+    .form-label { font-weight: 600; font-size: 12px; margin-bottom: 2px; }
+    .search-box { position: relative; }
+    .search-results { position: absolute; top: 100%; left: 0; right: 0; background: white; z-index: 1050; border: 1px solid #ced4da; border-radius: 6px; max-height: 180px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .search-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f1f3f5; }
+    .search-item:hover { background-color: #e9ecef; }
+  </style>
+</head>
+<body class="p-3">
+
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-white border-bottom pb-0 pt-3">
+      <ul class="nav nav-tabs card-header-tabs" id="benTabs" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active" id="tab-add-btn" data-bs-toggle="tab" data-bs-target="#tab-add" type="button"><i class="bi bi-person-plus me-1"></i>Aggiungi</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="tab-edit-btn" data-bs-toggle="tab" data-bs-target="#tab-edit" type="button"><i class="bi bi-pencil-square me-1"></i>Modifica</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="tab-del-btn" data-bs-toggle="tab" data-bs-target="#tab-del" type="button"><i class="bi bi-trash3 me-1 text-danger"></i>Elimina / Archivia</button>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card-body">
+      <div class="tab-content" id="benTabsContent">
+
+        <!-- TAB 1: AGGIUNGI BENEFICIARIO -->
+        <div class="tab-pane fade show active" id="tab-add" role="tabpanel">
+          <form id="form-add-ben" onsubmit="submitAddBeneficiario(event)">
+            <div class="row g-2 mb-2">
+              <div class="col-md-6">
+                <label class="form-label">Nome *</label>
+                <input type="text" class="form-control form-control-sm" id="add-nome" required onblur="formatTitleCase(this)">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Cognome *</label>
+                <input type="text" class="form-control form-control-sm" id="add-cognome" required onblur="formatTitleCase(this)">
+              </div>
+            </div>
+
+            <div class="row g-2 mb-2">
+              <div class="col-md-6">
+                <label class="form-label">Codice Fiscale *</label>
+                <input type="text" class="form-control form-control-sm text-uppercase fw-bold" id="add-cf" maxlength="16" required onblur="onCFBlur('add')">
+                <small id="add-cf-feedback" class="text-muted d-block" style="font-size:11px;"></small>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Sesso</label>
+                <select class="form-select form-select-sm" id="add-sesso">
+                  <option value="">--</option>
+                  <option value="M">M</option>
+                  <option value="F">F</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Data Nascita</label>
+                <input type="date" class="form-control form-control-sm" id="add-dataNascita">
+              </div>
+            </div>
+
+            <div class="row g-2 mb-2">
+              <div class="col-md-6">
+                <label class="form-label">Luogo di Nascita</label>
+                <input type="text" class="form-control form-control-sm" id="add-luogoNascita" placeholder="es. Roma (RM)" onblur="formatTitleCase(this)">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Cittadinanza / Nazionalità</label>
+                <input type="text" class="form-control form-control-sm" id="add-cittadinanza" placeholder="es. Italia" onblur="formatTitleCase(this)">
+              </div>
+            </div>
+
+            <div class="row g-2 mb-2">
+              <div class="col-md-4">
+                <label class="form-label">ID Nucleo Familiare</label>
+                <input type="text" class="form-control form-control-sm" id="add-idNucleo" placeholder="es. 12">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Ruolo nel Nucleo</label>
+                <select class="form-select form-select-sm" id="add-ruolo">
+                  <option value="Componente">Componente</option>
+                  <option value="Intestatario">Intestatario (Caponucleo)</option>
+                  <option value="Altro componente">Altro componente</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Telefono</label>
+                <input type="tel" class="form-control form-control-sm" id="add-telefono" placeholder="+39 ...">
+              </div>
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Residenza</label>
+                <input type="text" class="form-control form-control-sm" id="add-residenza" placeholder="es. Roma (RM)" onblur="formatTitleCase(this)">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Indirizzo / Domicilio</label>
+                <input type="text" class="form-control form-control-sm" id="add-indirizzo" placeholder="Via, Piazza, n. civico">
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+              <span id="add-status" class="small text-muted"></span>
+              <button type="submit" id="btn-submit-add" class="btn btn-primary btn-sm px-4 fw-bold">
+                <i class="bi bi-check-lg me-1"></i>Salva Beneficiario
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- TAB 2: MODIFICA BENEFICIARIO -->
+        <div class="tab-pane fade" id="tab-edit" role="tabpanel">
+          <div class="mb-3 search-box">
+            <label class="form-label">Cerca Beneficiario da Modificare</label>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input type="text" class="form-control" id="edit-search" placeholder="Digita Nome, Cognome o Codice Fiscale..." oninput="onSearchBeneficiario(this.value, 'edit')">
+            </div>
+            <div id="edit-search-results" class="search-results d-none"></div>
+          </div>
+
+          <form id="form-edit-ben" class="d-none" onsubmit="submitEditBeneficiario(event)">
+            <input type="hidden" id="edit-original-cf">
+            <div class="alert alert-info py-1 px-2 small mb-2 d-flex justify-content-between align-items-center">
+              <span>Modifica in corso: <strong id="edit-selected-label"></strong></span>
+              <button type="button" class="btn btn-link btn-sm text-decoration-none p-0" onclick="resetEditSelection()">Annulla</button>
+            </div>
+
+            <div class="row g-2 mb-2">
+              <div class="col-md-6">
+                <label class="form-label">Nome</label>
+                <input type="text" class="form-control form-control-sm" id="edit-nome" required onblur="formatTitleCase(this)">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Cognome</label>
+                <input type="text" class="form-control form-control-sm" id="edit-cognome" required onblur="formatTitleCase(this)">
+              </div>
+            </div>
+
+            <div class="row g-2 mb-2">
+              <div class="col-md-6">
+                <label class="form-label">Codice Fiscale</label>
+                <input type="text" class="form-control form-control-sm text-uppercase fw-bold" id="edit-cf" maxlength="16" required>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">ID Nucleo</label>
+                <input type="text" class="form-control form-control-sm" id="edit-idNucleo">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Ruolo</label>
+                <select class="form-select form-select-sm" id="edit-ruolo">
+                  <option value="Componente">Componente</option>
+                  <option value="Intestatario">Intestatario</option>
+                  <option value="Altro componente">Altro componente</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Telefono</label>
+                <input type="tel" class="form-control form-control-sm" id="edit-telefono">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Residenza / Indirizzo</label>
+                <input type="text" class="form-control form-control-sm" id="edit-residenza">
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+              <span id="edit-status" class="small text-muted"></span>
+              <button type="submit" id="btn-submit-edit" class="btn btn-warning btn-sm px-4 fw-bold">
+                <i class="bi bi-save me-1"></i>Aggiorna Dati
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- TAB 3: ELIMINA / ARCHIVIA -->
+        <div class="tab-pane fade" id="tab-del" role="tabpanel">
+          <div class="mb-3 search-box">
+            <label class="form-label">Cerca Beneficiario da Rimuovere o Archiviare</label>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text text-danger"><i class="bi bi-trash"></i></span>
+              <input type="text" class="form-control" id="del-search" placeholder="Digita Nome, Cognome o CF..." oninput="onSearchBeneficiario(this.value, 'del')">
+            </div>
+            <div id="del-search-results" class="search-results d-none"></div>
+          </div>
+
+          <div id="del-details-card" class="d-none">
+            <div class="alert alert-danger mb-3 p-3">
+              <h6 class="fw-bold mb-1" id="del-person-name"></h6>
+              <p class="small mb-1 text-muted" id="del-person-cf"></p>
+              <div class="small mt-2 p-2 bg-white rounded border text-dark" id="del-person-info"></div>
+            </div>
+
+            <div class="card p-3 bg-light border-0 mb-3">
+              <label class="form-label fw-bold">Conferma per Procedere</label>
+              <p class="small text-muted mb-2">Digita il Codice Fiscale del beneficiario per abilitare l'eliminazione:</p>
+              <input type="text" class="form-control form-control-sm text-uppercase fw-bold mb-2" id="del-cf-confirm" placeholder="Digita CF esatto..." oninput="checkDelConfirmation()">
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+              <span id="del-status" class="small text-danger fw-semibold"></span>
+              <button type="button" id="btn-confirm-delete" class="btn btn-danger btn-sm px-4 fw-bold" disabled onclick="executeDeleteBeneficiario()">
+                <i class="bi bi-trash3-fill me-1"></i>Elimina Definitivamente
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card-footer bg-white border-top d-flex justify-content-end p-2">
+      <button class="btn btn-secondary btn-sm px-3" onclick="google.script.host.close()">Chiudi</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let beneficiariesList = [];
+    let selectedBeneficiary = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      google.script.run
+        .withSuccessHandler((list) => { beneficiariesList = list || []; })
+        .getBeneficiariesList();
+    });
+
+    function formatTitleCase(input) {
+      if (!input || !input.value) return;
+      const str = input.value.trim().toLowerCase();
+      input.value = str.split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+
+    function onCFBlur(prefix) {
+      const cfInput = document.getElementById(`${prefix}-cf`);
+      const feedback = document.getElementById(`${prefix}-cf-feedback`);
+      const cf = (cfInput.value || '').toUpperCase().trim();
+      cfInput.value = cf;
+
+      if (!cf) { feedback.innerText = ''; return; }
+      if (cf.length !== 16) {
+        feedback.innerText = '⚠️ Il Codice Fiscale deve contenere esattamente 16 caratteri.';
+        feedback.className = 'text-danger d-block small';
+        return;
+      }
+
+      feedback.innerText = 'Codice Fiscale formattato (16 car).';
+      feedback.className = 'text-success d-block small';
+    }
+
+    function onSearchBeneficiario(query, mode) {
+      const q = (query || '').toLowerCase().trim();
+      const resultsContainer = document.getElementById(`${mode}-search-results`);
+      if (q.length < 2) {
+        resultsContainer.classList.add('d-none');
+        return;
+      }
+
+      const matches = beneficiariesList.filter(b => {
+        const full = `${b.nome || ''} ${b.cognome || ''}`.toLowerCase();
+        const cf = (b.cf || '').toLowerCase();
+        return full.includes(q) || cf.includes(q);
+      }).slice(0, 8);
+
+      if (matches.length === 0) {
+        resultsContainer.innerHTML = '<div class="p-2 text-muted small">Nessun beneficiario trovato.</div>';
+        resultsContainer.classList.remove('d-none');
+        return;
+      }
+
+      resultsContainer.innerHTML = matches.map(b => `
+        <div class="search-item" onclick="selectBeneficiary('${b.cf}', '${mode}')">
+          <strong>${b.nome} ${b.cognome}</strong>
+          <span class="text-muted small ms-2">${b.cf || 'CF non censito'}</span>
+          <span class="badge bg-light text-dark border ms-1 small">Nucleo #${b.idNucleo || 'N/D'}</span>
+        </div>
+      `).join('');
+      resultsContainer.classList.remove('d-none');
+    }
+
+    function selectBeneficiary(cf, mode) {
+      const target = beneficiariesList.find(b => (b.cf || '').toUpperCase() === cf.toUpperCase());
+      if (!target) return;
+
+      selectedBeneficiary = target;
+      document.getElementById(`${mode}-search-results`).classList.add('d-none');
+      document.getElementById(`${mode}-search`).value = `${target.nome} ${target.cognome} (${target.cf})`;
+
+      if (mode === 'edit') {
+        document.getElementById('form-edit-ben').classList.remove('d-none');
+        document.getElementById('edit-original-cf').value = target.cf;
+        document.getElementById('edit-selected-label').innerText = `${target.nome} ${target.cognome}`;
+        document.getElementById('edit-nome').value = target.nome || '';
+        document.getElementById('edit-cognome').value = target.cognome || '';
+        document.getElementById('edit-cf').value = target.cf || '';
+        document.getElementById('edit-idNucleo').value = target.idNucleo || '';
+        document.getElementById('edit-ruolo').value = target.rapportoIntestatario || 'Componente';
+        document.getElementById('edit-telefono').value = target.telefono || '';
+        document.getElementById('edit-residenza').value = target.residenza || '';
+      } else if (mode === 'del') {
+        document.getElementById('del-details-card').classList.remove('d-none');
+        document.getElementById('del-person-name').innerText = `${target.nome} ${target.cognome}`;
+        document.getElementById('del-person-cf').innerText = `Codice Fiscale: ${target.cf || 'N/D'}`;
+        document.getElementById('del-person-info').innerHTML = `
+          <strong>Nucleo:</strong> #${target.idNucleo || 'Nessuno'} | 
+          <strong>Ruolo:</strong> ${target.rapportoIntestatario || 'Componente'}<br>
+          <strong>ID Cartella Drive:</strong> ${target.idCartella || 'Nessuna cartella associata'}
+        `;
+        document.getElementById('del-cf-confirm').value = '';
+        checkDelConfirmation();
+      }
+    }
+
+    function resetEditSelection() {
+      selectedBeneficiary = null;
+      document.getElementById('form-edit-ben').classList.add('d-none');
+      document.getElementById('edit-search').value = '';
+    }
+
+    function checkDelConfirmation() {
+      if (!selectedBeneficiary) return;
+      const input = (document.getElementById('del-cf-confirm').value || '').toUpperCase().trim();
+      const targetCF = (selectedBeneficiary.cf || '').toUpperCase().trim();
+      const btn = document.getElementById('btn-confirm-delete');
+      btn.disabled = !(input === targetCF && targetCF.length > 0);
+    }
+
+    function submitAddBeneficiario(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-submit-add');
+      const status = document.getElementById('add-status');
+      btn.disabled = true;
+      status.innerText = 'Salvataggio in corso...';
+
+      const payload = {
+        nome: document.getElementById('add-nome').value.trim(),
+        cognome: document.getElementById('add-cognome').value.trim(),
+        cf: document.getElementById('add-cf').value.toUpperCase().trim(),
+        sesso: document.getElementById('add-sesso').value,
+        dataNascita: document.getElementById('add-dataNascita').value,
+        luogoNascita: document.getElementById('add-luogoNascita').value.trim(),
+        cittadinanza: document.getElementById('add-cittadinanza').value.trim(),
+        idNucleo: document.getElementById('add-idNucleo').value.trim(),
+        rapportoIntestatario: document.getElementById('add-ruolo').value,
+        telefono: document.getElementById('add-telefono').value.trim(),
+        residenza: document.getElementById('add-residenza').value.trim(),
+        domicilio: document.getElementById('add-indirizzo').value.trim()
+      };
+
+      google.script.run
+        .withSuccessHandler((res) => {
+          btn.disabled = false;
+          if (res && res.success) {
+            status.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Salvato con successo!</span>';
+            document.getElementById('form-add-ben').reset();
+            setTimeout(() => { google.script.host.close(); }, 1200);
+          } else {
+            status.innerHTML = `<span class="text-danger">Errore: ${res.message || 'Salvataggio fallito'}</span>`;
+          }
+        })
+        .withFailureHandler((err) => {
+          btn.disabled = false;
+          status.innerHTML = `<span class="text-danger">Errore RPC: ${err}</span>`;
+        })
+        .submitBeneficiary(payload);
+    }
+
+    function submitEditBeneficiario(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-submit-edit');
+      const status = document.getElementById('edit-status');
+      btn.disabled = true;
+      status.innerText = 'Aggiornamento in corso...';
+
+      const payload = {
+        originalCF: document.getElementById('edit-original-cf').value,
+        nome: document.getElementById('edit-nome').value.trim(),
+        cognome: document.getElementById('edit-cognome').value.trim(),
+        cf: document.getElementById('edit-cf').value.toUpperCase().trim(),
+        idNucleo: document.getElementById('edit-idNucleo').value.trim(),
+        rapportoIntestatario: document.getElementById('edit-ruolo').value,
+        telefono: document.getElementById('edit-telefono').value.trim(),
+        residenza: document.getElementById('edit-residenza').value.trim()
+      };
+
+      google.script.run
+        .withSuccessHandler((res) => {
+          btn.disabled = false;
+          if (res && res.success) {
+            status.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Aggiornato con successo!</span>';
+            setTimeout(() => { google.script.host.close(); }, 1200);
+          } else {
+            status.innerHTML = `<span class="text-danger">Errore: ${res.message || 'Aggiornamento fallito'}</span>`;
+          }
+        })
+        .withFailureHandler((err) => {
+          btn.disabled = false;
+          status.innerHTML = `<span class="text-danger">Errore RPC: ${err}</span>`;
+        })
+        .submitBeneficiary(payload);
+    }
+
+    function executeDeleteBeneficiario() {
+      if (!selectedBeneficiary) return;
+      const btn = document.getElementById('btn-confirm-delete');
+      const status = document.getElementById('del-status');
+      btn.disabled = true;
+      status.innerText = 'Eliminazione in corso...';
+
+      google.script.run
+        .withSuccessHandler((res) => {
+          btn.disabled = false;
+          if (res && res.success) {
+            alert('Beneficiario rimosso con successo.');
+            google.script.host.close();
+          } else {
+            status.innerText = res.message || 'Eliminazione fallita.';
+          }
+        })
+        .withFailureHandler((err) => {
+          btn.disabled = false;
+          status.innerText = 'Errore RPC: ' + err;
+        })
+        .removeBeneficiary(selectedBeneficiary.cf);
+    }
+  </script>
+</body>
+</html>

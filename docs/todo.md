@@ -3,7 +3,12 @@
 
 # Automazioni
 
+# UI
+* Invece che "Nucleo Familiare #.. Intestatario CF: ..." voglio che i nuclei familiari abbiamo come titolo una bandiera dello stato della nazionalità dell'intestatario, il cognome dell'intestatario e il numero del nucleo (non so ancora se tutto a sinistra o al centro) e colorati in base a se ci sono ancora cose da fare oppure è tutto concluso oppure è ancora da iniziare.
+* Nuclei familiari dovrebbero essere visibili come bootstrap accordion che possono essere espansi per vedere più dettagli
+
 # Funzionalità
+* Aggiungere tra i documenti scheda di segnalazione, scheda anagrafica, foglio firme intervento individuale, 
 * (Fatto) Modalità di debug real-time con intercettore RPC (latenza ms e payload), ispettore stato database in memoria, diagnostica compressione Canvas e IA Gemini Flash, trappola errori globali, benchmark ping server, pulsante esportazione report e toggle ID tecnici (scorciatoia Ctrl+Shift+D, navbar e modale impostazioni)
 * (Fatto) Infrastruttura di Testing, CI/CD e Deployment Collaudo: suite unit test offline nativa Node.js v25 (`tests/unit/` per Modelli, Dominio, Validatori, Fuzzy Matching) ultra-rapida (<350ms, zero overhead), loader GAS in Node.js (`tests/loadSrc.js`), pipeline GitHub Actions automatizzate (`.github/workflows/test.yml` e `clasp-push.yml` con pre-test gate e audit sicurezza manifest) e automazione ciclo collaudo (`scripts/deploy.js` `open`/`close`) su deployment fisso con Nucleo di test dedicato #3 (Lorenzo Mazza)
 * Permettere un solo intestatario per nucleo
@@ -55,3 +60,8 @@
 
 # Prestazioni
 * Ci mette molti secondi a caricare nuclei e beneficiari anche se ora come ora sono solo una ventina. Dovrò fare qualcosa per quando saranno centinaia o migliaia. Probabilmente c'è qualcosa che posso fare lato client o lato database per velocizzare le cose, non so, magari quando i nuclei diventano tanti posso permettere di caricare solo una parte di essi, o di caricarli con una ricerca, ecc... oppure ci sono problemi che rallentano il caricamento
+
+# Dubbi
+* Come gestire documenti burocratici del comune. Sia quelli che sono abbinabili univocamente a un beneficiario (scheda di segnalazione, scheda anagrafica beneficiario, foglio firme intervento individuale) sia quelli che non lo sono (diario giornaliero, foglio firme mensile e timesheet)
+* Come estrarre e gestire volti beneficiari dai documenti
+* In google sheet ho già creato menu "La Bussola dell'abitare" con sottosezioni per ogni campo visibile da tutti i fogli. Va però modificato con le funzioni corrette. Creare anche altri menu visibili dinamicamente che si riferiscono al foglio corrente. Per esempio se il foglio corrente è "Beneficiari" ci sarà un menu "Aggiungi beneficiario", se il foglio corrente è "Nuclei familiari" ci sarà un menu "Aggiungi nucleo familiare", se il foglio corrente è "Documenti" ci sarà un menu "Aggiungi documento" e così via... Le azioni dovrebbero aprire un popup o una sidebar. Le azioni che vorrei fare in beneficiari sono: aggiungi beneficiario (dove è possibile inserire i dati), elimina beneficiario (dovrebbe dare la possibilità di cercarlo almeno per nome, cognome o cf), modifica beneficiario, importa dati beneficiari da Drive (mostrando eventuali discrepanze con dati esistenti prima di importarle), controlla errori (due beneficiari intestatari dello stesso nucleo, beneficiari di nuclei inesistenti, beneficiari con id cartelle inesistenti, due beneficiari con stesso id cartella, dati beneficiario in conflitto tra loro... e permettendo di correggerli uno ad uno o in blocco). Poi vorrei azioni personalizzate anche per i fogli Documenti, Nuclei familiari, Diario, Incontri con operatore e Incontri con Assistente sociale
