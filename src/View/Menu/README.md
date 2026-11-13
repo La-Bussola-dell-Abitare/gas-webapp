@@ -20,7 +20,11 @@ La cartella `src/View/Menu` gestisce l'integrazione con l'ambiente nativo di **G
 
 ### Dialoghi Modali HTML (`src/View/Menu/Dialogs/`)
 - **`DialogIntegrityAudit.html`**: interfaccia modale con metriche riepilogative, lista filtrata per severità (🔴 ERRORE, 🟡 ATTENZIONE, 🔵 INFO), pulsante "Risolvi" singolo e pulsante "🚀 Esegui Auto-Healing in Blocco".
-- **`DialogBeneficiario.html`**: interfaccia modale con 3 schede (Aggiungi, Modifica con autocompletamento, Elimina con conferma Codice Fiscale).
+- **`DialogBeneficiario.html`**: interfaccia modale a 3 schede (Aggiungi, Modifica, Elimina):
+  - Riceve `initialTab` (`add`, `edit`, `del`) da `main.js` aprendo direttamente la scheda richiesta dal menu.
+  - Interroga `getBeneficiariObjects()` per disporre di oggetti strutturati completi.
+  - Implementa motore di ricerca client su Nome Cognome, Cognome Nome e Codice Fiscale, con selezione per indice numerico sicuro (`selectBeneficiaryByIndex`) e prevenzione injection XSS (`escapeHtml`).
+  - Invia `isUpdate: true` e `originalCF` nel payload di modifica per consentire aggiornamenti e correzioni del Codice Fiscale in `BeneficiarioRepository.add()`.
 - **`DialogDriveImportDiff.html`**: tabella di confronto side-by-side tra file su Drive e righe del foglio prima dell'importazione.
 - **`ActiveSheetSidebar.html`**: pannello laterale intelligente che interroga `getActiveContextDataRPC()` e visualizza le azioni rapide del foglio attivo (Beneficiari, Nuclei, Documenti, Diario, Incontri).
 

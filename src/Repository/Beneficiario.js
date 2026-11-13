@@ -105,9 +105,10 @@ class BeneficiarioRepository {
         let isUpdate = false;
         let targetRowIdx = -1;
 
-        if (data.isUpdate && targetCF && idx.cf >= 0) {
+        const lookupCF = safeString(data.originalCF || data.cf).toUpperCase().trim();
+        if (data.isUpdate && lookupCF && idx.cf >= 0) {
             for (let i = 1; i < dataValues.length; i++) {
-                if (safeString(dataValues[i][idx.cf]).toUpperCase().trim() === targetCF) {
+                if (safeString(dataValues[i][idx.cf]).toUpperCase().trim() === lookupCF) {
                     isUpdate = true;
                     targetRowIdx = i + 1;
                     break;
@@ -147,8 +148,8 @@ class BeneficiarioRepository {
                 const rowRapporto = safeString(row[idx.rapportoIntestatario]).toLowerCase().trim();
                 const rowCF = idx.cf >= 0 && idx.cf < row.length ? safeString(row[idx.cf]).toUpperCase().trim() : "";
 
-                // Salta se corrisponde al CF del beneficiario target
-                if (targetCF && rowCF === targetCF) continue;
+                // Salta se corrisponde al CF del beneficiario target o al CF originario
+                if ((targetCF && rowCF === targetCF) || (lookupCF && rowCF === lookupCF)) continue;
 
                 if (rowNucleo === targetIdNucleo && rowRapporto === "intestatario") {
                     const rowNome = idx.nome >= 0 && idx.nome < row.length ? safeString(row[idx.nome]).trim() : "";

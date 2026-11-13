@@ -230,14 +230,40 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    const INITIAL_TAB = "<?= typeof initialTab !== 'undefined' ? initialTab : 'add' ?>";
     let beneficiariesList = [];
     let selectedBeneficiary = null;
 
     window.addEventListener('DOMContentLoaded', () => {
+      // 1. Attivazione automatica del tab richiesto
+      if (INITIAL_TAB === 'edit') {
+        const tabEditBtn = document.getElementById('tab-edit-btn');
+        if (tabEditBtn) bootstrap.Tab.getOrCreateInstance(tabEditBtn).show();
+      } else if (INITIAL_TAB === 'del') {
+        const tabDelBtn = document.getElementById('tab-del-btn');
+        if (tabDelBtn) bootstrap.Tab.getOrCreateInstance(tabDelBtn).show();
+      }
+
+      // 2. Caricamento oggetti beneficiari completi tramite RPC
       google.script.run
-        .withSuccessHandler((list) => { beneficiariesList = list || []; })
-        .getBeneficiariesList();
+        .withSuccessHandler((list) => {
+          beneficiariesList = Array.isArray(list) ? list : [];
+        })
+        .withFailureHandler((err) => {
+          console.error("Errore recupero beneficiari:", err);
+        })
+        .getBeneficiariObjects();
     });
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
 
     function formatTitleCase(input) {
       if (!input || !input.value) return;
@@ -270,11 +296,20 @@
         return;
       }
 
-      const matches = beneficiariesList.filter(b => {
-        const full = `${b.nome || ''} ${b.cognome || ''}`.toLowerCase();
+      const matches = [];
+      for (let i = 0; i < beneficiariesList.length; i++) {
+        const b = beneficiariesList[i];
+        const nome = (b.nome || b.name || '').trim();
+        const cognome = (b.cognome || b.surname || '').trim();
+        const direct = `${nome} ${cognome}`.toLowerCase();
+        const reverse = `${cognome} ${nome}`.toLowerCase();
         const cf = (b.cf || '').toLowerCase();
-        return full.includes(q) || cf.includes(q);
-      }).slice(0, 8);
+
+        if (direct.includes(q) || reverse.includes(q) || cf.includes(q)) {
+          matches.push({ index: i, beneficiary: b });
+          if (matches.length >= 10) break;
+        }
+      }
 
       if (matches.length === 0) {
         resultsContainer.innerHTML = '<div class="p-2 text-muted small">Nessun beneficiario trovato.</div>';
@@ -282,38 +317,50 @@
         return;
       }
 
-      resultsContainer.innerHTML = matches.map(b => `
-        <div class="search-item" onclick="selectBeneficiary('${b.cf}', '${mode}')">
-          <strong>${b.nome} ${b.cognome}</strong>
-          <span class="text-muted small ms-2">${b.cf || 'CF non censito'}</span>
-          <span class="badge bg-light text-dark border ms-1 small">Nucleo #${b.idNucleo || 'N/D'}</span>
-        </div>
-      `).join('');
+      resultsContainer.innerHTML = matches.map(m => {
+        const b = m.beneficiary;
+        const nomeCompleto = `${b.nome || b.name || ''} ${b.cognome || b.surname || ''}`.trim() || 'Nominativo N/D';
+        const cfDisplay = b.cf || 'CF non censito';
+        const nucleoDisplay = b.idNucleo ? `Nucleo #${b.idNucleo}` : 'Nessun nucleo';
+        return `
+          <div class="search-item" onclick="selectBeneficiaryByIndex(${m.index}, '${mode}')">
+            <strong>${escapeHtml(nomeCompleto)}</strong>
+            <span class="text-muted small ms-2">${escapeHtml(cfDisplay)}</span>
+            <span class="badge bg-light text-dark border ms-1 small">${escapeHtml(nucleoDisplay)}</span>
+          </div>
+        `;
+      }).join('');
       resultsContainer.classList.remove('d-none');
     }
 
-    function selectBeneficiary(cf, mode) {
-      const target = beneficiariesList.find(b => (b.cf || '').toUpperCase() === cf.toUpperCase());
+    function selectBeneficiaryByIndex(index, mode) {
+      const target = beneficiariesList[index];
       if (!target) return;
 
       selectedBeneficiary = target;
-      document.getElementById(`${mode}-search-results`).classList.add('d-none');
-      document.getElementById(`${mode}-search`).value = `${target.nome} ${target.cognome} (${target.cf})`;
+      const resultsContainer = document.getElementById(`${mode}-search-results`);
+      if (resultsContainer) resultsContainer.classList.add('d-none');
+
+      const nomeCompleto = `${target.nome || target.name || ''} ${target.cognome || target.surname || ''}`.trim();
+      const searchInput = document.getElementById(`${mode}-search`);
+      if (searchInput) searchInput.value = `${nomeCompleto} (${target.cf || 'CF N/D'})`;
 
       if (mode === 'edit') {
-        document.getElementById('form-edit-ben').classList.remove('d-none');
-        document.getElementById('edit-original-cf').value = target.cf;
-        document.getElementById('edit-selected-label').innerText = `${target.nome} ${target.cognome}`;
-        document.getElementById('edit-nome').value = target.nome || '';
-        document.getElementById('edit-cognome').value = target.cognome || '';
+        const formEl = document.getElementById('form-edit-ben');
+        if (formEl) formEl.classList.remove('d-none');
+        document.getElementById('edit-original-cf').value = target.cf || '';
+        document.getElementById('edit-selected-label').innerText = nomeCompleto;
+        document.getElementById('edit-nome').value = target.nome || target.name || '';
+        document.getElementById('edit-cognome').value = target.cognome || target.surname || '';
         document.getElementById('edit-cf').value = target.cf || '';
         document.getElementById('edit-idNucleo').value = target.idNucleo || '';
         document.getElementById('edit-ruolo').value = target.rapportoIntestatario || 'Componente';
-        document.getElementById('edit-telefono').value = target.telefono || '';
-        document.getElementById('edit-residenza').value = target.residenza || '';
+        document.getElementById('edit-telefono').value = target.telefono || target.phone || '';
+        document.getElementById('edit-residenza').value = target.residenza || target.domicilio || '';
       } else if (mode === 'del') {
-        document.getElementById('del-details-card').classList.remove('d-none');
-        document.getElementById('del-person-name').innerText = `${target.nome} ${target.cognome}`;
+        const cardEl = document.getElementById('del-details-card');
+        if (cardEl) cardEl.classList.remove('d-none');
+        document.getElementById('del-person-name').innerText = nomeCompleto;
         document.getElementById('del-person-cf').innerText = `Codice Fiscale: ${target.cf || 'N/D'}`;
         document.getElementById('del-person-info').innerHTML = `
           <strong>Nucleo:</strong> #${target.idNucleo || 'Nessuno'} | 
@@ -322,6 +369,13 @@
         `;
         document.getElementById('del-cf-confirm').value = '';
         checkDelConfirmation();
+      }
+    }
+
+    function selectBeneficiary(cf, mode) {
+      const idx = beneficiariesList.findIndex(b => (b.cf || '').toUpperCase() === (cf || '').toUpperCase());
+      if (idx >= 0) {
+        selectBeneficiaryByIndex(idx, mode);
       }
     }
 
@@ -387,6 +441,7 @@
       status.innerText = 'Aggiornamento in corso...';
 
       const payload = {
+        isUpdate: true,
         originalCF: document.getElementById('edit-original-cf').value,
         nome: document.getElementById('edit-nome').value.trim(),
         cognome: document.getElementById('edit-cognome').value.trim(),

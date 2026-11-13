@@ -153,15 +153,15 @@ function openSelectedRowDriveFolder() {
  * Apre il dialogo modale per la gestione dei Beneficiari (Aggiungi, Modifica, Elimina).
  */
 function openAddBeneficiarioDialog() {
-  _showModal("View/Menu/Dialogs/DialogBeneficiario", "Gestione Beneficiari", 750, 560);
+  _showModal("View/Menu/Dialogs/DialogBeneficiario", "Gestione Beneficiari", 750, 560, { initialTab: "add" });
 }
 
 function openEditBeneficiarioDialog() {
-  _showModal("View/Menu/Dialogs/DialogBeneficiario", "Modifica Beneficiario", 750, 560);
+  _showModal("View/Menu/Dialogs/DialogBeneficiario", "Modifica Beneficiario", 750, 560, { initialTab: "edit" });
 }
 
 function openDeleteBeneficiarioDialog() {
-  _showModal("View/Menu/Dialogs/DialogBeneficiario", "Elimina / Archivia Beneficiario", 750, 560);
+  _showModal("View/Menu/Dialogs/DialogBeneficiario", "Elimina / Archivia Beneficiario", 750, 560, { initialTab: "del" });
 }
 
 /**
@@ -476,10 +476,20 @@ function applyDriveImportDiffRPC(items) {
 
 /**
  * Helper interno per visualizzare un dialogo modale HTML con titolo e dimensioni.
+ * @param {string} templatePath Percorso del template HTML
+ * @param {string} title Titolo della modale
+ * @param {number} [width=750] Larghezza in pixel
+ * @param {number} [height=550] Altezza in pixel
+ * @param {Record<string, any>} [data={}] Parametri opzionali da iniettare nel template
  * @private
  */
-function _showModal(templatePath, title, width = 750, height = 550) {
+function _showModal(templatePath, title, width = 750, height = 550, data = {}) {
   const template = HtmlService.createTemplateFromFile(templatePath);
+  if (data && typeof data === "object") {
+    Object.keys(data).forEach(k => {
+      template[k] = data[k];
+    });
+  }
   const html = template.evaluate()
     .setWidth(width)
     .setHeight(height)
