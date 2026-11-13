@@ -2,7 +2,7 @@
  * @file documentIntelligence.test.js
  * @description Test unitari per DocumentIntelligence.js:
  * Verifica la resilienza a errori 503 (sovraccarico), timeout di rete,
- * cascata automatica su modelli fallback e normalizzazione dei metadati.
+ * cascata automatica su tier generici (Flash -> Flash-Lite -> Pro) e normalizzazione dei metadati.
  */
 
 const { describe, it, beforeEach } = require('node:test');
@@ -21,9 +21,9 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
       },
       CONFIG: {
         GEMINI: {
-          MODEL: 'gemini-3.8-flash',
+          MODEL: 'gemini-flash-latest',
           getApiKey: () => 'test-api-key-1234567890',
-          getModel: () => 'gemini-3.8-flash'
+          getModel: () => 'gemini-flash-latest'
         }
       },
       Utilities: {
@@ -71,7 +71,7 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
     assert.equal(context.DocumentIntelligence.isAvailable(), false);
   });
 
-  it('estrae con successo i dati quando Gemini restituisce HTTP 200 al primo tentativo', () => {
+  it('estrae con successo i dati quando Gemini restituisce HTTP 200 al primo tentativo con gemini-flash-latest', () => {
     const mockGeminiJson = {
       candidates: [{
         content: {
@@ -94,7 +94,7 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
     };
 
     context.UrlFetchApp.fetch = (url, options) => {
-      assert.ok(url.includes('gemini-3.8-flash'));
+      assert.ok(url.includes('gemini-flash-latest'));
       return {
         getResponseCode: () => 200,
         getContentText: () => JSON.stringify(mockGeminiJson)
@@ -105,6 +105,7 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
     const result = context.DocumentIntelligence.analyzeBlobs([dummyBlob]);
 
     assert.equal(result.success, true);
+    assert.equal(result.modelUsed, 'gemini-flash-latest');
     assert.equal(result.data.datiPersona.nome, 'Mario');
     assert.equal(result.data.datiPersona.cognome, 'Rossi');
     assert.equal(result.data.datiPersona.codiceFiscale, 'RSSMRA85M01H501Z');
@@ -112,7 +113,7 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
     assert.equal(result.data.documenti[0].tipoDocumento, "Carta d'Identità");
   });
 
-  it('gestisce errore HTTP 503 (sovraccarico) effettuando fallback automatico sul modello successivo', () => {
+  it('gestisce errore HTTP 503 (sovraccarico) effettuando fallback automatico su gemini-flash-lite-latest', () => {
     let callCount = 0;
     const requestedModels = [];
 
@@ -122,15 +123,15 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
       const modelName = modelMatch ? modelMatch[1] : '';
       requestedModels.push(modelName);
 
-      // Il primo modello (es. gemini-3.8-flash) restituisce 503 sovraccarico
-      if (modelName === 'gemini-3.8-flash') {
+      // Il primo modello (gemini-flash-latest) restituisce 503 sovraccarico
+      if (modelName === 'gemini-flash-latest') {
         return {
           getResponseCode: () => 503,
           getContentText: () => JSON.stringify({ error: { message: 'The model is overloaded. Please try again later.' } })
         };
       }
 
-      // Il modello fallback (gemini-3.6-flash) risponde con successo 200
+      // Il modello fallback (gemini-flash-lite-latest) risponde con successo 200
       return {
         getResponseCode: () => 200,
         getContentText: () => JSON.stringify({
@@ -152,11 +153,11 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
     const result = context.DocumentIntelligence.analyzeBlobs([dummyBlob]);
 
     assert.equal(result.success, true);
-    assert.equal(result.modelUsed, 'gemini-3.6-flash');
+    assert.equal(result.modelUsed, 'gemini-flash-lite-latest');
     assert.equal(result.data.datiPersona.nome, 'Luigi');
     assert.equal(result.data.valoreISEE, 12500);
-    assert.ok(requestedModels.includes('gemini-3.8-flash'));
-    assert.ok(requestedModels.includes('gemini-3.6-flash'));
+    assert.ok(requestedModels.includes('gemini-flash-latest'));
+    assert.ok(requestedModels.includes('gemini-flash-lite-latest'));
   });
 
   it('gestisce timeout di rete su UrlFetchApp effettuando fallback automatico sul modello successivo', () => {
@@ -168,7 +169,7 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
       requestedModels.push(modelName);
 
       // Il primo modello va in timeout
-      if (modelName === 'gemini-3.8-flash') {
+      if (modelName === 'gemini-flash-latest') {
         throw new Error('Timeout exceeded while fetching URL');
       }
 
@@ -195,10 +196,10 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
 
     assert.equal(result.success, true);
     assert.equal(result.data.datiPersona.nome, 'Anna');
-    assert.equal(result.modelUsed, 'gemini-3.6-flash');
+    assert.equal(result.modelUsed, 'gemini-flash-lite-latest');
   });
 
-  it('gestisce errore HTTP 404 (modello deprecato/non trovato) effettuando fallback automatico su modello successivo', () => {
+  it('gestisce errore HTTP 404 effettuando fallback automatico su gemini-flash-lite-latest', () => {
     const requestedModels = [];
 
     context.UrlFetchApp.fetch = (url, options) => {
@@ -206,10 +207,10 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
       const modelName = modelMatch ? modelMatch[1] : '';
       requestedModels.push(modelName);
 
-      if (modelName === 'gemini-3.8-flash') {
+      if (modelName === 'gemini-flash-latest') {
         return {
           getResponseCode: () => 404,
-          getContentText: () => JSON.stringify({ error: { code: 404, message: 'models/gemini-3.8-flash is not found' } })
+          getContentText: () => JSON.stringify({ error: { code: 404, message: 'models/gemini-flash-latest is not found' } })
         };
       }
 
@@ -234,13 +235,13 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
     const result = context.DocumentIntelligence.analyzeBlobs([dummyBlob]);
 
     assert.equal(result.success, true);
-    assert.equal(result.modelUsed, 'gemini-3.6-flash');
+    assert.equal(result.modelUsed, 'gemini-flash-lite-latest');
     assert.equal(result.data.datiPersona.nome, 'Giovanni');
-    assert.ok(requestedModels.includes('gemini-3.8-flash'));
-    assert.ok(requestedModels.includes('gemini-3.6-flash'));
+    assert.ok(requestedModels.includes('gemini-flash-latest'));
+    assert.ok(requestedModels.includes('gemini-flash-lite-latest'));
   });
 
-  it('gestisce errore HTTP 404 (modello deprecato/non trovato) effettuando fallback automatico su modello successivo', () => {
+  it('gestisce doppio fallimento (Flash e Flash-Lite) effettuando fallback su gemini-pro-latest', () => {
     const requestedModels = [];
 
     context.UrlFetchApp.fetch = (url, options) => {
@@ -248,10 +249,10 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
       const modelName = modelMatch ? modelMatch[1] : '';
       requestedModels.push(modelName);
 
-      if (modelName === 'gemini-3.8-flash') {
+      if (modelName === 'gemini-flash-latest' || modelName === 'gemini-flash-lite-latest') {
         return {
-          getResponseCode: () => 404,
-          getContentText: () => JSON.stringify({ error: { code: 404, message: 'models/gemini-3.8-flash is not found' } })
+          getResponseCode: () => 503,
+          getContentText: () => JSON.stringify({ error: { message: 'Overloaded' } })
         };
       }
 
@@ -262,7 +263,7 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
             content: {
               parts: [{
                 text: JSON.stringify({
-                  datiPersona: { nome: 'GIOVANNI', cognome: 'ROSSI' },
+                  datiPersona: { nome: 'FRANCESCO', cognome: 'NERI' },
                   documenti: []
                 })
               }]
@@ -276,52 +277,11 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
     const result = context.DocumentIntelligence.analyzeBlobs([dummyBlob]);
 
     assert.equal(result.success, true);
-    assert.equal(result.modelUsed, 'gemini-3.6-flash');
-    assert.equal(result.data.datiPersona.nome, 'Giovanni');
-    assert.ok(requestedModels.includes('gemini-3.8-flash'));
-    assert.ok(requestedModels.includes('gemini-3.6-flash'));
-  });
-
-  it('gestisce errore HTTP 404 (modello deprecato/non trovato) effettuando fallback automatico su modello successivo', () => {
-    const requestedModels = [];
-
-    context.UrlFetchApp.fetch = (url, options) => {
-      const modelMatch = url.match(/\/models\/([^:]+):generateContent/);
-      const modelName = modelMatch ? modelMatch[1] : '';
-      requestedModels.push(modelName);
-
-      if (modelName === 'gemini-3.8-flash') {
-        return {
-          getResponseCode: () => 404,
-          getContentText: () => JSON.stringify({ error: { code: 404, message: 'models/gemini-3.8-flash is not found' } })
-        };
-      }
-
-      return {
-        getResponseCode: () => 200,
-        getContentText: () => JSON.stringify({
-          candidates: [{
-            content: {
-              parts: [{
-                text: JSON.stringify({
-                  datiPersona: { nome: 'GIOVANNI', cognome: 'ROSSI' },
-                  documenti: []
-                })
-              }]
-            }
-          }]
-        })
-      };
-    };
-
-    const dummyBlob = context.Utilities.newBlob(Buffer.from('dummy'), 'image/jpeg', 'doc.jpg');
-    const result = context.DocumentIntelligence.analyzeBlobs([dummyBlob]);
-
-    assert.equal(result.success, true);
-    assert.equal(result.modelUsed, 'gemini-3.6-flash');
-    assert.equal(result.data.datiPersona.nome, 'Giovanni');
-    assert.ok(requestedModels.includes('gemini-3.8-flash'));
-    assert.ok(requestedModels.includes('gemini-3.6-flash'));
+    assert.equal(result.modelUsed, 'gemini-pro-latest');
+    assert.equal(result.data.datiPersona.nome, 'Francesco');
+    assert.ok(requestedModels.includes('gemini-flash-latest'));
+    assert.ok(requestedModels.includes('gemini-flash-lite-latest'));
+    assert.ok(requestedModels.includes('gemini-pro-latest'));
   });
 
   it('restituisce un messaggio chiaro di congestione temporanea se tutti i modelli nella cascata falliscono', () => {

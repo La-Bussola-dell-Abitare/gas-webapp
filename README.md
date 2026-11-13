@@ -66,7 +66,7 @@ Per abilitare la lettura automatica con IA dei documenti di identità, permessi 
 4. Aggiungere la proprietà:
    - Proprietà: `GEMINI_API_KEY`
    - Valore: *(la tua chiave API Google AI Studio)*
-   - *(Opzionale)* `GEMINI_MODEL`: `gemini-3.8-flash` (impostato di default, con fallback automatico a cascata)
+   - *(Opzionale)* `GEMINI_MODEL`: `gemini-flash-latest` (impostato di default, con fallback automatico a cascata sui tier generici `gemini-flash-lite-latest` e `gemini-pro-latest`)
 
 ---
 
@@ -206,7 +206,7 @@ flowchart TD
     subgraph Service ["Livello di Servizio"]
         DriveMgr["Service/GDrive/DriveManager (Alberatura e Firme)"]
         DriveRec["Service/GDrive/DriveReconciler (Audit e Bonifica)"]
-        DocAI["Service/Document/DocumentIntelligence (Gemini Flash 3.8 Multi-File)"]
+        DocAI["Service/Document/DocumentIntelligence (Gemini Flash Latest Multi-File)"]
         DocGen["Service/Document/ (FoglioFirme / Diario)"]
     end
 
@@ -293,7 +293,7 @@ Per consentire una comprensione approfondita e formale dell'architettura softwar
 | **Acquisizione Firma Digitale** | Canvas HTML5 (PointerEvents) per firma con mouse, touch o penna, salvataggio PNG trasparente in Drive e sincronizzazione automatica | [`Frontend.html`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/Frontend.html), [`DriveManager.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/GDrive/DriveManager.js) | ✅ Implementata |
 | **Fascicolo Documentale & Scadenze** | Foglio relazionale 'Documenti' con ID progressivo 1..N, semaforo scadenze (🔴 🟡 🟢 ⚪), importi economici (€) e link a Drive | [`Documento.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Documenti/Documento.js), [`DocumentoRepository.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Repository/Documento.js) | ✅ Implementata |
 | **Diagnostica e Riconciliazione Drive con IA** | Suite avanzata a 4 schede per audit Drive, rilevamento cartelle invertite/refusi (`analyzeFolderName`), deduplicazione Two-Tier (MD5 REST API v3), applicazione granulare per singolo caso o per tipologia, anteprima file integrata in-app (`#modal-preview-file`) e link Drive, spostamento atomico (`file.moveTo`), ridenominazione standard, sincronizzazione foglio 'Documenti' e allineamento anagrafico con diff interattivo tramite Gemini Flash | [`DriveReconciler.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/GDrive/DriveReconciler.js) • [Guida](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/GDrive/README.md) | ✅ Implementata |
-| **Smart Form-Filling Multi-File con IA (Gemini Flash)** | Computer Vision e OCR multimodale (`gemini-3.8-flash`) per caricamento simultaneo multi-file (CIE fronte/retro, ISEE, TS), compressione istantanea Canvas, normalizzazione Title Case, autocompilazione modale nucleo/membro e archiviazione Drive | [`DocumentIntelligence.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/Document/DocumentIntelligence.js) • [`DriveManager.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/GDrive/DriveManager.js) | ✅ Implementata |
+| **Smart Form-Filling Multi-File con IA (Gemini Flash)** | Computer Vision e OCR multimodale (`gemini-flash-latest`) per caricamento simultaneo multi-file (CIE fronte/retro, ISEE, TS), compressione istantanea Canvas, normalizzazione Title Case, autocompilazione modale nucleo/membro e archiviazione Drive | [`DocumentIntelligence.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/Document/DocumentIntelligence.js) • [`DriveManager.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/GDrive/DriveManager.js) | ✅ Implementata |
 | **Single Source of Truth Nazioni** | Catalogo immutabile di 196 paesi, ISO, prefissi telefonici, bandiere grafiche e cittadinanze | [`country.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Domain/country.js) • [Guida](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Domain/README.md) | ✅ Implementata |
 | **Single Source of Truth Documenti** | Catalogo di 20 documenti, 5 archetipi temporali, regex di matching e naming standard `buildDocumentFileName` | [`documents.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Domain/documents.js) • [Guida](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Domain/README.md) | ✅ Implementata |
 | **Dropdown Dinamiche e Named Ranges** | Caricamento valori ammessi da Named Ranges Google Sheets con fallback su Domain e cache di 6 ore | [`LookupRepository.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Repository/LookupRepository.js) | ✅ Implementata |

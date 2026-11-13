@@ -122,7 +122,7 @@ const CONFIG = Object.freeze({
    * Configurazione per Google Gemini (Document Intelligence & OCR).
    */
   GEMINI: Object.freeze({
-    MODEL: "gemini-3.8-flash",
+    MODEL: "gemini-flash-latest",
     API_URL: "https://generativelanguage.googleapis.com/v1beta/models/",
     /**
      * Restituisce il modello attivo (da ScriptProperties GEMINI_MODEL se presente, altrimenti default MODEL).

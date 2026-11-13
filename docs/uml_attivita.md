@@ -129,7 +129,7 @@ flowchart TD
 
 ## 4. Attività 4: Processo di Onboarding e Compilazione Rapida con Smart Document Intelligence (IA)
 
-Descrive il flusso operatore supportato dall'Intelligenza Artificiale multimodale (`gemini-3.8-flash`, con fallback su `gemini-3.6-flash` e `gemini-2.5-flash`) per l'estrazione batch, l'ottimizzazione client-side su Canvas, il popolamento istantaneo dell'anagrafica con normalizzazione Title Case e l'archiviazione automatica dei file su Google Drive e foglio `Documenti`.
+Descrive il flusso operatore supportato dall'Intelligenza Artificiale multimodale (`gemini-flash-latest`, con fallback su `gemini-flash-lite-latest` e `gemini-pro-latest`) per l'estrazione batch, l'ottimizzazione client-side su Canvas, il popolamento istantaneo dell'anagrafica con normalizzazione Title Case e l'archiviazione automatica dei file su Google Drive e foglio `Documenti`.
 
 ```mermaid
 flowchart TD

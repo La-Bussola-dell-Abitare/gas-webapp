@@ -85,14 +85,14 @@ class DocumentIntelligence {
     }
 
     const apiKey = CONFIG.GEMINI.getApiKey();
-    const primaryModel = (CONFIG.GEMINI && CONFIG.GEMINI.getModel) ? CONFIG.GEMINI.getModel() : ((CONFIG.GEMINI && CONFIG.GEMINI.MODEL) || "gemini-3.8-flash");
+    const primaryModel = (CONFIG.GEMINI && CONFIG.GEMINI.getModel) ? CONFIG.GEMINI.getModel() : ((CONFIG.GEMINI && CONFIG.GEMINI.MODEL) || "gemini-flash-latest");
 
-    // Cascata di modelli resilienti per tolleranza ai guasti (gemini-3.8-flash, gemini-3.6-flash, gemini-2.5-flash)
+    // Cascata di modelli resilienti per tier generici (Flash -> Flash-Lite -> Pro)
     const candidateModels = [
       primaryModel,
-      "gemini-3.8-flash",
-      "gemini-3.6-flash",
-      "gemini-2.5-flash"
+      "gemini-flash-latest",
+      "gemini-flash-lite-latest",
+      "gemini-pro-latest"
     ].filter((m, idx, arr) => m && arr.indexOf(m) === idx);
 
     const promptText = `

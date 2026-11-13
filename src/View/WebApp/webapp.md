@@ -8,7 +8,7 @@ L'interfaccia utente dello sportello sociale "La Bussola dell'Abitare" è un'app
 - **Framework UI**: Bootstrap 5.3 (grid responsive, modali, alert, utility tipografiche).
 - **Iconografia**: Bootstrap Icons e Flag Icons (libreria SVG/CSS per la resa ad alta risoluzione delle bandiere nazionali).
 - **Firma Digitale**: HTML5 Canvas nativo integrato con le API **W3C PointerEvents** (gestione unificata di mouse, touch capacitivo per dita e penne stylus con eliminazione automatica dello scroll accidentale).
-- **Computer Vision & OCR**: Integrazione client-server con Google Gemini Flash (`gemini-3.8-flash`) per la scansione visuale dei documenti e l'autocompilazione rapida dei form.
+- **Computer Vision & OCR**: Integrazione client-server con Google Gemini (`gemini-flash-latest`) per la scansione visuale dei documenti e l'autocompilazione rapida dei form.
 - **Compressione Immagini Client-Side**: HTML5 Canvas nativo per il downsampling e l'ottimizzazione istantanea dei file grafici prima del trasferimento via RPC (`google.script.run`), abbattendo i tempi di upload da smartphone da 20 secondi a meno di 1 secondo.
 - **Comunicazione Server**: Protocollo asincrono `google.script.run` con gestione nativa dei callback `withSuccessHandler` e `withFailureHandler`.
 
@@ -141,7 +141,7 @@ flowchart TD
   - La dimensione del payload si riduce da ~15 MB a ~300 KB in 30-50 millisecondi, azzerando le latenze di trasmissione della rete ed evitando timeout o superamento quote RPC.
 - **Analisi Simultanea Multi-File (Multimodal Batch)**:
   - Consente di trascinare o selezionare contemporaneamente più file o pagine (es. Carta d'Identità fronte e retro, oppure CIE + Tessera Sanitaria + ISEE).
-  - Il backend invia tutte le parti al modello multimodale `gemini-3.8-flash` (con cascata di fallback su `gemini-3.6-flash` e `gemini-2.5-flash`) in un'unica chiamata atomica, unificando le informazioni estratte.
+  - Il backend invia tutte le parti al modello multimodale `gemini-flash-latest` (con cascata di fallback sui tier `gemini-flash-lite-latest` e `gemini-pro-latest`) in un'unica chiamata atomica, unificando le informazioni estratte.
 - **Normalizzazione Rigorosa Title Case e Toponomastica**:
   - Nomi, cognomi e luoghi di nascita vengono formattati con la prima lettera maiuscola, gestendo correttamente cognomi con apostrofo (es. `D'Angelo`, `Dell'Amore`) e preposizioni.
   - La sigla della provincia italiana viene rigorosamente formattata in maiuscolo (es. `Reggio nell'Emilia (RE)`).
@@ -197,7 +197,7 @@ flowchart TD
   - Finestra a scomparsa laterale organizzata in 4 tab operative:
     1. **⚡ Live RPC Monitor**: intercetta tutte le chiamate `google.script.run` tramite `Proxy` JavaScript, misurando la latenza in millisecondi ed evidenziando con tag colorati lo stato (`SUCCESS` o `ERROR`), con visualizzazione ad albero dei parametri e delle risposte JSON.
     2. **💾 Stato Database**: ispettore in tempo reale delle collezioni in memoria (`dbBeneficiaries`, `dbNuclei`, `dbMeetings`, `dbDocumenti`, `dbLookups`) con conteggio record e pulsante per scaricare o ispezionare il dump JSON.
-    3. **🧠 AI & File**: storico dettagliato delle ottimizzazioni Canvas (risparmio % e KB originali vs compressi, tempo impiegato) e delle chiamate a Google Gemini Flash (`gemini-3.8-flash`) con riepilogo dei campi estratti.
+    3. **🧠 AI & File**: storico dettagliato delle ottimizzazioni Canvas (risparmio % e KB originali vs compressi, tempo impiegato) e delle chiamate a Google Gemini (`gemini-flash-latest`) con riepilogo dei campi estratti.
     4. **🔴 Error Log**: trappola per errori globali (`window.onerror` e `unhandledrejection`), tracciamento eccezioni con stack trace e pulsante **`📋 Copia Report Diagnostico`** per salvare negli appunti un report completo da inviare al supporto tecnico.
 - **Visualizzazione ID Tecnici (`showTechIds`) & Folder ID di Debug**:
   - Nel fascicolo documenti, l'interruttore applica la classe `.show-tech-ids` al `<body>`, rendendo visibili in tabella gli identificativi di riga del foglio di calcolo (`RowID: #X`) e i file ID di Google Drive (`DriveID: ...`).
