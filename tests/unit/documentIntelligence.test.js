@@ -21,9 +21,9 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
       },
       CONFIG: {
         GEMINI: {
-          MODEL: 'gemini-2.0-flash',
+          MODEL: 'gemini-3.8-flash',
           getApiKey: () => 'test-api-key-1234567890',
-          getModel: () => 'gemini-2.0-flash'
+          getModel: () => 'gemini-3.8-flash'
         }
       },
       Utilities: {
@@ -94,7 +94,7 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
     };
 
     context.UrlFetchApp.fetch = (url, options) => {
-      assert.ok(url.includes('gemini-2.0-flash'));
+      assert.ok(url.includes('gemini-3.8-flash'));
       return {
         getResponseCode: () => 200,
         getContentText: () => JSON.stringify(mockGeminiJson)
@@ -122,15 +122,15 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
       const modelName = modelMatch ? modelMatch[1] : '';
       requestedModels.push(modelName);
 
-      // Il primo modello (es. gemini-2.0-flash) restituisce 503 sovraccarico
-      if (modelName === 'gemini-2.0-flash') {
+      // Il primo modello (es. gemini-3.8-flash) restituisce 503 sovraccarico
+      if (modelName === 'gemini-3.8-flash') {
         return {
           getResponseCode: () => 503,
           getContentText: () => JSON.stringify({ error: { message: 'The model is overloaded. Please try again later.' } })
         };
       }
 
-      // Il modello fallback (gemini-2.5-flash) risponde con successo 200
+      // Il modello fallback (gemini-3.6-flash) risponde con successo 200
       return {
         getResponseCode: () => 200,
         getContentText: () => JSON.stringify({
@@ -152,11 +152,11 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
     const result = context.DocumentIntelligence.analyzeBlobs([dummyBlob]);
 
     assert.equal(result.success, true);
-    assert.equal(result.modelUsed, 'gemini-2.5-flash');
+    assert.equal(result.modelUsed, 'gemini-3.6-flash');
     assert.equal(result.data.datiPersona.nome, 'Luigi');
     assert.equal(result.data.valoreISEE, 12500);
-    assert.ok(requestedModels.includes('gemini-2.0-flash'));
-    assert.ok(requestedModels.includes('gemini-2.5-flash'));
+    assert.ok(requestedModels.includes('gemini-3.8-flash'));
+    assert.ok(requestedModels.includes('gemini-3.6-flash'));
   });
 
   it('gestisce timeout di rete su UrlFetchApp effettuando fallback automatico sul modello successivo', () => {
@@ -168,7 +168,7 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
       requestedModels.push(modelName);
 
       // Il primo modello va in timeout
-      if (modelName === 'gemini-2.0-flash') {
+      if (modelName === 'gemini-3.8-flash') {
         throw new Error('Timeout exceeded while fetching URL');
       }
 
@@ -195,7 +195,133 @@ describe('DocumentIntelligence.js - Resilienza IA e Cascata Fallback', () => {
 
     assert.equal(result.success, true);
     assert.equal(result.data.datiPersona.nome, 'Anna');
-    assert.equal(result.modelUsed, 'gemini-2.5-flash');
+    assert.equal(result.modelUsed, 'gemini-3.6-flash');
+  });
+
+  it('gestisce errore HTTP 404 (modello deprecato/non trovato) effettuando fallback automatico su modello successivo', () => {
+    const requestedModels = [];
+
+    context.UrlFetchApp.fetch = (url, options) => {
+      const modelMatch = url.match(/\/models\/([^:]+):generateContent/);
+      const modelName = modelMatch ? modelMatch[1] : '';
+      requestedModels.push(modelName);
+
+      if (modelName === 'gemini-3.8-flash') {
+        return {
+          getResponseCode: () => 404,
+          getContentText: () => JSON.stringify({ error: { code: 404, message: 'models/gemini-3.8-flash is not found' } })
+        };
+      }
+
+      return {
+        getResponseCode: () => 200,
+        getContentText: () => JSON.stringify({
+          candidates: [{
+            content: {
+              parts: [{
+                text: JSON.stringify({
+                  datiPersona: { nome: 'GIOVANNI', cognome: 'ROSSI' },
+                  documenti: []
+                })
+              }]
+            }
+          }]
+        })
+      };
+    };
+
+    const dummyBlob = context.Utilities.newBlob(Buffer.from('dummy'), 'image/jpeg', 'doc.jpg');
+    const result = context.DocumentIntelligence.analyzeBlobs([dummyBlob]);
+
+    assert.equal(result.success, true);
+    assert.equal(result.modelUsed, 'gemini-3.6-flash');
+    assert.equal(result.data.datiPersona.nome, 'Giovanni');
+    assert.ok(requestedModels.includes('gemini-3.8-flash'));
+    assert.ok(requestedModels.includes('gemini-3.6-flash'));
+  });
+
+  it('gestisce errore HTTP 404 (modello deprecato/non trovato) effettuando fallback automatico su modello successivo', () => {
+    const requestedModels = [];
+
+    context.UrlFetchApp.fetch = (url, options) => {
+      const modelMatch = url.match(/\/models\/([^:]+):generateContent/);
+      const modelName = modelMatch ? modelMatch[1] : '';
+      requestedModels.push(modelName);
+
+      if (modelName === 'gemini-3.8-flash') {
+        return {
+          getResponseCode: () => 404,
+          getContentText: () => JSON.stringify({ error: { code: 404, message: 'models/gemini-3.8-flash is not found' } })
+        };
+      }
+
+      return {
+        getResponseCode: () => 200,
+        getContentText: () => JSON.stringify({
+          candidates: [{
+            content: {
+              parts: [{
+                text: JSON.stringify({
+                  datiPersona: { nome: 'GIOVANNI', cognome: 'ROSSI' },
+                  documenti: []
+                })
+              }]
+            }
+          }]
+        })
+      };
+    };
+
+    const dummyBlob = context.Utilities.newBlob(Buffer.from('dummy'), 'image/jpeg', 'doc.jpg');
+    const result = context.DocumentIntelligence.analyzeBlobs([dummyBlob]);
+
+    assert.equal(result.success, true);
+    assert.equal(result.modelUsed, 'gemini-3.6-flash');
+    assert.equal(result.data.datiPersona.nome, 'Giovanni');
+    assert.ok(requestedModels.includes('gemini-3.8-flash'));
+    assert.ok(requestedModels.includes('gemini-3.6-flash'));
+  });
+
+  it('gestisce errore HTTP 404 (modello deprecato/non trovato) effettuando fallback automatico su modello successivo', () => {
+    const requestedModels = [];
+
+    context.UrlFetchApp.fetch = (url, options) => {
+      const modelMatch = url.match(/\/models\/([^:]+):generateContent/);
+      const modelName = modelMatch ? modelMatch[1] : '';
+      requestedModels.push(modelName);
+
+      if (modelName === 'gemini-3.8-flash') {
+        return {
+          getResponseCode: () => 404,
+          getContentText: () => JSON.stringify({ error: { code: 404, message: 'models/gemini-3.8-flash is not found' } })
+        };
+      }
+
+      return {
+        getResponseCode: () => 200,
+        getContentText: () => JSON.stringify({
+          candidates: [{
+            content: {
+              parts: [{
+                text: JSON.stringify({
+                  datiPersona: { nome: 'GIOVANNI', cognome: 'ROSSI' },
+                  documenti: []
+                })
+              }]
+            }
+          }]
+        })
+      };
+    };
+
+    const dummyBlob = context.Utilities.newBlob(Buffer.from('dummy'), 'image/jpeg', 'doc.jpg');
+    const result = context.DocumentIntelligence.analyzeBlobs([dummyBlob]);
+
+    assert.equal(result.success, true);
+    assert.equal(result.modelUsed, 'gemini-3.6-flash');
+    assert.equal(result.data.datiPersona.nome, 'Giovanni');
+    assert.ok(requestedModels.includes('gemini-3.8-flash'));
+    assert.ok(requestedModels.includes('gemini-3.6-flash'));
   });
 
   it('restituisce un messaggio chiaro di congestione temporanea se tutti i modelli nella cascata falliscono', () => {

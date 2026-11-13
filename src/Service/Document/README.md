@@ -9,14 +9,15 @@ La cartella `src/Service/Document` gestisce la **Document Intelligence basata su
 ## 2. File Presenti
 
 ### `DocumentIntelligence.js` — Computer Vision & OCR con Google Gemini
-Integra l'endpoint REST dei modelli Google Gemini Flash (`gemini-2.0-flash` predefinito, con fallback dinamico a cascata su `gemini-2.5-flash` e `gemini-1.5-flash`) tramite `UrlFetchApp` di Google Apps Script per analizzare scansioni (PDF) e immagini (JPEG, PNG, WEBP) di documenti reali.
+Integra l'endpoint REST dei modelli Google Gemini Flash (`gemini-3.8-flash` predefinito, con fallback dinamico a cascata su `gemini-3.6-flash` e `gemini-2.5-flash`) tramite `UrlFetchApp` di Google Apps Script per analizzare scansioni (PDF) e immagini (JPEG, PNG, WEBP) di documenti reali.
 
 #### Scelte Tecniche e di Resilienza (High Availability):
 1. **Latenza Ultra-Bassa e Cascata Modelli (HA)**:
    La serie **Flash** consente un'esperienza operatore in tempo reale (~1-2 secondi). Per prevenire blocchi operativi dovuti a picchi di congestione dei server Google o a timeout di rete, il servizio implementa una **cascata automatica di fallback** con backoff esponenziale:
-   - Modello primario: configurato da `CONFIG.GEMINI.getModel()` (predefinito `gemini-2.0-flash` o sovrascritto da Script Properties `GEMINI_MODEL`).
-   - Modelli di soccorso: `gemini-2.0-flash`, `gemini-2.5-flash`, `gemini-1.5-flash`.
-   - Se un modello risponde con **HTTP 503 (Overloaded)**, **HTTP 429 (Rate Limit)** o va in **timeout di rete**, il sistema esegue un breve backoff esponenziale (`Utilities.sleep`) e, in caso di mancata risposta, commuta istantaneamente sul modello successivo nella cascata, garantendo la continuità del servizio senza mostrare errori fatali all'utente.
+   - Modello primario: configurato da `CONFIG.GEMINI.getModel()` (predefinito `gemini-3.8-flash` o sovrascritto da Script Properties `GEMINI_MODEL`).
+   - Modelli di soccorso: `gemini-3.8-flash`, `gemini-3.6-flash`, `gemini-2.5-flash`.
+   - Se un modello risponde con **HTTP 404 (Modello deprecato/non trovato)**, **HTTP 503 (Overloaded)**, **HTTP 429 (Rate Limit)** o va in **timeout di rete**, il sistema esegue un breve backoff esponenziale (`Utilities.sleep`) e, in caso di mancata risposta, commuta istantaneamente sul modello successivo nella cascata, garantendo la continuità del servizio senza mostrare errori fatali all'utente.
+   - Diagnostica errori granulare: i codici di errore HTTP vengono differenziati chiaramente nei messaggi d'errore (404 modello non trovato/deprecato, 401/403 autenticazione/permessi, 429 quota superata, 503 congestione temporanea).
 2. **Schema JSON Vincolato (`response_mime_type: "application/json"`)**:
    L'API forza il modello a rispondere con un JSON conforme allo schema prestabilito, eliminando il testo discorsivo e azzerando le allucinazioni:
    ```json

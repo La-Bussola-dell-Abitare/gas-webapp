@@ -85,14 +85,14 @@ class DocumentIntelligence {
     }
 
     const apiKey = CONFIG.GEMINI.getApiKey();
-    const primaryModel = (CONFIG.GEMINI && CONFIG.GEMINI.getModel) ? CONFIG.GEMINI.getModel() : ((CONFIG.GEMINI && CONFIG.GEMINI.MODEL) || "gemini-2.0-flash");
+    const primaryModel = (CONFIG.GEMINI && CONFIG.GEMINI.getModel) ? CONFIG.GEMINI.getModel() : ((CONFIG.GEMINI && CONFIG.GEMINI.MODEL) || "gemini-3.8-flash");
 
-    // Cascata di modelli resilienti per tolleranza ai guasti (503 / 429 / timeout)
+    // Cascata di modelli resilienti per tolleranza ai guasti (gemini-3.8-flash, gemini-3.6-flash, gemini-2.5-flash)
     const candidateModels = [
       primaryModel,
-      "gemini-2.0-flash",
-      "gemini-2.5-flash",
-      "gemini-1.5-flash"
+      "gemini-3.8-flash",
+      "gemini-3.6-flash",
+      "gemini-2.5-flash"
     ].filter((m, idx, arr) => m && arr.indexOf(m) === idx);
 
     const promptText = `
@@ -322,9 +322,18 @@ REGOLE TASSATIVE DI FORMATTAZIONE E TITLE CASE:
       }
     }
 
+    let userFriendlyMsg = "I server di Google Gemini sono temporaneamente congestionati (errore 503 / timeout).";
+    if (lastStatusCode === 404) {
+      userFriendlyMsg = "I modelli Google Gemini configurati non sono supportati o risultano deprecati (HTTP 404).";
+    } else if (lastStatusCode === 401 || lastStatusCode === 403) {
+      userFriendlyMsg = `Autenticazione Google Gemini non valida o autorizzazione negata (HTTP ${lastStatusCode}).`;
+    } else if (lastStatusCode === 429) {
+      userFriendlyMsg = "Quota o limite di richieste Google Gemini superato (HTTP 429).";
+    }
+
     return {
       success: false,
-      message: `I server di Google Gemini sono temporaneamente congestionati (errore 503 / timeout). Dettaglio: ${lastErrorMsg || ('HTTP ' + lastStatusCode)}. Riprova tra pochi istanti.`
+      message: `${userFriendlyMsg} Dettaglio: ${lastErrorMsg || ('HTTP ' + lastStatusCode)}. Riprova tra pochi istanti.`
     };
   }
 

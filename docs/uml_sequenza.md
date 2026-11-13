@@ -333,7 +333,7 @@ sequenceDiagram
 
 ## 6. Sequenza 6: Smart Form-Filling Multi-File & Document Intelligence con Google Gemini Flash
 
-Illustra l'interazione tra l'area di rilascio documenti (drag & drop multi-file), l'ottimizzazione grafica su Canvas client-side, il servizio multimodale Gemini Flash (`gemini-2.5-flash`), la normalizzazione deterministica Title Case e l'archiviazione automatica in Google Drive e foglio `Documenti`.
+Illustra l'interazione tra l'area di rilascio documenti (drag & drop multi-file), l'ottimizzazione grafica su Canvas client-side, il servizio multimodale Gemini Flash (`gemini-3.8-flash`, con fallback su `gemini-3.6-flash`), la normalizzazione deterministica Title Case e l'archiviazione automatica in Google Drive e foglio `Documenti`.
 
 ```mermaid
 sequenceDiagram
@@ -342,7 +342,7 @@ sequenceDiagram
     participant UI as Frontend.html (Dropzone IA & Canvas)
     participant Ctrl as Backend.js
     participant DI as DocumentIntelligence
-    participant Gemini as Google Gemini API (gemini-2.5-flash)
+    participant Gemini as Google Gemini API (gemini-3.8-flash)
     participant DocDomain as Documents (SSOT)
     participant DM as DriveManager
     participant DocRepo as DocumentoRepository
