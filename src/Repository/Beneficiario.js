@@ -204,6 +204,13 @@ class BeneficiarioRepository {
             const val = data.firma !== undefined ? data.firma : data.documents.firma;
             sheet.getRange(newRowIdx, idx.firma + 1).setValue(val || "");
         }
+        if (idx.foto >= 0 && (data.foto !== undefined || data.documents?.foto !== undefined)) {
+            const val = data.foto !== undefined ? data.foto : data.documents.foto;
+            sheet.getRange(newRowIdx, idx.foto + 1).setValue(val || "");
+        }
+        if (idx.qualitaDocumenti >= 0 && data.qualitaDocumenti !== undefined) {
+            sheet.getRange(newRowIdx, idx.qualitaDocumenti + 1).setValue(data.qualitaDocumenti || "");
+        }
         if (idx.idCartella >= 0 && data.idCartella !== undefined) {
             sheet.getRange(newRowIdx, idx.idCartella + 1).setValue(data.idCartella || "");
         }
@@ -269,6 +276,8 @@ class BeneficiarioRepository {
             annoArrivo: findHeaderIndex(headers, ["anno arrivo in italia", "anno arrivo", "arrivo italia"]),
             dataInserimento: findHeaderIndex(headers, ["data inserimento", "data di inserimento", "inserimento"]),
             firma: findHeaderIndex(headers, ["firma", "id firma", "firma id", "firma autografa"]),
+            foto: findHeaderIndex(headers, ["foto", "id foto", "foto profilo", "immagine", "avatar"]),
+            qualitaDocumenti: findHeaderIndex(headers, ["qualità documenti", "qualita documenti", "qualità", "qualita", "qualità fascicolo"]),
             idCartella: findHeaderIndex(headers, ["id cartella drive", "id cartella", "cartella drive", "cartella", "id_cartella"]),
             idNucleo: findHeaderIndex(headers, ["nucleo familiare", "id nucleo", "nucleo", "id_nucleo", "id nucleo familiare", "id_nucleo_familiare", "famiglia", "id famiglia", "codice nucleo", "scheda nucleo", "nucleo id"])
         };
@@ -313,6 +322,8 @@ class BeneficiarioRepository {
                 let headerName = key;
                 if (key === "idCartella") headerName = "ID Cartella Drive";
                 else if (key === "firma") headerName = "Firma";
+                else if (key === "foto") headerName = "Foto";
+                else if (key === "qualitaDocumenti") headerName = "Qualità Documenti";
                 colIdx = ensureHeaderIndex(sheet, headerName);
                 idx[key] = colIdx;
             }

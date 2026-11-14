@@ -42,6 +42,7 @@ class Person {
     this.phone = data.phone || data.telefono || null;
     this.citizenship = data.citizenship || data.cittadinanza || null;
     this.signatureFileId = data.signatureFileId || data.firma || null;
+    this.photoFileId = data.photoFileId || data.foto || null;
   }
 
   // =========================================================================
@@ -104,4 +105,18 @@ class Person {
    * @return {Citizenship|string|null}
    */
   get cittadinanza() { return this.citizenship; }
+
+  /**
+   * Restituisce l'ID del file Drive della firma autografa.
+   * @return {string|null}
+   */
+  get firma() { return this.signatureFileId; }
+  set firma(v) { this.signatureFileId = v; }
+
+  /**
+   * Restituisce l'ID del file Drive della fototessera / avatar.
+   * @return {string|null}
+   */
+  get foto() { return this.photoFileId; }
+  set foto(v) { this.photoFileId = v; }
 }

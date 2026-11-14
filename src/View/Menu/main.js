@@ -47,6 +47,7 @@ function onOpen(e) {
       .addItem("👁️ Apri Fascicolo Documentale", "showWebAppSidebar")
       .addItem("⏰ Verifica Scadenze (🔴/🟡) e Solleciti", "openScadenzeSollecitiDialog")
       .addItem("🔄 Riconciliazione File e Deduplicazione MD5", "openDriveReconciliationDialog")
+      .addItem("✨ Calcola Qualità Documenti & Formattazione", "syncDocumentsQualityCommand")
       .addToUi();
 
     // 4. Menu Incontri & Diario
@@ -99,6 +100,157 @@ function syncAllLookupsCommand() {
     if (ss && ss.toast) {
       ss.toast("Errore: " + err, "❌ Errore Sync", 8);
     }
+  }
+}
+
+/**
+ * Calcola e sincronizza la colonna 'Qualità Documento' nel foglio Documenti
+ * e 'Qualità Documenti' nel foglio Beneficiari, applicando la formattazione condizionale a colori.
+ */
+function syncDocumentsQualityCommand() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) return;
+
+  try {
+    let docsUpdated = 0;
+    let benUpdated = 0;
+
+    // 1. Foglio Documenti
+    const docSheetName = (typeof CONFIG !== "undefined" && CONFIG.SHEET_DOCUMENTI) || "Documenti";
+    let docSheet = ss.getSheetByName(docSheetName);
+    if (docSheet && docSheet.getLastRow() > 1) {
+      const headers = docSheet.getRange(1, 1, 1, docSheet.getLastColumn()).getValues()[0];
+      const idx = (typeof DocumentoRepository !== "undefined") ? DocumentoRepository._getColIndexes(headers) : {};
+      let qualCol = idx.qualita;
+      if (qualCol < 0) {
+        qualCol = (typeof ensureHeaderIndex === "function") ? ensureHeaderIndex(docSheet, "Qualità Documento") : -1;
+      }
+      if (qualCol >= 0) {
+        const lastRow = docSheet.getLastRow();
+        const dataRange = docSheet.getRange(2, 1, lastRow - 1, docSheet.getLastColumn()).getValues();
+        for (let r = 0; r < dataRange.length; r++) {
+          const currentVal = String(dataRange[r][qualCol] || "").trim();
+          if (!currentVal) {
+            const tipo = idx.tipo >= 0 ? String(dataRange[r][idx.tipo] || "") : "";
+            const note = idx.note >= 0 ? String(dataRange[r][idx.note] || "") : "";
+            let deduced = "🟢 OTTIMALE";
+            if (/fronte|retro/i.test(note) || /fronte|retro/i.test(tipo)) {
+              deduced = "⚠️ DA UNIFICARE";
+            }
+            docSheet.getRange(r + 2, qualCol + 1).setValue(deduced);
+            docsUpdated++;
+          }
+        }
+
+        // Formattazione condizionale su Documenti
+        _applyQualityConditionalFormatting(docSheet, qualCol + 1, lastRow);
+      }
+    }
+
+    // 2. Foglio Beneficiari
+    const benSheetName = (typeof WA_SHEET_BENEFICIARI !== "undefined") ? WA_SHEET_BENEFICIARI : "Beneficiari";
+    let benSheet = ss.getSheetByName(benSheetName);
+    if (benSheet && benSheet.getLastRow() > 1 && typeof BeneficiarioRepository !== "undefined" && typeof DocumentoRepository !== "undefined") {
+      const headers = benSheet.getRange(1, 1, 1, benSheet.getLastColumn()).getValues()[0];
+      const bIdx = BeneficiarioRepository._getColIndexes(headers);
+      let qCol = bIdx.qualitaDocumenti;
+      if (qCol < 0) {
+        qCol = (typeof ensureHeaderIndex === "function") ? ensureHeaderIndex(benSheet, "Qualità Documenti") : -1;
+      }
+
+      if (qCol >= 0) {
+        const allBen = BeneficiarioRepository.getAll();
+        const allDocs = DocumentoRepository.getAll();
+        const lastRow = benSheet.getLastRow();
+
+        for (let i = 0; i < allBen.length; i++) {
+          const ben = allBen[i];
+          const benDocs = allDocs.filter(d => (d.intestatario || "").toUpperCase().trim() === (ben.cf || "").toUpperCase().trim());
+          const calculatedQuality = (typeof evaluateBeneficiaryDocQuality === "function")
+            ? evaluateBeneficiaryDocQuality(ben, benDocs)
+            : "🟢 OTTIMALE";
+          
+          benSheet.getRange(i + 2, qCol + 1).setValue(calculatedQuality);
+          benUpdated++;
+        }
+
+        // Formattazione condizionale su Beneficiari
+        _applyQualityConditionalFormatting(benSheet, qCol + 1, lastRow);
+      }
+    }
+
+    if (ss.toast) {
+      ss.toast(`Qualità calcolata per ${benUpdated} beneficiari e ${docsUpdated} documenti. Formattazione condizionale applicata.`, "✅ Qualità Documenti", 5);
+    }
+  } catch (e) {
+    if (ss.toast) {
+      ss.toast("Errore: " + e.message, "❌ Errore Qualità", 8);
+    }
+    Logger.log("syncDocumentsQualityCommand errore: " + e.message);
+  }
+}
+
+/**
+ * Applica le regole di formattazione condizionale per i semafori di qualità documento.
+ * @private
+ */
+function _applyQualityConditionalFormatting(sheet, colIndex, lastRow) {
+  try {
+    const range = sheet.getRange(2, colIndex, lastRow - 1, 1);
+    const existingRules = sheet.getConditionalFormatRules();
+    
+    // Rimuove regole precedenti sullo stesso range
+    const filteredRules = existingRules.filter(rule => {
+      const ranges = rule.getRanges();
+      return !ranges.some(r => r.getSheet().getName() === sheet.getName() && r.getColumn() === colIndex);
+    });
+
+    const ruleGreen = SpreadsheetApp.newConditionalFormatRule()
+      .whenTextContains("OTTIMALE")
+      .setBackground("#dcfce7")
+      .setFontColor("#15803d")
+      .setRanges([range])
+      .build();
+
+    const ruleYellow = SpreadsheetApp.newConditionalFormatRule()
+      .whenTextContains("PERFEZIONARE")
+      .setBackground("#fef9c3")
+      .setFontColor("#a16207")
+      .setRanges([range])
+      .build();
+
+    const ruleGrezzo = SpreadsheetApp.newConditionalFormatRule()
+      .whenTextContains("GREZZA")
+      .setBackground("#fef9c3")
+      .setFontColor("#a16207")
+      .setRanges([range])
+      .build();
+
+    const ruleOrange = SpreadsheetApp.newConditionalFormatRule()
+      .whenTextContains("UNIFICARE")
+      .setBackground("#fef3c7")
+      .setFontColor("#b45309")
+      .setRanges([range])
+      .build();
+
+    const ruleRed = SpreadsheetApp.newConditionalFormatRule()
+      .whenTextContains("INCOMPLETO")
+      .setBackground("#fee2e2")
+      .setFontColor("#b91c1c")
+      .setRanges([range])
+      .build();
+
+    const ruleMulti = SpreadsheetApp.newConditionalFormatRule()
+      .whenTextContains("MULTIPLO")
+      .setBackground("#fee2e2")
+      .setFontColor("#b91c1c")
+      .setRanges([range])
+      .build();
+
+    filteredRules.push(ruleGreen, ruleYellow, ruleGrezzo, ruleOrange, ruleRed, ruleMulti);
+    sheet.setConditionalFormatRules(filteredRules);
+  } catch (err) {
+    Logger.log("_applyQualityConditionalFormatting errore: " + err.message);
   }
 }
 

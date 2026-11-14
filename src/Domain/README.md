@@ -80,6 +80,13 @@ Costituisce l'autorità unica per tutte le tipologie di documenti gestite dallo 
   - `getDocumentCategories()`: restituisce le categorie distinte per i filtri della UI.
   - `getDocumentsByCategory(cat)`: elenca i documenti appartenenti a una categoria.
 
+- **Classificazione Qualitativa e Separazione da Scadenza Temporale**:
+  - `DOCUMENT_QUALITY`: enum dei livelli qualitativi del singolo file (`🟢 OTTIMALE`, `🟡 FOTO GREZZA`, `⚠️ DA UNIFICARE`, `🔴 MULTIPLO / DA SEPARARE`).
+  - `BENEFICIARIO_DOC_QUALITY`: enum dello stato sintetico del fascicolo documentale (`🟢 OTTIMALE`, `🟡 DA PERFEZIONARE`, `⚠️ DA UNIFICARE`, `🔴 INCOMPLETO`).
+  - `evaluateBeneficiaryDocQuality(beneficiary, docs)`: calcola matematicamente la qualità complessiva del fascicolo per la visualizzazione nella Web App e il filtraggio su Google Sheets.
+  - *Scelta architetturale:* la qualità grafica e l'unificazione Fronte/Retro sono state rigorosamente separate dalle scadenze temporali (gestite autonomamente con `dataScadenza` e semafori `SCADUTO`, `IN_SCADENZA`, `VALIDO`, `PERMANENTE`).
+  - *Nuova tipologia:* `FOTO_PROFILO` ("Foto Profilo / Fototessera") categorizzata come documento identitario `UNICO` estratto automaticamente o caricato.
+
 ---
 
 ### `education.js` — Standard UNESCO ISCED & EQF per Titoli di Studio

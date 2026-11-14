@@ -18,7 +18,7 @@
 
 /**
  * @typedef {Object} ReconcileIssue
- * @property {"FOLDER_NAME_MISMATCH" | "MISSING_MEMBER_FOLDER" | "MISPLACED_FILE" | "NON_STANDARD_FILENAME" | "DUPLICATE_FILE" | "UNTRACKED_FILE" | "ORPHAN_SHEET_ROW" | "ANAGRAFICA_DIFF" | "EXPIRED_DOCUMENT"} type
+ * @property {"FOLDER_NAME_MISMATCH" | "MISSING_MEMBER_FOLDER" | "MISPLACED_FILE" | "NON_STANDARD_FILENAME" | "DUPLICATE_FILE" | "UNTRACKED_FILE" | "ORPHAN_SHEET_ROW" | "ANAGRAFICA_DIFF" | "EXPIRED_DOCUMENT" | "FRAGMENTED_DOCUMENT"} type
  * @property {"warning" | "danger" | "info"} severity
  * @property {string} message
  * @property {string} [fileId]
@@ -53,6 +53,7 @@
  *   orphanRows: number;
  *   anagraficaDiffs: number;
  *   expiredDocs: number;
+ *   fragmentedDocs: number;
  * }} stats
  * @property {Array<{ id: string; name: string; cf: string; folderId: string; folderName: string }>} members
  * @property {Array<any>} duplicateGroups
@@ -861,6 +862,60 @@ class DriveReconciler {
       }
     }
 
+    // 8e. Rilevamento documenti frammentati (Fronte e Retro separati per tessere a due facce)
+    const memberFilesMap = {};
+    for (let fIdx = 0; fIdx < allScannedFiles.length; fIdx++) {
+      const item = allScannedFiles[fIdx];
+      const mCF = item.memberCF || (members.length === 1 ? (members[0].cf || "").toUpperCase() : "");
+      if (mCF) {
+        if (!memberFilesMap[mCF]) memberFilesMap[mCF] = [];
+        memberFilesMap[mCF].push(item);
+      }
+    }
+
+    const cardTypes = ["CARTA_IDENTITA", "TESSERA_SANITARIA", "PATENTE", "PERMESSO_SOGGIORNO"];
+    const isFront = (name) => /\b(fronte|front|lato[_\s-]?1|recto|f\.)\b/i.test(name) || /_fronte|_front/i.test(name);
+    const isBack = (name) => /\b(retro|back|lato[_\s-]?2|verso|r\.)\b/i.test(name) || /_retro|_back/i.test(name);
+
+    for (const [mCF, mFiles] of Object.entries(memberFilesMap)) {
+      const targetMem = members.find(m => (m.cf || "").toUpperCase().trim() === mCF);
+      const mName = targetMem ? `${targetMem.name || targetMem.nome || ""} ${targetMem.surname || targetMem.cognome || ""}`.trim() : mCF;
+
+      for (let c = 0; c < cardTypes.length; c++) {
+        const cType = cardTypes[c];
+        const matchingFiles = mFiles.filter(f => {
+          const docRec = (typeof findDocumentType === "function") ? findDocumentType(f.fileName) : null;
+          return docRec && docRec.id === cType;
+        });
+
+        const frontFile = matchingFiles.find(f => isFront(f.fileName));
+        const backFile = matchingFiles.find(f => isBack(f.fileName));
+
+        if (frontFile && backFile && frontFile.fileId !== backFile.fileId) {
+          const docRec = (typeof findDocumentType === "function") ? findDocumentType(frontFile.fileName) : null;
+          const tipoLabel = docRec ? docRec.name : "Documento di Riconoscimento";
+          issues.push({
+            type: "FRAGMENTED_DOCUMENT",
+            severity: "warning",
+            fileId: frontFile.fileId,
+            fileName: frontFile.fileName,
+            targetMemberCF: mCF,
+            targetMemberName: mName,
+            message: `Documento frammentato: '${frontFile.fileName}' e '${backFile.fileName}' contengono fronte e retro separati per ${mName}. Si consiglia l'unione su pagina singola (🟢 OTTIMALE).`,
+            extra: {
+              frontFileId: frontFile.fileId,
+              frontFileName: frontFile.fileName,
+              backFileId: backFile.fileId,
+              backFileName: backFile.fileName,
+              targetMemberCF: mCF,
+              targetMemberName: mName,
+              tipoDocumento: tipoLabel
+            }
+          });
+        }
+      }
+    }
+
     // 9. Individuazione righe orfane nel foglio 'Documenti' (file eliminati o inaccessibili su Drive)
     const memberCFSet = new Set(members.map(m => (m.cf || "").toUpperCase().trim()).filter(Boolean));
     const nucleoSheetDocs = existingTrackedDocs.filter(d => memberCFSet.has((d.intestatario || "").toUpperCase().trim()));
@@ -961,7 +1016,8 @@ class DriveReconciler {
         folderMismatches: issues.filter(i => i.type === "FOLDER_NAME_MISMATCH").length,
         orphanRows: orphanList.length,
         anagraficaDiffs: diffList.length,
-        expiredDocs: expiredDocsCount
+        expiredDocs: expiredDocsCount,
+        fragmentedDocs: issues.filter(i => i.type === "FRAGMENTED_DOCUMENT").length
       },
       members: reportMembers,
       duplicateGroups: duplicateGroups,
@@ -1199,6 +1255,30 @@ class DriveReconciler {
           }
         } catch (eAU) {
           errors.push(`Errore aggiornamento anagrafica ${item.entityType} ${item.entityId}: ${eAU.message}`);
+        }
+      }
+
+      // 9. Unione documenti frammentati approvati
+      const mergedDocs = approvedPlan.mergedDocuments || [];
+      for (let md = 0; md < mergedDocs.length; md++) {
+        const item = mergedDocs[md];
+        try {
+          if (item.targetMemberCF && item.tipoDocumento && item.base64Data && typeof DriveManager !== "undefined") {
+            const mRes = DriveManager.saveMergedDocument(
+              item.targetMemberCF,
+              item.tipoDocumento,
+              item.base64Data,
+              item.oldFileIds || [],
+              item.metadata || {}
+            );
+            if (mRes && mRes.success) {
+              actions.push(`Documento unificato '${mRes.fileName}' registrato con successo (qualità 🟢 OTTIMALE).`);
+            } else {
+              errors.push(`Errore unione documento per CF ${item.targetMemberCF}: ${mRes.message}`);
+            }
+          }
+        } catch (eMD) {
+          errors.push(`Errore unione documento: ${eMD.message}`);
         }
       }
 

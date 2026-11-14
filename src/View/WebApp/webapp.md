@@ -68,11 +68,18 @@ flowchart TD
 
 ### B. Scheda 2: Nuclei Familiari e Componenti (`tab-nuclei`)
 - **Card Informative**: Ogni nucleo è presentato in una card visiva con riassunto dell'intestatario, indirizzo, valore ISEE, data dell'ultimo contatto e conteggio incontri.
-- **Gestione Componenti**: All'interno della card è possibile:
-  - Visualizzare l'elenco dei membri con i relativi gradi di parentela.
-  - Aprire la cartella personale Google Drive del singolo membro.
-  - Verificare lo stato della firma autografa (badge verde o arancione) e acquisirla.
-  - Modificare l'anagrafica o rimuovere il componente.
+- **Filtri Rapidi a Pillola per Qualità Documenti**:
+  - Toolbar pill filter con selettori dedicati: `Tutti` | `🟢 Ottimali` | `🟡 Da Perfezionare` | `⚠️ Da Unificare` | `🔴 Incompleti`.
+  - Consente all'operatore di isolare istantaneamente i nuclei che necessitano di bonifica grafica, ritaglio foto, scansione o unificazione Fronte/Retro.
+- **Gestione Componenti & Visualizzazione Avatar**:
+  - All'interno della card è possibile:
+    - Visualizzare l'elenco dei membri con thumbnail avatar foto profilo circolare (estratto da Carta d'Identità/Permesso o scattato da webcam/smartphone).
+    - Badge colorato di conformità documentale individuale (`qualitaDocumenti`).
+    - Visualizzare l'elenco dei membri con i relativi gradi di parentela.
+    - Pulsante `📷 Foto` per scattare o caricare al volo la fototessera del beneficiario.
+    - Aprire la cartella personale Google Drive del singolo membro.
+    - Verificare lo stato della firma autografa (badge verde o arancione) e acquisirla.
+    - Modificare l'anagrafica o rimuovere il componente.
 - **Discovery & Importazione Nuclei da Google Drive (`#modal-drive-discovery`)**:
   - Pulsante dedicato `📥 Importa da Drive` nella toolbar della scheda *Nuclei e Persone*.
   - Scansiona la cartella radice [`CONFIG.FOLDER_BENEFICIARI_ROOT_ID`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Utils/Config.js) alla ricerca di fascicoli fisici non ancora catalogati a foglio.
@@ -109,14 +116,20 @@ flowchart TD
 ---
 
 ### C. Scheda 3: Documentazione e Fascicolo (`tab-documenti`)
-1. **Fascicolo Documentale e Scadenze**:
+1. **Fascicolo Documentale, Scadenze e Qualità Grafica**:
    - Tabella completa di tutti i documenti registrati nel foglio `Documenti`.
-   - **Semafori delle Scadenze**:
+   - **Semafori delle Scadenze (Temporali)**:
      - 🔴 **Scaduto**: data di scadenza superata.
      - 🟡 **In Scadenza**: scade entro 60 giorni (con indicazione giorni residui).
      - 🟢 **Valido**: scadenza oltre i 60 giorni.
      - ⚪ **Permanente**: documenti senza scadenza (Firma, CF).
-   - Filtri per ricerca testuale, per Categoria (*Anagrafica*, *Soggiorno*, *Economica*, *Abitativa*...) e per stato di scadenza.
+   - **Badge Qualità Documentale (Grafico / Layout)**:
+     - 🟢 **OTTIMALE**: documento scansionato/unificato su pagina singola, orientato e senza sfondi.
+     - 🟡 **FOTO GREZZA**: fotografia da smartphone con sfondo o bordi da ritagliare.
+     - ⚠️ **DA UNIFICARE**: file singolo contenente solo Fronte o solo Retro.
+     - 🔴 **MULTIPLO / DA SEPARARE**: immagine contenente più documenti o tessere promiscuamente.
+   - Filtri per ricerca testuale, per Categoria (*Anagrafica*, *Soggiorno*, *Economica*, *Abitativa*...), per stato di scadenza e dropdown per stato di **Qualità Documento** (`#filter-doc-qualita`).
+   - Azione guidata `🪄 Unisci Fronte/Retro`: se l'operatore visualizza i documenti di un membro con file Fronte e Retro separati, il sistema consente l'unificazione automatica client-side su singola pagina verticale con contestuale archiviazione e ricalcolo della qualità del fascicolo.
    - Pulsante `+ Registra Documento` per inserire o aggiornare metadati e valori economici (€).
 2. **Verifica Conformità Drive**:
    - Pulsante `Verifica Conformità Drive` per lanciare l'audit globale su tutti i nuclei censiti.
@@ -210,6 +223,17 @@ flowchart TD
 - **Visualizzazione ID Tecnici (`showTechIds`) & Folder ID di Debug**:
   - Nel fascicolo documenti, l'interruttore applica la classe `.show-tech-ids` al `<body>`, rendendo visibili in tabella gli identificativi di riga del foglio di calcolo (`RowID: #X`) e i file ID di Google Drive (`DriveID: ...`).
   - Nelle schede dei **Nuclei** e dei **Membri**, gli identificativi alfanumerici delle cartelle Drive (`idCartella`) sono **completamente rimossi dall'interfaccia standard** per non ingombrare la vista dell'operatore, e compaiono esclusivamente quando la **Modalità Debug** è attiva (`body.debug-mode-active`) con il prefisso `🐞`. In alternativa, l'operatore può aprire direttamente le cartelle tramite gli appositi pulsanti `📁 Cartella Nucleo` e `📁 Cartella`.
+
+### 6. Ritaglio Avatar e Unione Fronte/Retro Client-Side su Canvas
+- **Estrazione Automatica Fototessera (`cropFaceAvatar`)**:
+  - Quando Gemini Flash rileva un volto in una Carta d'Identità o Permesso di Soggiorno restituendo il riquadro normalizzato `fotoVisoBox` `[ymin, xmin, ymax, xmax]`, il client ritaglia istantaneamente un ritratto quadrato $256 \times 256$ px con Canvas 2D.
+  - Viene mostrata l'anteprima avatar circolare nella modale con salvataggio contestuale come `Foto Profilo - <Nome Cognome>.jpg` nella cartella personale e aggiornamento della colonna `Foto` in *Beneficiari*.
+- **Unione Fronte e Retro su Pagina Singola Verticale (`stitchCardsVertical`)**:
+  - Se vengono caricate o rilevate due immagini corrispondenti a Fronte e Retro di un documento d'identità, il Canvas le compone su un'unica immagine verticale $1024 \times 1312$ px ($\approx 3:4$ proporzione ideale per schermi e fogli A4).
+  - Il Fronte viene posizionato in alto e il Retro in basso, separati da una linea guida sottile.
+  - L'immagine unificata sostituisce i file separati, impostando la qualità a `🟢 OTTIMALE`.
+- **Acquisizione Manuale Fototessera (`handleManualPhotoUpload`)**:
+  - Accessibile tramite pulsante `📷 Foto` sulle righe dei componenti e nella modale anagrafica, supporta scatto istantaneo da webcam/fotocamera smartphone o selezione file con ritaglio centrale quadrato automatico.
 
 ---
 

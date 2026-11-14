@@ -283,5 +283,82 @@ describe('DriveReconciler.js - Metadati MD5 e Deduplicazione Two-Tier', () => {
       assert.ok(recognizedRenameIssue, 'I file riconosciuti non conformi devono proporre la ridenominazione standard');
       assert.strictEqual(recognizedRenameIssue.suggestedNewName, 'Carta d\'Identità - Mario Rossi.pdf');
     });
+
+    it('rileva documenti frammentati quando esistono file separati per Fronte e Retro', () => {
+      global.BeneficiarioRepository = {
+        getAll: () => [{
+          id: '1',
+          name: 'Mario',
+          surname: 'Rossi',
+          cf: 'RSSMRA80A01H501Z',
+          idNucleo: '1',
+          rapportoIntestatario: 'Intestatario'
+        }]
+      };
+      global.NucleoFamiliare = {
+        getAll: () => [{ id: '1', intestatario: 'RSSMRA80A01H501Z' }]
+      };
+      global.DocumentoRepository = {
+        getAll: () => []
+      };
+      global.DriveManager = {
+        getOrCreateNucleoFolder: () => ({ id: 'folder-root-1', url: 'https://drive.com/root1' }),
+        getOrCreateBeneficiarioFolder: () => ({ id: 'fld-mario', name: 'Mario Rossi' })
+      };
+
+      const fileFront = {
+        isTrashed: () => false,
+        getId: () => 'f-front-1',
+        getName: () => 'Carta Identità Fronte.jpg',
+        getSize: () => 120000,
+        getMimeType: () => 'image/jpeg',
+        getLastUpdated: () => new Date()
+      };
+      const fileBack = {
+        isTrashed: () => false,
+        getId: () => 'f-back-1',
+        getName: () => 'Carta Identità Retro.jpg',
+        getSize: () => 125000,
+        getMimeType: () => 'image/jpeg',
+        getLastUpdated: () => new Date()
+      };
+
+      const createIter = (items) => {
+        let idx = 0;
+        return {
+          hasNext: () => idx < items.length,
+          next: () => items[idx++]
+        };
+      };
+
+      const subFolderMario = {
+        isTrashed: () => false,
+        getId: () => 'fld-mario',
+        getName: () => 'Mario Rossi',
+        getFiles: () => createIter([fileFront, fileBack]),
+        getFolders: () => createIter([])
+      };
+
+      const rootFolder = {
+        isTrashed: () => false,
+        getId: () => 'folder-root-1',
+        getName: () => '1 - Mario Rossi',
+        getFiles: () => createIter([]),
+        getFolders: () => createIter([subFolderMario])
+      };
+
+      global.DriveApp = {
+        getFolderById: (id) => (id === 'fld-mario' ? subFolderMario : rootFolder)
+      };
+
+      const audit = DriveReconciler.auditNucleo('1');
+
+      const fragmentedIssue = audit.issues.find(i => i.type === 'FRAGMENTED_DOCUMENT');
+      assert.ok(fragmentedIssue, 'Deve rilevare la presenza di documento frammentato (Fronte e Retro separati)');
+      assert.strictEqual(fragmentedIssue.extra.frontFileId, 'f-front-1');
+      assert.strictEqual(fragmentedIssue.extra.backFileId, 'f-back-1');
+      assert.strictEqual(fragmentedIssue.targetMemberCF, 'RSSMRA80A01H501Z');
+      assert.strictEqual(audit.stats.fragmentedDocs, 1);
+    });
   });
 });

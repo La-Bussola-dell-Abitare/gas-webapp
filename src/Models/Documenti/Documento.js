@@ -58,6 +58,7 @@ class Documento {
 
     this.dataEmissione = Documento._normalizeDateString(data.dataEmissione);
     this.dataScadenza = Documento._normalizeDateString(data.dataScadenza);
+    this.qualita = (data.qualita || data.qualitaDocumento || "🟢 OTTIMALE").toString().trim();
     this.idDrive = (data.idDrive || "").toString().trim();
     this.note = (data.note || "").toString().trim();
     this.dataInserimento = Documento._normalizeDateString(data.dataInserimento) || new Date().toISOString().split("T")[0];
@@ -197,6 +198,7 @@ class Documento {
       valore: isNaN(parsedVal) ? null : parsedVal,
       dataEmissione: idx.dataEmissione >= 0 ? row[idx.dataEmissione] : "",
       dataScadenza: idx.dataScadenza >= 0 ? row[idx.dataScadenza] : "",
+      qualita: getSheetVal(row, idx, "qualita", "🟢 OTTIMALE"),
       idDrive: getSheetVal(row, idx, "idDrive", ""),
       note: getSheetVal(row, idx, "note", ""),
       dataInserimento: idx.dataInserimento >= 0 ? row[idx.dataInserimento] : ""
@@ -217,6 +219,7 @@ class Documento {
       valore: this.valore,
       dataEmissione: this.dataEmissione,
       dataScadenza: this.dataScadenza,
+      qualita: this.qualita || "🟢 OTTIMALE",
       idDrive: this.idDrive,
       note: this.note,
       dataInserimento: this.dataInserimento,

@@ -839,9 +839,27 @@
                     <i class="bi bi-cloud-arrow-down me-1"></i>Importa da Drive
                   </button>
                 </div>
-                <div class="d-flex align-items-center" style="min-width: 250px;">
-                  <input type="text" class="form-control form-control-sm" id="search-nuclei"
-                    placeholder="Cerca per nome, cognome, CF, via, ID..." oninput="renderNucleiList()">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <div class="btn-group btn-group-sm font-outfit" role="group" id="nuclei-quality-filter-group">
+                    <input type="radio" class="btn-check" name="nucleiQualityFilter" id="nqf-all" value="ALL" checked onchange="setNucleiQualityFilter('ALL')">
+                    <label class="btn btn-outline-secondary btn-xs py-1 px-2" for="nqf-all">Tutti</label>
+
+                    <input type="radio" class="btn-check" name="nucleiQualityFilter" id="nqf-ottimale" value="OTTIMALE" onchange="setNucleiQualityFilter('OTTIMALE')">
+                    <label class="btn btn-outline-success btn-xs py-1 px-2" for="nqf-ottimale" title="Fascicoli con tutti i documenti standardizzati">🟢 Ottimali</label>
+
+                    <input type="radio" class="btn-check" name="nucleiQualityFilter" id="nqf-perfezionare" value="DA_PERFEZIONARE" onchange="setNucleiQualityFilter('DA_PERFEZIONARE')">
+                    <label class="btn btn-outline-warning btn-xs py-1 px-2" for="nqf-perfezionare" title="Presenza di foto grezze da rifinire">🟡 Da Perfezionare</label>
+
+                    <input type="radio" class="btn-check" name="nucleiQualityFilter" id="nqf-unificare" value="DA_UNIFICARE" onchange="setNucleiQualityFilter('DA_UNIFICARE')">
+                    <label class="btn btn-outline-warning btn-xs py-1 px-2" for="nqf-unificare" title="Fronte e retro separati da unire">⚠️ Da Unificare</label>
+
+                    <input type="radio" class="btn-check" name="nucleiQualityFilter" id="nqf-incompleto" value="INCOMPLETO" onchange="setNucleiQualityFilter('INCOMPLETO')">
+                    <label class="btn btn-outline-danger btn-xs py-1 px-2" for="nqf-incompleto" title="Manca documento di riconoscimento">🔴 Incompleti</label>
+                  </div>
+                  <div style="min-width: 200px;">
+                    <input type="text" class="form-control form-control-sm" id="search-nuclei"
+                      placeholder="Cerca per nome, cognome, CF, via, ID..." oninput="renderNucleiList()">
+                  </div>
                 </div>
               </div>
               <div class="card-body" id="nuclei-cards-container">
@@ -948,21 +966,30 @@
               </div>
               <div class="card-body">
                 <div class="row g-2 mb-3">
-                  <div class="col-md-5">
+                  <div class="col-md-4">
                     <input type="text" class="form-control form-control-sm font-outfit" id="search-documenti" placeholder="Cerca per codice fiscale, tipo o note..." oninput="renderAllDocumentiTable()">
                   </div>
-                  <div class="col-md-4">
+                  <div class="col-md-3">
                     <select class="form-select form-select-sm" id="filter-doc-categoria" onchange="renderAllDocumentiTable()">
                       <option value="">Tutte le Categorie</option>
                     </select>
                   </div>
                   <div class="col-md-3">
                     <select class="form-select form-select-sm" id="filter-doc-stato" onchange="renderAllDocumentiTable()">
-                      <option value="">Tutti gli Stati</option>
+                      <option value="">Tutti gli Stati Scadenza</option>
                       <option value="SCADUTO">🔴 Scaduti</option>
                       <option value="IN_SCADENZA">🟡 In Scadenza (≤ 60 gg)</option>
                       <option value="VALIDO">🟢 Validi</option>
                       <option value="PERMANENTE">⚪ Senza Scadenza</option>
+                    </select>
+                  </div>
+                  <div class="col-md-2">
+                    <select class="form-select form-select-sm" id="filter-doc-qualita" onchange="renderAllDocumentiTable()">
+                      <option value="">Tutte le Qualità</option>
+                      <option value="OTTIMALE">🟢 Ottimale</option>
+                      <option value="GREZZ">🟡 Foto Grezza</option>
+                      <option value="UNIFICARE">⚠️ Da Unificare</option>
+                      <option value="MULTIPLO">🔴 Multiplo</option>
                     </select>
                   </div>
                 </div>
@@ -978,6 +1005,7 @@
                         <th>Valore</th>
                         <th>Scadenza</th>
                         <th>Stato</th>
+                        <th>Qualità</th>
                         <th>Drive</th>
                         <th class="text-end" style="width: 90px;">Azioni</th>
                       </tr>
@@ -1168,6 +1196,30 @@
                 <span class="spinner-border spinner-border-sm me-1"></span> <span id="ai-loading-ben-text">Lettura e analisi visiva in corso con Gemini Flash...</span>
               </div>
             </div>
+
+            <!-- Avatar / Foto Profilo & Qualità Fascicolo -->
+            <div class="d-flex align-items-center gap-3 p-2 mb-3 bg-light rounded border">
+              <div class="position-relative" style="width: 52px; height: 52px; flex-shrink: 0;">
+                <img id="ben-avatar-img" src="" class="rounded-circle border d-none" style="width: 52px; height: 52px; object-fit: cover;" alt="Foto Profilo">
+                <div id="ben-avatar-placeholder" class="rounded-circle bg-white border d-flex align-items-center justify-content-center text-primary fw-bold" style="width: 52px; height: 52px; font-size: 18px;">
+                  <i class="bi bi-person"></i>
+                </div>
+              </div>
+              <div class="flex-grow-1 min-w-0">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <strong class="small font-outfit text-truncate" id="ben-avatar-title">Fascicolo Anagrafico</strong>
+                  <span id="ben-qualita-badge" class="badge bg-secondary text-xs">🔴 Incompleto</span>
+                </div>
+                <div class="text-xs text-muted text-truncate" id="ben-avatar-sub">Trascina un documento d'identità per estrarre fototessera e dati</div>
+              </div>
+              <div class="flex-shrink-0">
+                <input type="file" id="ben-photo-file-input" accept="image/*" class="d-none" onchange="handleManualPhotoUpload(event, 'ben-')">
+                <button type="button" class="btn btn-xs btn-outline-secondary" onclick="document.getElementById('ben-photo-file-input').click()" title="Carica o sostituisci fototessera">
+                  📷 <span id="ben-photo-btn-text">Foto</span>
+                </button>
+              </div>
+            </div>
+
             <div class="row g-3">
               <div class="col-md-4">
                 <label class="form-label font-outfit small">Codice Fiscale *</label>
@@ -1430,6 +1482,27 @@
                     </h6>
                     <span class="badge bg-primary text-white">Verrà registrato nei Beneficiari</span>
                   </div>
+
+                  <!-- Avatar / Fototessera Nuovo Intestatario -->
+                  <div class="d-flex align-items-center gap-3 p-2 mb-2 bg-white rounded border">
+                    <div class="position-relative" style="width: 44px; height: 44px; flex-shrink: 0;">
+                      <img id="nuc-ben-avatar-img" src="" class="rounded-circle border d-none" style="width: 44px; height: 44px; object-fit: cover;" alt="Foto">
+                      <div id="nuc-ben-avatar-placeholder" class="rounded-circle bg-light border d-flex align-items-center justify-content-center text-primary fw-bold" style="width: 44px; height: 44px; font-size: 16px;">
+                        <i class="bi bi-person"></i>
+                      </div>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                      <strong class="small font-outfit text-truncate d-block" id="nuc-ben-avatar-title">Fototessera Intestatario</strong>
+                      <span class="text-xs text-muted" id="nuc-ben-avatar-sub">Estratta da documento d'identità</span>
+                    </div>
+                    <div class="flex-shrink-0">
+                      <input type="file" id="nuc-ben-photo-file-input" accept="image/*" class="d-none" onchange="handleManualPhotoUpload(event, 'nuc-ben-')">
+                      <button type="button" class="btn btn-xs btn-outline-secondary" onclick="document.getElementById('nuc-ben-photo-file-input').click()">
+                        📷 Foto
+                      </button>
+                    </div>
+                  </div>
+
                   <div class="row g-2">
                     <div class="col-md-4 position-relative">
                       <label class="form-label font-outfit text-xs">Codice Fiscale *</label>
@@ -3679,6 +3752,13 @@
       return (m.rapportoIntestatario || '').toLowerCase() === 'intestatario';
     }
 
+    let currentNucleiQualityFilter = 'ALL';
+
+    function setNucleiQualityFilter(filterVal) {
+      currentNucleiQualityFilter = filterVal || 'ALL';
+      renderNucleiList();
+    }
+
     function renderNucleiList() {
       const container = document.getElementById('nuclei-cards-container');
       if (!container) return;
@@ -3698,10 +3778,34 @@
       const tokens = search ? search.split(/\s+/).filter(Boolean) : [];
 
       const filtered = dbNuclei.filter(n => {
-        if (tokens.length === 0) return true;
-
         // Membri associati al nucleo
         const members = (dbBeneficiaries || []).filter(b => matchMemberToNucleo(b, n));
+
+        // Filtro per Qualità Documenti (Pills Toolbar)
+        if (typeof currentNucleiQualityFilter !== 'undefined' && currentNucleiQualityFilter !== 'ALL') {
+          const qualities = members.map(m => {
+            const mDocs = (dbDocumenti || []).filter(d => (d.intestatario || '').toUpperCase() === (m.cf || '').toUpperCase());
+            return (typeof evaluateBeneficiaryDocQuality === 'function')
+              ? evaluateBeneficiaryDocQuality(m, mDocs)
+              : (m.qualitaDocumenti || '🟢 OTTIMALE');
+          });
+
+          if (currentNucleiQualityFilter === 'OTTIMALE') {
+            const isMatch = qualities.length > 0 && qualities.every(q => q.includes('OTTIMALE'));
+            if (!isMatch) return false;
+          } else if (currentNucleiQualityFilter === 'DA_PERFEZIONARE') {
+            const isMatch = qualities.some(q => q.includes('PERFEZIONARE') || q.includes('GREZZ'));
+            if (!isMatch) return false;
+          } else if (currentNucleiQualityFilter === 'DA_UNIFICARE') {
+            const isMatch = qualities.some(q => q.includes('UNIFICARE'));
+            if (!isMatch) return false;
+          } else if (currentNucleiQualityFilter === 'INCOMPLETO') {
+            const isMatch = qualities.length === 0 || qualities.some(q => q.includes('INCOMPLETO'));
+            if (!isMatch) return false;
+          }
+        }
+
+        if (tokens.length === 0) return true;
 
         // Testo aggregato ricercabile per tutti i membri
         let membersText = '';
@@ -3783,18 +3887,45 @@
           const badge = isIntestatario ? '<span class="badge bg-dark">Intestatario</span>' : `<span class="badge bg-secondary">${m.rapportoIntestatario || 'Membro'}</span>`;
           const displayName = `${m.name || m.nome || ''} ${m.surname || m.cognome || ''}`.trim();
 
+          // Calcolo qualità fascicolo membro
+          const mDocs = (dbDocumenti || []).filter(d => (d.intestatario || '').toUpperCase() === (m.cf || '').toUpperCase());
+          const mQualita = (typeof evaluateBeneficiaryDocQuality === 'function')
+            ? evaluateBeneficiaryDocQuality(m, mDocs)
+            : (m.qualitaDocumenti || '🟢 OTTIMALE');
+
+          let mQualBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle text-2xs">🟢 Ottimale</span>';
+          if (mQualita.includes('PERFEZIONARE') || mQualita.includes('GREZZ')) {
+            mQualBadge = '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle text-2xs">🟡 Da Perfezionare</span>';
+          } else if (mQualita.includes('UNIFICARE')) {
+            mQualBadge = '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle text-2xs">⚠️ Da Unificare</span>';
+          } else if (mQualita.includes('INCOMPLETO')) {
+            mQualBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle text-2xs">🔴 Incompleto</span>';
+          }
+
+          const initials = `${(m.nome || m.name || '')[0] || ''}${(m.cognome || m.surname || '')[0] || ''}`.toUpperCase() || 'P';
+          const avatarHTML = m.foto
+            ? `<img src="https://drive.google.com/thumbnail?id=${m.foto}&sz=w96" class="rounded-circle border flex-shrink-0" style="width: 40px; height: 40px; object-fit: cover;" alt="Foto" title="Fototessera archiviata" onerror="this.onerror=null;this.replaceWith(document.createRange().createContextualFragment('<div class=\\'rounded-circle bg-light border d-flex align-items-center justify-content-center text-primary fw-bold flex-shrink-0\\' style=\\'width: 40px; height: 40px; font-size: 13px;\\'>${initials}</div>'));">`
+            : `<div class="rounded-circle bg-light border d-flex align-items-center justify-content-center text-primary fw-bold flex-shrink-0" style="width: 40px; height: 40px; font-size: 13px;">${initials}</div>`;
+
           membersHTML += `
             <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-              <div>
-                <strong>${displayName}</strong> <span class="text-muted text-xs ms-2">${m.cf || ''}</span>
-                <div class="mt-1">${badge}</div>
-                <div class="debug-only-id text-xs mt-1">
-                  <code>🐞 Cartella ID: ${m.idCartella || m.cartellaDrive || '-'}</code> ${m.firma ? `| <code>Firma: ${m.firma}</code>` : ''}
+              <div class="d-flex align-items-center gap-2">
+                ${avatarHTML}
+                <div>
+                  <strong>${displayName}</strong> <span class="text-muted text-xs ms-2">${m.cf || ''}</span>
+                  <div class="mt-1 d-flex align-items-center gap-1 flex-wrap">
+                    ${badge}
+                    ${mQualBadge}
+                  </div>
+                  <div class="debug-only-id text-xs mt-1">
+                    <code>🐞 Cartella ID: ${m.idCartella || m.cartellaDrive || '-'}</code> ${m.firma ? `| <code>Firma: ${m.firma}</code>` : ''} ${m.foto ? `| <code>Foto: ${m.foto}</code>` : ''}
+                  </div>
                 </div>
               </div>
               <div class="btn-group btn-group-sm">
                 <button class="btn btn-outline-info py-0 px-2 btn-xs" onclick="openBeneficiarioDriveFolder('${m.cf}', this)" title="Apri Cartella Drive Personale">📁 Cartella</button>
                 <button class="btn ${m.firma ? 'btn-outline-success' : 'btn-outline-warning'} py-0 px-2 btn-xs" onclick="openSignatureModal('${m.cf}')" title="Firma Autografa">${m.firma ? '✍️ Firma' : '✍️ +Firma'}</button>
+                <button class="btn ${m.foto ? 'btn-outline-primary' : 'btn-outline-secondary'} py-0 px-2 btn-xs" onclick="openEditMemberModal('${m.cf}')" title="Visualizza / Modifica Fototessera">${m.foto ? '📷 Foto' : '📷 +Foto'}</button>
                 <button class="btn btn-outline-secondary py-0 px-2 btn-xs" onclick="openEditMemberModal('${m.cf}')">Modifica</button>
                 <button class="btn btn-outline-danger py-0 px-2 btn-xs" onclick="handleRemoveMember('${m.cf}')">Rimuovi</button>
               </div>
@@ -4289,7 +4420,8 @@
           statoLavorativo: document.getElementById('nuc-ben-lavoro').value,
           titoloStudio: document.getElementById('nuc-ben-studio').value,
           assistenteSociale: document.getElementById('nuc-ben-servizi')?.value || "No",
-          annoArrivo: document.getElementById('nuc-ben-anno-arrivo').value ? parseInt(document.getElementById('nuc-ben-anno-arrivo').value, 10) : null
+          annoArrivo: document.getElementById('nuc-ben-anno-arrivo').value ? parseInt(document.getElementById('nuc-ben-anno-arrivo').value, 10) : null,
+          fotoBase64: (typeof pendingAvatars !== 'undefined' && pendingAvatars['nuc-ben-']) ? pendingAvatars['nuc-ben-'] : undefined
         } : null
       };
 
@@ -4382,6 +4514,22 @@
       setSelectValue(document.getElementById('ben-cittadinanza'), 'Italia');
       setSelectPhonePrefix(document.getElementById('ben-prefisso-tel'), '+39', 'Italia');
 
+      // Reset foto profilo e qualità fascicolo
+      const avatarImg = document.getElementById('ben-avatar-img');
+      const avatarPlaceholder = document.getElementById('ben-avatar-placeholder');
+      const qualitaBadge = document.getElementById('ben-qualita-badge');
+      const avatarTitle = document.getElementById('ben-avatar-title');
+      const avatarSub = document.getElementById('ben-avatar-sub');
+      if (avatarImg) avatarImg.classList.add('d-none');
+      if (avatarPlaceholder) avatarPlaceholder.classList.remove('d-none');
+      if (avatarTitle) avatarTitle.textContent = 'Fascicolo Anagrafico';
+      if (avatarSub) avatarSub.textContent = "Trascina un documento d'identità per estrarre fototessera e dati";
+      if (qualitaBadge) {
+        qualitaBadge.textContent = '🔴 Incompleto';
+        qualitaBadge.className = 'badge bg-danger text-white text-xs';
+      }
+      if (typeof pendingAvatars !== 'undefined') pendingAvatars['ben-'] = null;
+
       // Auto-compila residenza con quella del nucleo
       const nucleoObj = dbNuclei.find(n => String(n.id).trim() === String(nucleoId).trim());
       if (nucleoObj) {
@@ -4436,6 +4584,46 @@
                      || dbNuclei.find(n => matchMemberToNucleo(ben, n));
       updateRapportoIntestatarioOptions(nucleoObj, ben);
 
+      // Aggiornamento foto profilo e qualità fascicolo
+      const avatarImg = document.getElementById('ben-avatar-img');
+      const avatarPlaceholder = document.getElementById('ben-avatar-placeholder');
+      const qualitaBadge = document.getElementById('ben-qualita-badge');
+      const avatarTitle = document.getElementById('ben-avatar-title');
+      const avatarSub = document.getElementById('ben-avatar-sub');
+      if (avatarTitle) avatarTitle.textContent = `${ben.nome || ''} ${ben.cognome || ''}`.trim() || 'Fascicolo Anagrafico';
+      if (typeof pendingAvatars !== 'undefined') pendingAvatars['ben-'] = null;
+
+      if (avatarImg && avatarPlaceholder) {
+        if (ben.foto) {
+          avatarImg.src = 'https://drive.google.com/thumbnail?id=' + ben.foto + '&sz=w128';
+          avatarImg.classList.remove('d-none');
+          avatarPlaceholder.classList.add('d-none');
+          if (avatarSub) avatarSub.textContent = 'Fototessera archiviata su Drive';
+        } else {
+          avatarImg.classList.add('d-none');
+          avatarPlaceholder.classList.remove('d-none');
+          if (avatarSub) avatarSub.textContent = 'Fototessera non ancora estratta/caricata';
+        }
+      }
+
+      if (qualitaBadge) {
+        const benDocs = (dbDocumenti || []).filter(d => (d.intestatario || '').toUpperCase() === (ben.cf || '').toUpperCase());
+        const qualVal = (typeof evaluateBeneficiaryDocQuality === 'function')
+          ? evaluateBeneficiaryDocQuality(ben, benDocs)
+          : (ben.qualitaDocumenti || '🟢 OTTIMALE');
+        
+        qualitaBadge.textContent = qualVal;
+        if (qualVal.includes('OTTIMALE')) {
+          qualitaBadge.className = 'badge bg-success text-white text-xs';
+        } else if (qualVal.includes('PERFEZIONARE')) {
+          qualitaBadge.className = 'badge bg-warning text-dark text-xs';
+        } else if (qualVal.includes('UNIFICARE')) {
+          qualitaBadge.className = 'badge bg-warning text-dark text-xs';
+        } else {
+          qualitaBadge.className = 'badge bg-danger text-white text-xs';
+        }
+      }
+
       // Aggiornamento stato firma e fascicolo Drive
       const firmaBadge = document.getElementById('ben-firma-status-badge');
       const firmaPreview = document.getElementById('ben-firma-preview-container');
@@ -4488,6 +4676,7 @@
         assistenteSociale: document.getElementById('ben-servizi').value,
         idNucleo: document.getElementById('ben-id-nucleo').value,
         isUpdate: document.getElementById('ben-is-update').value === 'true',
+        fotoBase64: (typeof pendingAvatars !== 'undefined' && pendingAvatars['ben-']) ? pendingAvatars['ben-'] : undefined,
         documenti: (typeof pendingBenDocuments !== 'undefined') ? [...pendingBenDocuments] : []
       };
 
@@ -5365,7 +5554,30 @@
         return;
       }
 
-      let html = '<div class="list-group list-group-flush">';
+      // Rilevamento file frammentati Fronte e Retro per carte di riconoscimento
+      const isFrontDoc = (d) => /\b(fronte|front|lato[_\s-]?1|recto|f\.)\b/i.test(`${d.note || ''} ${d.tipo || ''}`) || String(d.qualita || '').includes('UNIFICARE');
+      const isBackDoc = (d) => /\b(retro|back|lato[_\s-]?2|verso|r\.)\b/i.test(`${d.note || ''} ${d.tipo || ''}`);
+      
+      const frontDoc = docs.find(d => isFrontDoc(d));
+      const backDoc = docs.find(d => isBackDoc(d) && d.id !== frontDoc?.id);
+
+      let mergeBanner = '';
+      if (frontDoc && backDoc && frontDoc.idDrive && backDoc.idDrive) {
+        mergeBanner = `
+          <div class="alert alert-warning d-flex justify-content-between align-items-center py-2 px-3 mb-2 small rounded border-warning">
+            <div>
+              <i class="bi bi-magic text-warning-emphasis me-1"></i>
+              <strong>Rilevati Fronte e Retro separati:</strong>
+              <div class="text-xs text-muted">Unisci '${frontDoc.tipo}' e '${backDoc.tipo}' su pagina singola standard (🟢 OTTIMALE).</div>
+            </div>
+            <button type="button" class="btn btn-sm btn-warning text-dark fw-semibold py-1 px-2" onclick="promptMergeBeneficiaryDocs('${cf}', '${frontDoc.idDrive}', '${backDoc.idDrive}', '${frontDoc.tipo}')">
+              🪄 Unisci Fronte/Retro
+            </button>
+          </div>
+        `;
+      }
+
+      let html = mergeBanner + '<div class="list-group list-group-flush">';
       docs.forEach(doc => {
         let badgeScadenza = '';
         if (doc.statoScadenza === 'SCADUTO') {
@@ -5378,13 +5590,19 @@
           badgeScadenza = '<span class="badge bg-secondary">⚪ Permanente</span>';
         }
 
+        let badgeQualita = '<span class="badge bg-success-subtle text-success border border-success-subtle ms-1">🟢 Ottimale</span>';
+        const qStr = String(doc.qualita || '🟢 OTTIMALE').toUpperCase();
+        if (qStr.includes('GREZZ')) badgeQualita = '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle ms-1">🟡 Foto Grezza</span>';
+        else if (qStr.includes('UNIFICARE')) badgeQualita = '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle ms-1">⚠️ Da Unificare</span>';
+        else if (qStr.includes('MULTIPLO')) badgeQualita = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1">🔴 Multiplo</span>';
+
         const driveBtn = doc.idDrive ? ('<a href="' + doc.urlDrive + '" target="_blank" class="btn btn-xs btn-outline-info py-0 px-2 me-1" title="Apri su Drive">📄 Drive</a>') : '';
 
         html += `
           <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-1">
             <div>
               <div class="fw-semibold">${doc.emoji || '📄'} ${doc.tipo} ${doc.valore ? ('<span class="badge bg-info text-dark ms-1">€ ' + doc.valore.toLocaleString('it-IT') + '</span>') : ''}</div>
-              <div class="text-xs text-muted mt-1">${badgeScadenza} ${doc.note ? ('<span class="ms-1 font-italic">(' + doc.note + ')</span>') : ''}</div>
+              <div class="text-xs text-muted mt-1">${badgeScadenza} ${badgeQualita} ${doc.note ? ('<span class="ms-1 font-italic">(' + doc.note + ')</span>') : ''}</div>
               <div class="tech-id-badge text-xs mt-1">
                 <code>ID: #${doc.id}</code> | <code>DriveID: ${doc.idDrive || '-'}</code>
               </div>
@@ -5411,16 +5629,18 @@
       const search = (document.getElementById('search-documenti')?.value || '').toLowerCase().trim();
       const filterCat = (document.getElementById('filter-doc-categoria')?.value || '').toLowerCase().trim();
       const filterStato = document.getElementById('filter-doc-stato')?.value || '';
+      const filterQualita = (document.getElementById('filter-doc-qualita')?.value || '').toUpperCase();
 
       const filtered = (dbDocumenti || []).filter(d => {
         const matchSearch = `${d.id || ''} ${d.intestatario || ''} ${d.tipo || ''} ${d.note || ''}`.toLowerCase().includes(search);
         const matchCat = !filterCat || (d.categoria || '').toLowerCase() === filterCat;
         const matchStato = !filterStato || d.statoScadenza === filterStato;
-        return matchSearch && matchCat && matchStato;
+        const matchQualita = !filterQualita || String(d.qualita || '🟢 OTTIMALE').toUpperCase().includes(filterQualita);
+        return matchSearch && matchCat && matchStato && matchQualita;
       });
 
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-3">Nessun documento trovato.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-3">Nessun documento trovato.</td></tr>';
         return;
       }
 
@@ -5431,6 +5651,12 @@
         else if (d.statoScadenza === 'IN_SCADENZA') badge = '<span class="badge bg-warning text-dark">🟡 In scadenza (' + d.giorniAllaScadenza + ' gg)</span>';
         else if (d.statoScadenza === 'VALIDO') badge = '<span class="badge bg-success">🟢 Valido</span>';
         else badge = '<span class="badge bg-secondary">⚪ Permanente</span>';
+
+        let qualBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle">🟢 Ottimale</span>';
+        const qStr = String(d.qualita || '🟢 OTTIMALE').toUpperCase();
+        if (qStr.includes('GREZZ')) qualBadge = '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">🟡 Foto Grezza</span>';
+        else if (qStr.includes('UNIFICARE')) qualBadge = '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">⚠️ Da Unificare</span>';
+        else if (qStr.includes('MULTIPLO')) qualBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle">🔴 Multiplo</span>';
 
         const driveLink = d.idDrive 
           ? ('<a href="' + d.urlDrive + '" target="_blank" class="btn btn-xs btn-outline-info py-0 px-2" title="Apri file su Drive">📄 Apri</a>') 
@@ -5450,6 +5676,7 @@
             <td>${d.valore !== null ? ('<strong>€ ' + d.valore.toLocaleString('it-IT') + '</strong>') : '-'}</td>
             <td>${d.dataScadenza || '-'}</td>
             <td>${badge}</td>
+            <td>${qualBadge}</td>
             <td>
               ${driveLink}
               <div class="tech-id-badge text-xs mt-1">
@@ -5644,6 +5871,232 @@
       });
     }
 
+    // Gestione Foto Profilo / Fototessere estratte o caricate
+    let pendingAvatars = { 'ben-': null, 'nuc-ben-': null };
+
+    /**
+     * Carica un'immagine in modo asincrono a partire da un URL, data URI o Blob.
+     * @param {string} src
+     * @return {Promise<HTMLImageElement>}
+     */
+    function loadImageAsync(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = (e) => reject(new Error('Impossibile caricare l\'immagine per il rendering: ' + (e?.message || 'errore sorgente')));
+        img.src = src;
+      });
+    }
+
+    /**
+     * Ritaglia l'avatar del viso da un'immagine sorgente utilizzando le coordinate normalizzate di Gemini Flash.
+     * Produce un'immagine quadrata a risoluzione 256x256 px a fuoco sul volto con margini armonici.
+     * 
+     * @param {string|HTMLImageElement} source - Data URL o elemento Image
+     * @param {number[]} box - [ymin, xmin, ymax, xmax] normalizzato (0..1000 oppure 0..1)
+     * @return {Promise<string>} Base64 Data URL JPEG del ritaglio viso
+     */
+    async function cropFaceAvatar(source, box) {
+      if (!source || !Array.isArray(box) || box.length !== 4) {
+        throw new Error("Parametri non validi per il ritaglio dell'avatar");
+      }
+
+      const img = typeof source === 'string' ? await loadImageAsync(source) : source;
+      const naturalW = img.naturalWidth || img.width;
+      const naturalH = img.naturalHeight || img.height;
+
+      // Normalizzazione coordinate se fornite in scala 0..1000
+      let [ymin, xmin, ymax, xmax] = box;
+      if (ymin > 1 || xmin > 1 || ymax > 1 || xmax > 1) {
+        ymin /= 1000;
+        xmin /= 1000;
+        ymax /= 1000;
+        xmax /= 1000;
+      }
+
+      // Coordinate in pixel
+      const rawX = xmin * naturalW;
+      const rawY = ymin * naturalH;
+      const rawW = (xmax - xmin) * naturalW;
+      const rawH = (ymax - ymin) * naturalH;
+
+      // Margine del 20-25% attorno al viso per includere capelli e mento
+      const padX = rawW * 0.20;
+      const padY = rawH * 0.25;
+
+      let cropX = Math.max(0, rawX - padX);
+      let cropY = Math.max(0, rawY - padY);
+      let cropW = Math.min(naturalW - cropX, rawW + padX * 2);
+      let cropH = Math.min(naturalH - cropY, rawH + padY * 2);
+
+      // Rende il ritaglio quadrato
+      const side = Math.max(cropW, cropH);
+      const centerX = cropX + cropW / 2;
+      const centerY = cropY + cropH / 2;
+
+      cropX = Math.max(0, centerX - side / 2);
+      cropY = Math.max(0, centerY - side / 2);
+      cropW = Math.min(naturalW - cropX, side);
+      cropH = Math.min(naturalH - cropY, side);
+
+      // Rendering su canvas 256x256 px
+      const targetSize = 256;
+      const canvas = document.createElement('canvas');
+      canvas.width = targetSize;
+      canvas.height = targetSize;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, targetSize, targetSize);
+
+      ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, targetSize, targetSize);
+      return canvas.toDataURL('image/jpeg', 0.88);
+    }
+
+    /**
+     * Unisce verticalmente due tessere (Fronte sopra e Retro sotto) su PAGINA SINGOLA.
+     * Rispettando le specifiche approvate:
+     * - Disposizione: Fronte in alto, divisorio elegante, Retro in basso
+     * - Rapporto di forma: ~3:4 (standard 1024x1312 px), 100% area utile, zero sfondi vuoti
+     * - Formato: JPEG HD ad alta fedeltà
+     * 
+     * @param {string|HTMLImageElement} frontSource
+     * @param {string|HTMLImageElement} backSource
+     * @return {Promise<{ base64Data: string; mimeType: string; width: number; height: number }>}
+     */
+    async function stitchCardsVertical(frontSource, backSource) {
+      if (!frontSource || !backSource) {
+        throw new Error("Entrambe le immagini Fronte e Retro sono necessarie per l'unione.");
+      }
+
+      const imgFront = typeof frontSource === 'string' ? await loadImageAsync(frontSource) : frontSource;
+      const imgBack = typeof backSource === 'string' ? await loadImageAsync(backSource) : backSource;
+
+      // Standard ISO/IEC 7810 ID-1: proporzione 1.586
+      // Larghezza target 1024 px -> altezza 646 px per ciascuna tessera
+      const targetW = 1024;
+      const targetCardH = 646;
+      const separatorH = 20; // Spazio e linea divisoria
+      const totalH = (targetCardH * 2) + separatorH; // 1312 px -> ratio ~3:4
+
+      const canvas = document.createElement('canvas');
+      canvas.width = targetW;
+      canvas.height = totalH;
+      const ctx = canvas.getContext('2d');
+
+      // Sfondo bianco pulito
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, targetW, totalH);
+
+      // 1. Disegna Fronte in alto
+      ctx.drawImage(imgFront, 0, 0, targetW, targetCardH);
+
+      // 2. Linea divisoria elegante con margini laterali
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillRect(40, targetCardH + 9, targetW - 80, 2);
+
+      // 3. Disegna Retro in basso
+      const backY = targetCardH + separatorH;
+      ctx.drawImage(imgBack, 0, backY, targetW, targetCardH);
+
+      const stitchedBase64 = canvas.toDataURL('image/jpeg', 0.85);
+      return {
+        base64Data: stitchedBase64,
+        mimeType: 'image/jpeg',
+        width: targetW,
+        height: totalH
+      };
+    }
+
+    /**
+     * Handler per il caricamento o sostituzione manuale della fototessera.
+     * @param {Event} event
+     * @param {string} prefix - 'ben-' o 'nuc-ben-'
+     */
+    async function handleManualPhotoUpload(event, prefix) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      try {
+        const optimized = await optimizeFileForUpload(file, 600, 0.85);
+        pendingAvatars[prefix] = optimized.base64Data;
+
+        const imgEl = document.getElementById(prefix === 'ben-' ? 'ben-avatar-img' : 'nuc-ben-avatar-img');
+        const placeholderEl = document.getElementById(prefix === 'ben-' ? 'ben-avatar-placeholder' : 'nuc-ben-avatar-placeholder');
+        const subEl = document.getElementById(prefix === 'ben-' ? 'ben-avatar-sub' : 'nuc-ben-avatar-sub');
+
+        if (imgEl && placeholderEl) {
+          imgEl.src = optimized.base64Data;
+          imgEl.classList.remove('d-none');
+          placeholderEl.classList.add('d-none');
+          if (subEl) subEl.textContent = 'Fototessera pronta per il salvataggio';
+        }
+
+        // Se siamo in modifica con CF già presente, salviamo direttamente su Drive
+        const isUpdate = document.getElementById(prefix === 'ben-' ? 'ben-is-update' : '')?.value === 'true';
+        const cf = document.getElementById(prefix + 'cf')?.value?.trim().toUpperCase();
+        if (isUpdate && cf) {
+          showToast('Aggiornamento fototessera su Drive in corso...', 'info');
+          google.script.run
+            .withSuccessHandler(res => {
+              if (res.success) {
+                showToast('📷 Fototessera salvata con successo!', 'success');
+                reloadData();
+              } else {
+                showToast('Errore salvataggio foto: ' + res.message, 'warning');
+              }
+            })
+            .withFailureHandler(err => {
+              showToast('Errore salvataggio foto: ' + err.message, 'danger');
+            })
+            .saveBeneficiaryPhoto(cf, optimized.base64Data);
+        }
+      } catch (err) {
+        showToast('Errore caricamento foto: ' + err.message, 'danger');
+      }
+    }
+
+    /**
+     * Avvia il flusso interattivo di unione fronte/retro per un beneficiario.
+     * @param {string} cf - Codice fiscale del beneficiario
+     * @param {string} frontDriveId - ID del file fronte su Drive
+     * @param {string} backDriveId - ID del file retro su Drive
+     * @param {string} tipo - Tipologia del documento
+     */
+    async function promptMergeBeneficiaryDocs(cf, frontDriveId, backDriveId, tipo) {
+      if (!confirm(`Vuoi unire i file Fronte e Retro di '${tipo}' in un unico documento su pagina singola (🟢 OTTIMALE)? I vecchi file separati verranno rimossi da Drive.`)) {
+        return;
+      }
+
+      showToast('Unione e raddrizzamento Fronte/Retro in corso...', 'info');
+      try {
+        const frontUrl = 'https://drive.google.com/thumbnail?id=' + frontDriveId + '&sz=w1200';
+        const backUrl = 'https://drive.google.com/thumbnail?id=' + backDriveId + '&sz=w1200';
+
+        const merged = await stitchCardsVertical(frontUrl, backUrl);
+
+        google.script.run
+          .withSuccessHandler(res => {
+            if (res.success) {
+              showToast(`🪄 ${res.message}`, 'success');
+              reloadData();
+              if (typeof renderBeneficiarioDocumenti === 'function') {
+                renderBeneficiarioDocumenti(cf);
+              }
+            } else {
+              showToast('Errore unione: ' + res.message, 'danger');
+            }
+          })
+          .withFailureHandler(err => {
+            showToast('Errore durante l\'unione dei file: ' + err.message, 'danger');
+          })
+          .saveMergedDocument(cf, tipo, merged.base64Data, [frontDriveId, backDriveId]);
+
+      } catch (err) {
+        showToast('Impossibile caricare le anteprime per l\'unione: ' + err.message, 'warning');
+      }
+    }
+
     // Code di documenti pendenti da archiviare in Drive al salvataggio
     let pendingBenDocuments = [];
     let pendingNucDocuments = [];
@@ -5694,6 +6147,7 @@
       let html = '';
       docs.forEach((doc, idx) => {
         const emoji = getDocEmoji(doc.tipoDocumento);
+        const qualBadge = doc.qualita ? `<span class="badge ${doc.qualita.includes('UNIFICARE') ? 'bg-warning text-dark' : 'bg-success text-white'} text-2xs me-1">${doc.qualita}</span>` : '';
         const scadText = doc.dataScadenza ? `<span class="badge bg-light text-dark border me-1">Scadenza: ${doc.dataScadenza}</span>` : '';
         const valText = doc.valore !== null && doc.valore !== undefined ? `<span class="badge bg-success bg-opacity-10 text-success border border-success me-1">€ ${Number(doc.valore).toLocaleString('it-IT')}</span>` : '';
         html += `
@@ -5703,7 +6157,7 @@
               <div class="text-truncate">
                 <strong class="font-outfit text-xs d-block text-dark text-truncate">${doc.tipoDocumento}</strong>
                 <span class="text-2xs text-muted d-block text-truncate">${doc.name || 'documento'}</span>
-                <div class="mt-1">${scadText}${valText}</div>
+                <div class="mt-1">${qualBadge}${scadText}${valText}</div>
               </div>
             </div>
             <button type="button" class="btn btn-xs btn-outline-danger flex-shrink-0" onclick="removePendingDoc('${prefix}', ${idx})" title="Rimuovi documento dalla coda">
@@ -5829,31 +6283,98 @@
                 if (iseeInput) iseeInput.value = d.valoreISEE;
               }
 
+              // Estrazione e ritaglio automatico fototessera
+              if (p.fotoVisoBox && Array.isArray(p.fotoVisoBox) && p.fotoVisoBox.length === 4 && optimizedFiles.length > 0) {
+                cropFaceAvatar(optimizedFiles[0].base64Data, p.fotoVisoBox).then(avatarBase64 => {
+                  pendingAvatars[prefix] = avatarBase64;
+                  const aImg = document.getElementById(prefix === 'ben-' ? 'ben-avatar-img' : 'nuc-ben-avatar-img');
+                  const aPlaceholder = document.getElementById(prefix === 'ben-' ? 'ben-avatar-placeholder' : 'nuc-ben-avatar-placeholder');
+                  const aSub = document.getElementById(prefix === 'ben-' ? 'ben-avatar-sub' : 'nuc-ben-avatar-sub');
+                  if (aImg && aPlaceholder) {
+                    aImg.src = avatarBase64;
+                    aImg.classList.remove('d-none');
+                    aPlaceholder.classList.add('d-none');
+                    if (aSub) aSub.textContent = '✨ Fototessera estratta automaticamente!';
+                  }
+                }).catch(err => console.warn('Ritaglio avatar:', err));
+              }
+
               // Aggiunge i documenti riconosciuti alla coda di salvataggio in Drive
               const docsToAdd = Array.isArray(d.documenti) ? d.documenti : (d.datiDocumento ? [d.datiDocumento] : []);
-              docsToAdd.forEach((docItem, i) => {
-                const optFile = optimizedFiles[i] || optimizedFiles[0];
-                const docObj = {
-                  base64Data: optFile.base64Data,
-                  mimeType: optFile.mimeType,
-                  name: optFile.name,
-                  tipoDocumento: docItem.tipoDocumento || d.tipoDocumento || "Altro",
-                  categoria: docItem.categoria || d.categoria || "Altro",
-                  valore: docItem.valore !== undefined ? docItem.valore : null,
-                  dataScadenza: docItem.dataScadenza || "",
-                  dataEmissione: docItem.dataEmissione || "",
-                  enteRilascio: docItem.enteRilascio || "",
-                  note: docItem.note || ""
-                };
 
-                if (isBen) {
-                  pendingBenDocuments.push(docObj);
-                } else {
-                  pendingNucDocuments.push(docObj);
-                }
-              });
+              const isFrontCheck = (docItem) => {
+                const s = `${docItem.lato || ''} ${docItem.tipoDocumento || ''} ${docItem.note || ''}`.toLowerCase();
+                return /\b(fronte|front|lato[_\s-]?1|recto|f\.)\b/.test(s) || (docItem.lato === 'FRONTE');
+              };
+              const isBackCheck = (docItem) => {
+                const s = `${docItem.lato || ''} ${docItem.tipoDocumento || ''} ${docItem.note || ''}`.toLowerCase();
+                return /\b(retro|back|lato[_\s-]?2|verso|r\.)\b/.test(s) || (docItem.lato === 'RETRO');
+              };
 
-              renderPendingDocs(prefix);
+              const frontIdx = docsToAdd.findIndex(docItem => isFrontCheck(docItem));
+              const backIdx = docsToAdd.findIndex((docItem, idx) => idx !== frontIdx && isBackCheck(docItem));
+
+              if (frontIdx >= 0 && backIdx >= 0 && optimizedFiles[frontIdx] && optimizedFiles[backIdx]) {
+                const frontOpt = optimizedFiles[frontIdx];
+                const backOpt = optimizedFiles[backIdx];
+                const frontDocInfo = docsToAdd[frontIdx];
+                const backDocInfo = docsToAdd[backIdx];
+
+                stitchCardsVertical(frontOpt.base64Data, backOpt.base64Data).then(stitched => {
+                  const unifiedDocObj = {
+                    base64Data: stitched.base64Data,
+                    mimeType: stitched.mimeType,
+                    name: `${frontDocInfo.tipoDocumento || "Carta d'Identità"} - Unificata.jpg`,
+                    tipoDocumento: frontDocInfo.tipoDocumento || d.tipoDocumento || "Carta d'Identità",
+                    categoria: frontDocInfo.categoria || "Anagrafica",
+                    qualita: "🟢 OTTIMALE",
+                    valore: frontDocInfo.valore !== undefined ? frontDocInfo.valore : null,
+                    dataScadenza: frontDocInfo.dataScadenza || backDocInfo.dataScadenza || "",
+                    dataEmissione: frontDocInfo.dataEmissione || backDocInfo.dataEmissione || "",
+                    enteRilascio: frontDocInfo.enteRilascio || backDocInfo.enteRilascio || "",
+                    note: "Fronte e retro unificati e ottimizzati su pagina singola"
+                  };
+
+                  if (isBen) {
+                    pendingBenDocuments.push(unifiedDocObj);
+                  } else {
+                    pendingNucDocuments.push(unifiedDocObj);
+                  }
+                  renderPendingDocs(prefix);
+                  showToast('🪄 Fronte e Retro rilevati e unificati automaticamente su pagina singola (🟢 OTTIMALE)!', 'success');
+                }).catch(stErr => {
+                  console.warn('Errore unione automatica:', stErr);
+                });
+              } else {
+                docsToAdd.forEach((docItem, i) => {
+                  const optFile = optimizedFiles[i] || optimizedFiles[0];
+                  let docQualita = docItem.qualitaRilevata || d.qualitaRilevata || "🟢 OTTIMALE";
+                  if (isFrontCheck(docItem) || isBackCheck(docItem)) {
+                    docQualita = "⚠️ DA UNIFICARE";
+                  }
+
+                  const docObj = {
+                    base64Data: optFile.base64Data,
+                    mimeType: optFile.mimeType,
+                    name: optFile.name,
+                    tipoDocumento: docItem.tipoDocumento || d.tipoDocumento || "Altro",
+                    categoria: docItem.categoria || d.categoria || "Altro",
+                    qualita: docQualita,
+                    valore: docItem.valore !== undefined ? docItem.valore : null,
+                    dataScadenza: docItem.dataScadenza || "",
+                    dataEmissione: docItem.dataEmissione || "",
+                    enteRilascio: docItem.enteRilascio || "",
+                    note: docItem.note || ""
+                  };
+
+                  if (isBen) {
+                    pendingBenDocuments.push(docObj);
+                  } else {
+                    pendingNucDocuments.push(docObj);
+                  }
+                });
+                renderPendingDocs(prefix);
+              }
               if (typeof DebugManager !== 'undefined' && DebugManager.logAI) {
                 DebugManager.logAI('DOCUMENT_INTELLIGENCE', {
                   message: `Elaborati ${optimizedFiles.length} file con Gemini Flash`,

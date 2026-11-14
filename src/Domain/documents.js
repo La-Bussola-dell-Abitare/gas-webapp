@@ -132,6 +132,19 @@ const Documents = Object.freeze([
     description: "Firma autografa acquisita digitalmente per documenti ufficiali"
   },
   {
+    id: "FOTO_PROFILO",
+    name: "Foto Profilo",
+    categoria: "Anagrafica",
+    archetipo: "UNICO",
+    icona: "bi-person-bounding-box",
+    emoji: "📸",
+    hasValue: false,
+    hasExpiration: false,
+    regex: /(foto.*profilo|fototessera|portrait|avatar|foto)/i,
+    scope: "persona",
+    description: "Fototessera o ritratto della persona estratta dal documento d'identità"
+  },
+  {
     id: "ISEE",
     name: "Attestazione ISEE",
     categoria: "Economica",
@@ -547,4 +560,75 @@ function buildDocumentFileName(doc, persona, ext = "pdf") {
 
   const finale = nomePersona ? `${prefisso} - ${nomePersona}.${cleanExt}` : `${prefisso}.${cleanExt}`;
   return finale.replace(/\s+/g, " ").trim();
+}
+
+/**
+ * @enum {string}
+ * Livelli di qualità grafica e conformità del singolo file documento.
+ */
+const DOCUMENT_QUALITY = Object.freeze({
+  OTTIMALE: "🟢 OTTIMALE",
+  GREZZO: "🟡 FOTO GREZZA",
+  DA_UNIFICARE: "⚠️ DA UNIFICARE",
+  MULTIPLO: "🔴 MULTIPLO / DA SEPARARE"
+});
+
+/**
+ * @enum {string}
+ * Livelli di sintesi della qualità del fascicolo documentale di un beneficiario.
+ */
+const BENEFICIARIO_DOC_QUALITY = Object.freeze({
+  OTTIMALE: "🟢 OTTIMALE",
+  DA_PERFEZIONARE: "🟡 DA PERFEZIONARE",
+  DA_UNIFICARE: "⚠️ DA UNIFICARE",
+  INCOMPLETO: "🔴 INCOMPLETO"
+});
+
+/**
+ * Valuta lo stato di qualità sintetico del fascicolo documentale di un beneficiario.
+ * @param {Record<string, any>} beneficiary - Beneficiario da verificare.
+ * @param {Array<Record<string, any>>} [beneficiaryDocs=[]] - Documenti associati al beneficiario.
+ * @return {string} Valore da BENEFICIARIO_DOC_QUALITY
+ */
+function evaluateBeneficiaryDocQuality(beneficiary, beneficiaryDocs = []) {
+  if (!beneficiary) return BENEFICIARIO_DOC_QUALITY.INCOMPLETO;
+
+  const docs = Array.isArray(beneficiaryDocs) ? beneficiaryDocs : [];
+  
+  // 1. Verifica presenza di almeno un documento di riconoscimento valido
+  const identityTypes = ["CARTA_IDENTITA", "PASSAPORTO", "PATENTE", "PERMESSO_SOGGIORNO"];
+  const hasIdentity = docs.some(d => {
+    const rec = findDocumentType(d.tipo || d.name || "");
+    return rec && identityTypes.includes(rec.id);
+  });
+
+  // Verifica anche i vecchi flag/campi nel record beneficiario (fallback)
+  const legacyIdentity = Boolean(
+    (beneficiary.documents && (beneficiary.documents.cartaIdentita || beneficiary.documents.passaporto || beneficiary.documents.patente || beneficiary.documents.permessoSoggiorno)) ||
+    (beneficiary.cartaIdentita && beneficiary.cartaIdentita !== "Non posseduto")
+  );
+
+  if (!hasIdentity && !legacyIdentity) {
+    return BENEFICIARIO_DOC_QUALITY.INCOMPLETO;
+  }
+
+  // 2. Se ci sono file con qualità "DA_UNIFICARE"
+  const hasFragmented = docs.some(d => {
+    const q = String(d.qualita || d.qualitaDocumento || "").toUpperCase();
+    return q.includes("DA UNIFICARE") || q.includes("DA_UNIFICARE");
+  });
+  if (hasFragmented) {
+    return BENEFICIARIO_DOC_QUALITY.DA_UNIFICARE;
+  }
+
+  // 3. Se ci sono file con foto grezza o da separare
+  const hasGrezzo = docs.some(d => {
+    const q = String(d.qualita || d.qualitaDocumento || "").toUpperCase();
+    return q.includes("GREZZO") || q.includes("FOTO GREZZA") || q.includes("MULTIPLO");
+  });
+  if (hasGrezzo) {
+    return BENEFICIARIO_DOC_QUALITY.DA_PERFEZIONARE;
+  }
+
+  return BENEFICIARIO_DOC_QUALITY.OTTIMALE;
 }

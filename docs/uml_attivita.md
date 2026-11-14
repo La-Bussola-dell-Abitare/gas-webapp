@@ -339,3 +339,45 @@ flowchart TD
     ReleaseLock --> UpdateUI[Rimozione visiva delle righe importate dalla tabella e notifica Toast]
     UpdateUI --> End([Fine Importazione Fascicoli])
 ```
+
+---
+
+## 8. Attività 8: Standardizzazione Documenti, Ritaglio Avatar Canvas ed Unione Fronte/Retro
+
+Rappresenta il flusso decisionale e operativo per garantire che ogni documento d'identità caricato nel sistema rispetti gli standard grafici: ritaglio automatico della fototessera per l'avatar del beneficiario, ricomposizione di Fronte e Retro su singola pagina verticale $1024 \times 1312$ px, e tracciamento qualitativo del fascicolo.
+
+```mermaid
+flowchart TD
+    Start([Caricamento Documento d'Identità]) --> CheckInput{Canale di acquisizione?}
+
+    CheckInput -- "Smart Fill IA (Dropzone)" --> ProcessAI[Analisi multimodale con Gemini Flash]
+    CheckInput -- "Pulsante 'Foto' o Manuale" --> ManualCrop[Ritaglio quadrato manuale su Canvas]
+    CheckInput -- "Fascicolo Documentale" --> AuditFrag{Rilevati Fronte e Retro separati?}
+
+    ProcessAI --> CheckFace{Rilevato volto con bounding box?<br/>fotoVisoBox}
+    CheckFace -- "Sì" --> CropAvatar[Ritaglio Canvas 256x256 px del volto]
+    CheckFace -- "No" --> CheckSides
+    ManualCrop --> SavePhotoDrive[Salvataggio 'Foto Profilo - Nome.jpg' in cartella personale]
+    CropAvatar --> SavePhotoDrive
+    SavePhotoDrive --> UpdateBenPhoto[Aggiornamento colonna Foto in 'Beneficiari']
+
+    ProcessAI --> CheckSides{Fronte e Retro in immagini distinte o accoppiate?}
+    CheckSides -- "2 File o Fronte+Retro rilevati" --> StitchCanvas[Unione Canvas Verticale 1024x1312 px<br/>Fronte in alto, Retro in basso]
+    CheckSides -- "File singolo o già completo" --> CheckMulti{Più documenti nella stessa foto?}
+
+    AuditFrag -- "Sì" --> PromptMerge[Pulsante '🪄 Unisci Fronte/Retro' in tabella documenti]
+    PromptMerge --> StitchCanvas
+
+    StitchCanvas --> SaveMerged[Salvataggio documento unico su Drive<br/>Cestinamento file frammentati originali]
+    SaveMerged --> SetQualityOptimal[Assegnazione Qualità: '🟢 OTTIMALE']
+
+    CheckMulti -- "Sì" --> SetQualityMulti[Assegnazione Qualità: '🔴 MULTIPLO / DA SEPARARE']
+    CheckMulti -- "No (Foto grezza da ritagliare)" --> SetQualityRaw[Assegnazione Qualità: '🟡 FOTO GREZZA']
+
+    SetQualityOptimal --> EvalDocQuality[Calcolo dinamico evaluateBeneficiaryDocQuality]
+    SetQualityMulti --> EvalDocQuality
+    SetQualityRaw --> EvalDocQuality
+
+    EvalDocQuality --> UpdateSheetQual[Aggiornamento colonna 'Qualità Documenti' nel foglio 'Beneficiari']
+    UpdateSheetQual --> End([Fascicolo Standardizzato])
+```

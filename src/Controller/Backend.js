@@ -140,6 +140,8 @@ function getBeneficiariObjects() {
         tesseraSanitaria: b.documents?.tesseraSanitaria || false,
         cartaIdentita: b.documents?.cartaIdentita || "Non posseduto",
         firma: b.firma || b.documents?.firma || "",
+        foto: b.foto || b.documents?.foto || "",
+        qualitaDocumenti: b.qualitaDocumenti || "🟢 OTTIMALE",
         idCartella: b.idCartella || "",
         sesso: sesso
       };
@@ -197,9 +199,21 @@ function getOperatorsList() {
 function submitBeneficiary(data) {
   try {
     const result = BeneficiarioRepository.add(data);
-    if (result && result.success && Array.isArray(data.documenti) && data.documenti.length > 0 && typeof DriveManager !== "undefined") {
-      const targetCF = data.cf ? data.cf.toUpperCase().trim() : "";
-      if (targetCF) {
+    const targetCF = data.cf ? data.cf.toUpperCase().trim() : "";
+
+    if (result && result.success && targetCF && typeof DriveManager !== "undefined") {
+      // 1. Salvataggio eventuale foto profilo (Base64)
+      if (data.fotoBase64) {
+        try {
+          DriveManager.saveBeneficiaryPhoto(targetCF, data.fotoBase64);
+          result.message += " (Fototessera archiviata su Drive)";
+        } catch (photoErr) {
+          Logger.log("Errore salvataggio fototessera: " + photoErr.message);
+        }
+      }
+
+      // 2. Archiviazione documenti allegati
+      if (Array.isArray(data.documenti) && data.documenti.length > 0) {
         let savedCount = 0;
         let saveErrors = [];
         for (const docItem of data.documenti) {
@@ -218,6 +232,18 @@ function submitBeneficiary(data) {
         if (saveErrors.length > 0) {
           result.message += ` [Avviso Drive: ${saveErrors.join("; ")}]`;
         }
+      }
+
+      // 3. Ricalcolo automatico della qualità del fascicolo beneficiario
+      try {
+        if (typeof evaluateBeneficiaryDocQuality === "function" && typeof DocumentoRepository !== "undefined") {
+          const benObj = BeneficiarioRepository.getByCF(targetCF);
+          const benDocs = DocumentoRepository.getByCF(targetCF);
+          const qVal = evaluateBeneficiaryDocQuality(benObj, benDocs);
+          BeneficiarioRepository.updateDriveInfo(targetCF, { qualitaDocumenti: qVal });
+        }
+      } catch (eQ) {
+        Logger.log("Errore ricalcolo qualità beneficiario: " + eQ.message);
       }
     }
     return result;
@@ -479,8 +505,17 @@ function submitNucleoCompleto(payload) {
         throw new Error("Errore salvataggio nucleo: " + nucResult.message);
       }
 
-      // 5. Archiviazione dei file documenti in Google Drive e registrazione nel foglio 'Documenti'
+      // 5. Archiviazione dei file documenti e fototessera in Google Drive
       let docExtraMsg = "";
+      if (intestData.fotoBase64 && typeof DriveManager !== "undefined") {
+        try {
+          DriveManager.saveBeneficiaryPhoto(cf, intestData.fotoBase64);
+          docExtraMsg += " (Fototessera archiviata su Drive)";
+        } catch (photoErr) {
+          Logger.log("Errore salvataggio fototessera nucleo: " + photoErr.message);
+        }
+      }
+
       const docsToSave = payload.documenti || intestData.documenti || [];
       if (Array.isArray(docsToSave) && docsToSave.length > 0 && typeof DriveManager !== "undefined") {
         let savedCount = 0;
@@ -502,6 +537,16 @@ function submitNucleoCompleto(payload) {
           docExtraMsg += ` [Avviso Drive: ${saveErrors.join("; ")}]`;
         }
       }
+
+      // 6. Ricalcolo qualità fascicolo intestatario
+      try {
+        if (typeof evaluateBeneficiaryDocQuality === "function" && typeof DocumentoRepository !== "undefined") {
+          const benObj = BeneficiarioRepository.getByCF(cf);
+          const benDocs = DocumentoRepository.getByCF(cf);
+          const qVal = evaluateBeneficiaryDocQuality(benObj, benDocs);
+          BeneficiarioRepository.updateDriveInfo(cf, { qualitaDocumenti: qVal });
+        }
+      } catch (eQ) {}
 
       return {
         success: true,
@@ -897,6 +942,42 @@ function saveBeneficiarySignature(cf, base64Data) {
     return DriveManager.saveBeneficiarySignature(cf, base64Data);
   } catch (err) {
     Logger.log("Errore saveBeneficiarySignature: " + (err instanceof Error ? err.message : String(err)));
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Salva l'immagine della foto profilo / fototessera del beneficiario nella sua cartella Drive personale
+ * e aggiorna la colonna 'Foto' nel foglio Beneficiari e nel foglio Documenti.
+ * @param {string} cf - Codice Fiscale del beneficiario.
+ * @param {string} base64Data - Immagine in Base64 (PNG o JPEG).
+ * @return {{ success: boolean; fileId?: string; fileUrl?: string; message: string }}
+ */
+function saveBeneficiaryPhoto(cf, base64Data) {
+  try {
+    return DriveManager.saveBeneficiaryPhoto(cf, base64Data);
+  } catch (err) {
+    Logger.log("Errore saveBeneficiaryPhoto: " + (err instanceof Error ? err.message : String(err)));
+    return { success: false, message: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Salva un documento unificato (es. Fronte e Retro su pagina singola) in Google Drive,
+ * rimuove i vecchi file separati dal Drive e dal foglio 'Documenti', registra il nuovo file con qualità '🟢 OTTIMALE'
+ * e aggiorna lo stato qualitativo sintetico del beneficiario.
+ * @param {string} cf - Codice Fiscale del beneficiario.
+ * @param {string} tipoDocumento - Tipologia del documento (es. "Carta d'Identità", "Tessera Sanitaria").
+ * @param {string} base64Data - Immagine o PDF unificato in Base64.
+ * @param {string[]} [oldFileIds=[]] - Array di ID file Drive precedenti da cestinare.
+ * @param {Object} [metadata={}] - Metadati opzionali (dataScadenza, dataEmissione, numeroDocumento, note, ecc.).
+ * @return {{ success: boolean; fileId?: string; fileUrl?: string; fileName?: string; qualitaDocumenti?: string; message: string }}
+ */
+function saveMergedDocument(cf, tipoDocumento, base64Data, oldFileIds = [], metadata = {}) {
+  try {
+    return DriveManager.saveMergedDocument(cf, tipoDocumento, base64Data, oldFileIds, metadata);
+  } catch (err) {
+    Logger.log("Errore saveMergedDocument: " + (err instanceof Error ? err.message : String(err)));
     return { success: false, message: err instanceof Error ? err.message : String(err) };
   }
 }

@@ -775,3 +775,61 @@ sequenceDiagram
     UI->>UI: Rimuove le sole righe importate dalla tabella
     UI->>Op: Toast di successo e aggiornamento conteggi
 ```
+
+---
+
+## 13. Sequenza 13: Standardizzazione Documenti, Ritaglio Fototessera Canvas ed Unione Fronte/Retro
+
+Illustra l'interazione client-server per il ritaglio automatico dell'avatar facciale dalle coordinate fornite da Gemini Flash, la standardizzazione Fronte/Retro su singola pagina verticale ($1024 \times 1312$ px) con Canvas HTML5 client-side, l'archiviazione su Drive e l'aggiornamento della colonna *Qualità Documenti* nei fogli di calcolo.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Op as Operatore / Utente
+    participant UI as Frontend.html (SPA)
+    participant Canvas as HTML5 Canvas 2D
+    participant Ctrl as Backend.js (RPC)
+    participant DriveMgr as DriveManager
+    participant GDrive as Google Drive
+    participant BenRepo as BeneficiarioRepository
+    participant DocRepo as DocumentoRepository
+    participant SS as Google Sheets ("Beneficiari" / "Documenti")
+
+    alt Caso A: Caricamento Documento d'Identità & Ritaglio Avatar Automatico (IA)
+        Op->>UI: Trascina foto Carta d'Identità / Permesso di Soggiorno
+        UI->>Ctrl: google.script.run.smartClassifyMultipleBase64(files)
+        activate Ctrl
+        Ctrl-->>UI: Restituisce dati estratti + fotoVisoBox [ymin, xmin, ymax, xmax]
+        deactivate Ctrl
+        UI->>Canvas: cropFaceAvatar(img, fotoVisoBox)
+        Canvas-->>UI: DataURL JPEG 256x256 px
+        UI->>Op: Mostra anteprima circolare avatar e badge "🟢 OTTIMALE"
+        Op->>UI: Conferma salvataggio (Salva Beneficiario)
+        UI->>Ctrl: google.script.run.saveBeneficiaryPhoto(cf, photoBase64)
+        activate Ctrl
+        Ctrl->>DriveMgr: saveBeneficiaryPhoto(cf, photoBase64)
+        DriveMgr->>GDrive: Salva "Foto Profilo - Nome Cognome.jpg" in cartella personale
+        DriveMgr->>BenRepo: updateDriveInfo(cf, { foto: photoFileId })
+        BenRepo->>SS: Aggiorna colonna Foto nel foglio "Beneficiari"
+        DriveMgr->>DocRepo: add({ tipo: "Foto Profilo", categoria: "Anagrafica", idDrive })
+        DocRepo->>SS: Inserisce record "Foto Profilo" in "Documenti"
+        Ctrl-->>UI: { success: true, photoFileId }
+        deactivate Ctrl
+    else Caso B: Unione Fronte e Retro su Pagina Singola Verticale
+        Op->>UI: Clicca su "🪄 Unisci Fronte/Retro" nel fascicolo documentale
+        UI->>Canvas: stitchCardsVertical(frontImg, backImg)
+        Note over Canvas: Impila Fronte sopra e Retro sotto (1024x1312 px, ~3:4)
+        Canvas-->>UI: DataURL JPEG compresso (qualità 0.88, zero background)
+        UI->>Ctrl: google.script.run.saveMergedDocument(cf, tipo, base64, [frontId, backId], meta)
+        activate Ctrl
+        Ctrl->>DriveMgr: saveMergedDocument(...)
+        DriveMgr->>GDrive: Salva "Carta d'Identità (scad. YYYY) - Nome Cognome.jpg"
+        DriveMgr->>GDrive: Cestina vecchi file frammentati (frontId, backId)
+        DriveMgr->>DocRepo: Rimuove vecchi record e aggiunge nuovo con qualita="🟢 OTTIMALE"
+        DriveMgr->>BenRepo: updateDriveInfo(cf, { qualitaDocumenti: newQuality })
+        BenRepo->>SS: Aggiorna colonna "Qualità Documenti" in "Beneficiari"
+        Ctrl-->>UI: { success: true, fileId: newFileId }
+        deactivate Ctrl
+        UI->>Op: Toast successo: "Documento unificato e archiviato con successo!"
+    end
+```

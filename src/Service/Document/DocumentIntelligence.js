@@ -111,7 +111,8 @@ Devi estrarre e consolidare tutte le informazioni leggibili in un unico oggetto 
     "luogoNascita": "stringa o vuota",
     "sesso": "M" | "F" | "",
     "cittadinanza": "stringa o vuota",
-    "residenza": "stringa indirizzo o vuota"
+    "residenza": "stringa indirizzo o vuota",
+    "fotoVisoBox": [ymin, xmin, ymax, xmax] o null
   },
   "documenti": [
     {
@@ -124,17 +125,35 @@ Devi estrarre e consolidare tutte le informazioni leggibili in un unico oggetto 
       "note": "breve sintesi del documento"
     }
   ],
+  "entitaGeometriche": [
+    {
+      "tipoDocumento": "stringa",
+      "lato": "FRONTE" | "RETRO" | "UNICO",
+      "numeroDocumento": "stringa o vuota",
+      "codiceFiscale": "stringa o vuota",
+      "angoli": [
+        {"x": number, "y": number},
+        {"x": number, "y": number},
+        {"x": number, "y": number},
+        {"x": number, "y": number}
+      ],
+      "rotazioneGradi": 0 | 90 | 180 | 270,
+      "qualitaRilevata": "🟢 OTTIMALE" | "🟡 FOTO GREZZA" | "⚠️ DA UNIFICARE" | "🔴 MULTIPLO / DA SEPARARE"
+    }
+  ],
   "valoreISEE": number o null
 }
 
-REGOLE TASSATIVE DI FORMATTAZIONE E TITLE CASE:
+REGOLE TASSATIVE DI FORMATTAZIONE, RITAGLIO E GEOMETRIA:
 1. "nome" e "cognome": Usa SEMPRE la prima lettera maiuscola e le successive minuscole (Title Case, es: 'Mario', 'Rossi', 'De Luca', 'D'Angelo'). NON LASCIARE MAI TUTTO MAIUSCOLO.
 2. "luogoNascita": Usa Title Case per il comune, con la sigla della provincia di 2 lettere obbligatoriamente MAIUSCOLA tra parentesi (es: 'Reggio nell'Emilia (RE)', 'Roma (RM)', 'San Donato Milanese (MI)').
 3. "residenza": Usa Title Case per indirizzo e comune (es: 'Via dei Mille 10, 00185 Roma (RM)').
 4. "codiceFiscale": Estrai il Codice Fiscale italiano esatto a 16 caratteri alfanumerici MAIUSCOLI.
 5. "valoreISEE": Se tra i documenti è presente un'Attestazione ISEE, estrai il valore dell'ISEE ordinario o corrente (numero decimale in € senza simboli di valuta, es. 8450.50).
 6. "dataEmissione" e "dataScadenza": Converti sempre le date nel formato standard YYYY-MM-DD.
-7. In caso di campi illeggibili, parzialmente coperti o non presenti nei documenti, lascia stringa vuota "" (o null per valore), NON inventare MAI informazioni.
+7. "fotoVisoBox": Se è presente un documento di riconoscimento con fototessera (CIE, patente, passaporto, permesso di soggiorno), indica le coordinate normalizzate 0-1000 del box del viso [ymin, xmin, ymax, xmax]. Altrimenti null.
+8. "entitaGeometriche": Se l'immagine contiene una o più tessere o fogli (es. CIE fronte, retro, tessera sanitaria appoggiati sul tavolo o inclinati), per ciascuna entità individua i 4 vertici [alto-sx, alto-dx, basso-dx, basso-sx] in scala 0-1000, specificando se è FRONTE o RETRO e la rotazione (0, 90, 180, 270 gradi) necessaria per la lettura orizzontale. Se la foto ha sfondi inutili (tavolo, dita), segnala qualitaRilevata come '🟡 FOTO GREZZA' o '🔴 MULTIPLO / DA SEPARARE'.
+9. In caso di campi illeggibili, parzialmente coperti o non presenti nei documenti, lascia stringa vuota "" (o null per valore), NON inventare MAI informazioni.
 `;
 
     // Costruisce l'array delle parti multimodali
@@ -278,6 +297,9 @@ REGOLE TASSATIVE DI FORMATTAZIONE E TITLE CASE:
               if (iseeDoc) iseeVal = iseeDoc.valore;
             }
 
+            const fotoBox = Array.isArray(p.fotoVisoBox) ? p.fotoVisoBox : (Array.isArray(parsedData.fotoVisoBox) ? parsedData.fotoVisoBox : null);
+            const geometricEntities = Array.isArray(parsedData.entitaGeometriche) ? parsedData.entitaGeometriche : [];
+
             return {
               success: true,
               data: {
@@ -286,7 +308,9 @@ REGOLE TASSATIVE DI FORMATTAZIONE E TITLE CASE:
                 datiPersona: p,
                 datiDocumento: primaryDoc,
                 documenti: normalizedDocs,
-                valoreISEE: iseeVal
+                valoreISEE: iseeVal,
+                entitaGeometriche: geometricEntities,
+                fotoVisoBox: fotoBox
               },
               modelUsed: currentModel
             };

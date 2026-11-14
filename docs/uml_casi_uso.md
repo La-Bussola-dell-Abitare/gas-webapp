@@ -51,6 +51,7 @@ flowchart LR
             UC16(["UC16: Smart Form-Filling con IA (Gemini)"])
             UC17(["UC17: Gestione Fascicolo & Scadenze"])
             UC18(["UC18: Sincronizzazione Lookups & Fogli Dati"])
+            UC19(["UC19: Standardizzazione Documenti & Ritaglio Avatar"])
         end
 
         subgraph ModuloAppuntamenti ["Agenda e Presenze"]
@@ -101,6 +102,9 @@ flowchart LR
     Coord --> UC13
     Coord --> UC15
     Coord --> UC17
+    Coord --> UC19
+    Op --> UC19
+    Ass --> UC19
 
     %% RELAZIONI TRA CASI D'USO
     UC01 -.->|"<<extend>>"| UC08
@@ -128,6 +132,8 @@ flowchart LR
     UC17 --> GW
     UC16 --> AI
     UC16 --> GW
+    UC19 --> GW
+    UC19 --> AI
 ```
 
 ---
@@ -180,3 +186,10 @@ flowchart LR
   2. Il sistema calcola dinamicamente lo stato di validità semaforico (🔴 Scaduto, 🟡 In Scadenza entro 60 gg, 🟢 Valido, ⚪ Permanente).
   3. L'operatore registra nuovi documenti o aggiorna quelli esistenti con importi economici in € (ISEE, affitto) e date di rilascio/scadenza.
   4. Il sistema assegna l'ID progressivo numerico da 1 e mantiene il fascicolo perfettamente sincronizzato con Google Drive.
+
+### UC19: Standardizzazione Documenti, Ritaglio Fototessera ed Unione Fronte/Retro
+- **Attori:** Operatore Sociale, Assistente Sociale, Coordinatore, Google Gemini Flash.
+- **Flusso Principale:**
+  1. **Ritaglio Automatico Fototessera Avatar**: durante la scansione multimodale con Gemini Flash, le coordinate del volto `fotoVisoBox` vengono ritagliate su Canvas 2D client-side in formato $256 \times 256$ px, mostrate nell'avatar circolare della scheda e archiviate su Drive come `Foto Profilo - Nome Cognome.jpg` aggiornando la colonna `Foto` in *Beneficiari*. In alternativa, l'operatore può caricare/scattare una fototessera manualmente con il pulsante `📷 Foto`.
+  2. **Unione Fronte e Retro su Pagina Singola**: quando vengono caricati o rilevati file separati per Fronte e Retro di un documento d'identità, il sistema li impila verticalmente su un'unica immagine $1024 \times 1312$ px su Canvas client-side (`stitchCardsVertical`), azzerando le bande nere e le quote server. Il documento unificato viene archiviato con qualità `🟢 OTTIMALE`, eliminando i file grezzi frammentati.
+  3. **Valutazione Qualità Documenti**: il sistema calcola la conformità grafica (`🟢 OTTIMALE`, `🟡 DA PERFEZIONARE`, `⚠️ DA UNIFICARE`, `🔴 INCOMPLETO`) sia a livello di singolo documento che di fascicolo del beneficiario (`evaluateBeneficiaryDocQuality`), consentendo filtri rapidi a pillola nella WebApp e formattazione condizionale a 6 regole sul foglio *Beneficiari*.

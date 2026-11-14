@@ -59,6 +59,8 @@ class Beneficiario extends Person {
     this.annoArrivo = data.annoArrivo !== undefined && data.annoArrivo !== null ? Number(data.annoArrivo) : null;
     this.idCartella = data.idCartella || "";
     this.firma = data.firma || data.documents?.firma || "";
+    this.foto = data.foto || data.documents?.foto || "";
+    this.qualitaDocumenti = data.qualitaDocumenti || "🟢 OTTIMALE";
 
     /** @type {PersonDocuments} */
     this.documents = {
@@ -67,7 +69,8 @@ class Beneficiario extends Person {
       patente: data.documents?.patente !== undefined ? data.documents.patente : (data.patente || false),
       permessoSoggiorno: data.documents?.permessoSoggiorno !== undefined ? data.documents.permessoSoggiorno : (data.permessoSoggiorno || false),
       tesseraSanitaria: data.documents?.tesseraSanitaria !== undefined ? data.documents.tesseraSanitaria : (data.tesseraSanitaria || false),
-      firma: this.firma
+      firma: this.firma,
+      foto: this.foto
     };
   }
 
@@ -161,6 +164,8 @@ class Beneficiario extends Person {
     const permessoSoggiornoVal = toDocVal("permessoSoggiorno", "permesso di soggiorno", "permesso soggiorno");
     const tesseraSanitariaVal = toDocVal("tesseraSanitaria", "tessera sanitaria");
     const firmaVal = getStr("firma", "id firma", "firma id", "firma autografa");
+    const fotoVal = getStr("foto", "id foto", "foto profilo", "avatar");
+    const qualitaDocumentiVal = getStr("qualitaDocumenti", "qualità documenti", "qualita documenti", "qualità", "qualita");
     const idCartellaVal = getStr("idCartella", "id cartella drive", "id cartella", "cartella drive", "cartella");
     const statoCivileVal = getStr("statoCivile", "stato civile");
     const annoArrivoVal = toNum("annoArrivo", "anno arrivo in italia", "anno arrivo", "arrivo italia");
@@ -187,6 +192,8 @@ class Beneficiario extends Person {
       idNucleo: idNucleoVal,
       idCartella: idCartellaVal,
       firma: firmaVal,
+      foto: fotoVal,
+      qualitaDocumenti: qualitaDocumentiVal || "🟢 OTTIMALE",
       statoLavorativo: statoLavorativoVal,
       titoloStudio: titoloStudioVal,
       residenza: residenzaVal,

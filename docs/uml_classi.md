@@ -30,10 +30,13 @@ classDiagram
         +DocumentRecord[] Documents
         +DocumentRecord[] DocumentById
         +DocumentRecord[] DocumentByName
+        +Object DOCUMENT_QUALITY
+        +Object BENEFICIARIO_DOC_QUALITY
         +findDocumentType(query)$ DocumentRecord
         +buildDocumentFileName(doc, persona, ext)$ string
         +getDocumentCategories()$ string[]
         +getDocumentsByCategory(categoria)$ DocumentRecord[]
+        +evaluateBeneficiaryDocQuality(beneficiary, docs)$ string
     }
 
     class EducationCatalog {
@@ -58,6 +61,7 @@ classDiagram
         +string phone
         +string citizenship
         +string signatureFileId
+        +string photoFileId
         +get nome() string
         +get cognome() string
         +get cf() string
@@ -65,6 +69,8 @@ classDiagram
         +get luogoNascita() string
         +get telefono() string
         +get cittadinanza() string
+        +get foto() string
+        +get firma() string
     }
 
     class Beneficiario {
@@ -79,6 +85,8 @@ classDiagram
         +number annoArrivo
         +string idCartella
         +string firma
+        +string foto
+        +string qualitaDocumenti
         +PersonDocuments documents
         +get cartaIdentita() string
         +get passaporto() boolean
@@ -173,6 +181,7 @@ classDiagram
         +string dataEmissione
         +string dataScadenza
         +string idDrive
+        +string qualita
         +string note
         +string dataInserimento
         +getStatoScadenza(refDate)$ DocumentoStatoScadenza
@@ -251,6 +260,7 @@ classDiagram
         +add(data)$ Object
         +removeById(id)$ Object
         +removeByDriveId(driveId)$ Object
+        +updateQuality(idOrDriveId, qualita)$ Object
         +getScadenzeCritiche(days)$ Documento[]
         -_getColIndexes(headers)$ Object
     }
@@ -290,6 +300,8 @@ classDiagram
         +getOrCreateNucleoFolder(id, name)$ Object
         +getOrCreateBeneficiarioFolder(cf)$ Object
         +saveBeneficiarySignature(cf, base64)$ Object
+        +saveBeneficiaryPhoto(cf, base64)$ Object
+        +saveMergedDocument(cf, tipo, base64, oldFileIds, metadata)$ Object
         +saveDocumentFile(cf, docPayload, nucleoId)$ Object
         +scanBeneficiarioDocuments(cf)$ Object
         +scanNucleoDocuments(id)$ Object

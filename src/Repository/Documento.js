@@ -34,6 +34,7 @@ class DocumentoRepository {
         "Valore",
         "Data Emissione",
         "Data Scadenza",
+        "Qualità Documento",
         "ID Drive",
         "Note",
         "Data Inserimento"
@@ -65,6 +66,7 @@ class DocumentoRepository {
       valore: findHeaderIndex(headers, ["valore", "importo", "valore economico", "isee"]),
       dataEmissione: findHeaderIndex(headers, ["data emissione", "emissione", "rilascio", "data rilascio"]),
       dataScadenza: findHeaderIndex(headers, ["data scadenza", "scadenza", "termine"]),
+      qualita: findHeaderIndex(headers, ["qualità documento", "qualita documento", "qualità", "qualita", "qualità file"]),
       idDrive: findHeaderIndex(headers, ["id drive", "drive id", "id_drive", "drive"]),
       note: findHeaderIndex(headers, ["note", "annotazioni", "osservazioni"]),
       dataInserimento: findHeaderIndex(headers, ["data inserimento", "inserimento", "timestamp", "creato il"])
@@ -194,6 +196,7 @@ class DocumentoRepository {
         { key: "valore", name: "Valore" },
         { key: "dataEmissione", name: "Data Emissione" },
         { key: "dataScadenza", name: "Data Scadenza" },
+        { key: "qualita", name: "Qualità Documento" },
         { key: "idDrive", name: "ID Drive" },
         { key: "note", name: "Note" },
         { key: "dataInserimento", name: "Data Inserimento" }
@@ -235,6 +238,7 @@ class DocumentoRepository {
         valore: data.valore,
         dataEmissione: data.dataEmissione,
         dataScadenza: data.dataScadenza,
+        qualita: data.qualita,
         idDrive: data.idDrive,
         note: data.note,
         dataInserimento: data.dataInserimento || (isUpdate ? undefined : new Date())
@@ -254,6 +258,9 @@ class DocumentoRepository {
       rowValues[idx.valore] = docModel.valore !== null ? docModel.valore : "";
       rowValues[idx.dataEmissione] = docModel.dataEmissione || "";
       rowValues[idx.dataScadenza] = docModel.dataScadenza || "";
+      if (idx.qualita >= 0) {
+        rowValues[idx.qualita] = docModel.qualita || "🟢 OTTIMALE";
+      }
       rowValues[idx.idDrive] = docModel.idDrive || "";
       rowValues[idx.note] = docModel.note || "";
       if (!isUpdate || !rowValues[idx.dataInserimento]) {
@@ -277,6 +284,44 @@ class DocumentoRepository {
       }
     } catch (e) {
       Logger.log("DocumentoRepository.add errore: " + e.message);
+      return { success: false, message: e.message };
+    }
+  }
+
+  /**
+   * Aggiorna lo stato di qualità di un documento cercando per ID o per ID Drive.
+   * @param {number|string} idOrDriveId - ID del documento o ID Drive.
+   * @param {string} qualita - Nuovo valore della qualità ("🟢 OTTIMALE", "🟡 FOTO GREZZA", "⚠️ DA UNIFICARE", ecc.)
+   * @return {{ success: boolean; message: string }}
+   */
+  static updateQuality(idOrDriveId, qualita) {
+    try {
+      if (!idOrDriveId || !qualita) return { success: false, message: "Parametri mancanti." };
+      const sheet = DocumentoRepository.getSheet();
+      const lastRow = sheet.getLastRow();
+      if (lastRow <= 1) return { success: false, message: "Nessun documento trovato." };
+
+      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      const idx = DocumentoRepository._getColIndexes(headers);
+      if (idx.qualita < 0) return { success: false, message: "Colonna Qualità Documento non presente." };
+
+      const isNumericId = typeof idOrDriveId === "number" || /^\d+$/.test(String(idOrDriveId).trim());
+      const searchCol = (isNumericId && idx.id >= 0) ? idx.id : idx.idDrive;
+      if (searchCol < 0) return { success: false, message: "Colonna di ricerca non presente." };
+
+      const vals = sheet.getRange(2, searchCol + 1, lastRow - 1, 1).getValues();
+      const targetStr = String(idOrDriveId).trim();
+
+      for (let r = 0; r < vals.length; r++) {
+        if (String(vals[r][0]).trim() === targetStr) {
+          sheet.getRange(r + 2, idx.qualita + 1).setValue(qualita);
+          return { success: true, message: "Qualità documento aggiornata a " + qualita };
+        }
+      }
+
+      return { success: false, message: "Documento non trovato per l'aggiornamento della qualità." };
+    } catch (e) {
+      Logger.log("DocumentoRepository.updateQuality errore: " + e.message);
       return { success: false, message: e.message };
     }
   }

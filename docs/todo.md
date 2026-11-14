@@ -8,8 +8,8 @@
 * Nuclei familiari dovrebbero essere visibili come bootstrap accordion che possono essere espansi per vedere più dettagli
 
 # Funzionalità
-* Estrarre foto da documenti per usarle nella web app
-* Migliorare immagini documenti in modo che occupino tutta la schermata, siano in orizzontale e nello stesso file ci sia un solo documento e fronte retro dove possibile
+* (Fatto) Estrarre foto da documenti per usarle nella web app (ritaglio avatar fototessera 256x256 px da bounding box Gemini Flash o webcam/smartphone, salvataggio su Drive e colonna Foto in Beneficiari)
+* (Fatto) Migliorare immagini documenti in modo che occupino tutta la schermata, siano in orizzontale e nello stesso file ci sia un solo documento e fronte retro dove possibile (unione client-side Canvas su pagina singola verticale 1024x1312 px ~3:4 con Fronte in alto e Retro in basso)
 * Aggiungere tra i documenti scheda di segnalazione, scheda anagrafica, foglio firme intervento individuale, 
 * (Fatto) Modalità di debug real-time con intercettore RPC (latenza ms e payload), ispettore stato database in memoria, diagnostica compressione Canvas e IA Gemini Flash, trappola errori globali, benchmark ping server, pulsante esportazione report e toggle ID tecnici (scorciatoia Ctrl+Shift+D, navbar e modale impostazioni)
 * (Fatto) Infrastruttura di Testing, CI/CD e Deployment Collaudo: suite unit test offline nativa Node.js v25 (`tests/unit/` per Modelli, Dominio, Validatori, Fuzzy Matching) ultra-rapida (<350ms, zero overhead), loader GAS in Node.js (`tests/loadSrc.js`), pipeline GitHub Actions automatizzate (`.github/workflows/test.yml` e `clasp-push.yml` con pre-test gate e audit sicurezza manifest) e automazione ciclo collaudo (`scripts/deploy.js` `open`/`close`) su deployment fisso con Nucleo di test dedicato #3 (Lorenzo Mazza)
@@ -28,9 +28,11 @@
 * Aggiungere colori per evidenziare problemi o situazioni critiche
 * Organizzare form in sezioni: anagrafica, documenti...
 * Ampliare incontri con chiamate (con relativa data e durata)
-* Aggiungi foto di intestatari e altri conponenti prendendola dai documenti
+* (Fatto) Aggiungi foto di intestatari e altri componenti prendendola dai documenti (avatar circolare nella scheda nucleo, modale anagrafica e colonna Foto)
 * Aggiorna operatori
 * (Fatto) Creare funzioni che controllano e fanno check o fanno bulk action
+    * (Fatto) Filtrare (sia nello sheet che nella webapp) o mostrare con badge per vari problemi che possono esserci:
+        * (Fatto) stato documenti: colonna e badge "Qualità Documento" e "Qualità Documenti" per monitorare conformità grafica, ritagli e unificazione Fronte/Retro con filtri a pillola nella WebApp e formattazione condizionale a 6 regole su Google Sheets
     * (Fatto) Riconciliazione documenti e file system Google Drive con IA
         * (Fatto) Controllare tramite OCR o IA che tipo di documenti sono e che informazioni hanno (Google Gemini Flash multimodale)
         * (Fatto) Dargli il nome corretto secondo le specifiche (`buildDocumentFileName`)

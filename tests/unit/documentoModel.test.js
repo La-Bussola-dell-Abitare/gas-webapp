@@ -75,4 +75,93 @@ describe('Models/Documenti/Documento.js - Modello e Semafori Scadenze', () => {
       assert.ok(doc.getGiorniAllaScadenza(refDate) > 60);
     });
   });
+
+  describe('Qualità Documento e Qualità Fascicolo Beneficiario', () => {
+    it('inizializza la qualità del documento con default OTTIMALE o con valore custom', () => {
+      const docDefault = new Documento({ tipo: "Carta d'Identità" });
+      assert.strictEqual(docDefault.qualita, '🟢 OTTIMALE');
+      assert.strictEqual(docDefault.toObject().qualita, '🟢 OTTIMALE');
+
+      const docCustom = new Documento({
+        tipo: "Carta d'Identità",
+        qualita: '⚠️ DA UNIFICARE'
+      });
+      assert.strictEqual(docCustom.qualita, '⚠️ DA UNIFICARE');
+      assert.strictEqual(docCustom.toObject().qualita, '⚠️ DA UNIFICARE');
+    });
+
+    it('evaluateBeneficiaryDocQuality calcola correttamente lo stato qualitativo del fascicolo', () => {
+      // Caso 1: Nessun documento di riconoscimento -> INCOMPLETO
+      const benSenzaDoc = { cf: 'RSSMRA80A01H501Z', documents: {} };
+      assert.strictEqual(evaluateBeneficiaryDocQuality(benSenzaDoc, []), '🔴 INCOMPLETO');
+
+      // Caso 2: Documento presente ma con qualità DA UNIFICARE
+      const benDaUnificare = { cf: 'RSSMRA80A01H501Z' };
+      const docsDaUnificare = [
+        { tipo: "Carta d'Identità", qualita: "⚠️ DA UNIFICARE" }
+      ];
+      assert.strictEqual(evaluateBeneficiaryDocQuality(benDaUnificare, docsDaUnificare), '⚠️ DA UNIFICARE');
+
+      // Caso 3: Documento presente ma con foto grezza -> DA PERFEZIONARE
+      const benGrezzo = { cf: 'RSSMRA80A01H501Z' };
+      const docsGrezzi = [
+        { tipo: "Carta d'Identità", qualita: "🟡 FOTO GREZZA" }
+      ];
+      assert.strictEqual(evaluateBeneficiaryDocQuality(benGrezzo, docsGrezzi), '🟡 DA PERFEZIONARE');
+
+      // Caso 4: Tutti i documenti standard e completi -> OTTIMALE
+      const benOttimale = { cf: 'RSSMRA80A01H501Z' };
+      const docsOttimali = [
+        { tipo: "Carta d'Identità", qualita: "🟢 OTTIMALE" },
+        { tipo: "Tessera Sanitaria", qualita: "🟢 OTTIMALE" }
+      ];
+      assert.strictEqual(evaluateBeneficiaryDocQuality(benOttimale, docsOttimali), '🟢 OTTIMALE');
+    });
+
+    it('aggiorna lo stato di qualità con DocumentoRepository.updateQuality', () => {
+      loadScript('src/Repository/Documento.js');
+      const fakeSheet = {
+        getLastRow: () => 3,
+        getLastColumn: () => 11,
+        getRange: (r, c, numR, numC) => {
+          if (r === 1) {
+            return {
+              getValues: () => [[
+                "ID Documento", "Intestatario", "Tipo", "Categoria", "Valore",
+                "Data Emissione", "Data Scadenza", "Qualità Documento", "ID Drive", "Note", "Data Inserimento"
+              ]]
+            };
+          }
+          if (c === 1) { // colonna ID
+            return {
+              getValues: () => [[1], [2]]
+            };
+          }
+          // range per setValue
+          return {
+            setValue: (val) => { fakeSheet._updatedVal = val; }
+          };
+        }
+      };
+
+      global.SpreadsheetApp = {
+        getActiveSpreadsheet: () => ({
+          getSheetByName: () => fakeSheet
+        })
+      };
+      global.findHeaderIndex = (headers, names) => {
+        const lowerHeaders = headers.map(h => String(h).trim().toLowerCase());
+        for (let i = 0; i < lowerHeaders.length; i++) {
+          for (let k = 0; k < names.length; k++) {
+            if (lowerHeaders[i].includes(names[k])) return i;
+          }
+        }
+        return -1;
+      };
+
+      const res = DocumentoRepository.updateQuality(2, '🟢 OTTIMALE');
+      assert.strictEqual(res.success, true);
+      assert.strictEqual(fakeSheet._updatedVal, '🟢 OTTIMALE');
+    });
+  });
 });

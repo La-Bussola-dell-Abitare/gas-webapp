@@ -252,6 +252,227 @@ class DriveManager {
   }
 
   /**
+   * Salva la foto profilo/fototessera del beneficiario in Google Drive,
+   * aggiorna la colonna 'Foto' nel foglio Beneficiari e registra il record nel foglio Documenti.
+   * 
+   * @param {string} cf - Codice Fiscale del beneficiario.
+   * @param {string} base64Data - Immagine (JPEG/PNG) in Base64 (con o senza prefisso data URI).
+   * @return {{ success: boolean; fileId: string; fileUrl: string; message: string }}
+   */
+  static saveBeneficiaryPhoto(cf, base64Data) {
+    if (!cf) throw new Error("Codice Fiscale obbligatorio per il salvataggio della foto profilo.");
+    if (!base64Data) throw new Error("Dati immagine della foto mancanti.");
+
+    const targetCF = cf.toUpperCase().trim();
+    const beneficiari = BeneficiarioRepository.getAll();
+    const ben = beneficiari.find(b => (b.cf || "").toUpperCase().trim() === targetCF);
+    if (!ben) {
+      throw new Error("Beneficiario con Codice Fiscale '" + targetCF + "' non trovato.");
+    }
+
+    // 1. Recupera o crea la cartella personale del beneficiario
+    const folderInfo = DriveManager.getOrCreateBeneficiarioFolder(targetCF);
+    const folder = DriveApp.getFolderById(folderInfo.id);
+
+    // 2. Decodifica Base64 e crea il Blob immagine
+    let mimeType = "image/jpeg";
+    const mimeMatch = base64Data.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,/);
+    if (mimeMatch) {
+      mimeType = mimeMatch[1];
+    }
+    const cleanBase64 = base64Data.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, "");
+    const decodedBytes = Utilities.base64Decode(cleanBase64);
+    const nome = (ben.nome || ben.name || "").trim();
+    const cognome = (ben.cognome || ben.surname || "").trim();
+    const ext = mimeType.includes("png") ? "png" : "jpg";
+    const fileName = `Foto Profilo - ${nome} ${cognome}.${ext}`.trim();
+    const blob = Utilities.newBlob(decodedBytes, mimeType, fileName);
+
+    // 3. Rimuove eventuali foto precedenti per evitare file duplicati
+    const existingFiles = folder.getFiles();
+    while (existingFiles.hasNext()) {
+      const f = existingFiles.next();
+      if (!f.isTrashed() && /^foto/i.test(f.getName())) {
+        f.setTrashed(true);
+      }
+    }
+
+    // 4. Salva il nuovo file immagine
+    const file = folder.createFile(blob);
+    const fileId = file.getId();
+    const fileUrl = file.getUrl();
+
+    // 5. Memorizza l'ID file nella colonna 'Foto' del foglio Beneficiari
+    BeneficiarioRepository.updateDriveInfo(targetCF, { foto: fileId });
+
+    // 6. Sincronizza il documento nel foglio 'Documenti'
+    try {
+      if (typeof DocumentoRepository !== "undefined") {
+        const existingDocs = DocumentoRepository.getByCF(targetCF);
+        const existingFoto = existingDocs.find(d => d.tipo === "Foto Profilo" || d.tipo === "Foto");
+        DocumentoRepository.add({
+          id: existingFoto ? existingFoto.id : undefined,
+          intestatario: targetCF,
+          tipo: "Foto Profilo",
+          categoria: "Anagrafica",
+          qualita: "🟢 OTTIMALE",
+          idDrive: fileId,
+          note: "Fototessera estratta da documento d'identità"
+        });
+      }
+    } catch (docRepoErr) {
+      Logger.log("saveBeneficiaryPhoto - registrazione Documenti: " + (docRepoErr instanceof Error ? docRepoErr.message : String(docRepoErr)));
+    }
+
+    return {
+      success: true,
+      fileId: fileId,
+      fileUrl: fileUrl,
+      message: "Foto profilo salvata con successo."
+    };
+  }
+
+  /**
+   * Salva un documento unificato (es. Fronte e Retro su pagina singola) in Google Drive,
+   * elimina o cestina i vecchi file frammentati separati, registra il nuovo record con qualità '🟢 OTTIMALE'
+   * e ricalcola lo stato qualitativo sintetico del fascicolo beneficiario.
+   * 
+   * @param {string} cf - Codice Fiscale del beneficiario.
+   * @param {string} tipoDocumento - Tipologia del documento (es. "Carta d'Identità", "Tessera Sanitaria").
+   * @param {string} base64Data - Immagine o PDF unificato in Base64.
+   * @param {string[]} [oldFileIds=[]] - Array di ID file Drive precedenti da cestinare.
+   * @param {Object} [metadata={}] - Metadati opzionali (dataScadenza, dataEmissione, numeroDocumento, note, ecc.).
+   * @return {{ success: boolean; fileId: string; fileUrl: string; fileName: string; qualitaDocumenti?: string; message: string }}
+   */
+  static saveMergedDocument(cf, tipoDocumento, base64Data, oldFileIds = [], metadata = {}) {
+    if (!cf) throw new Error("Codice Fiscale obbligatorio per l'unione del documento.");
+    if (!tipoDocumento) throw new Error("Tipologia documento obbligatoria.");
+    if (!base64Data) throw new Error("Contenuto file unificato mancante.");
+
+    const targetCF = cf.toUpperCase().trim();
+    const beneficiari = BeneficiarioRepository.getAll();
+    const ben = beneficiari.find(b => (b.cf || "").toUpperCase().trim() === targetCF);
+    if (!ben) {
+      throw new Error("Beneficiario con Codice Fiscale '" + targetCF + "' non trovato.");
+    }
+
+    // 1. Risolve il tipo dal dominio SSOT
+    let docRecord = (typeof findDocumentType === "function") ? findDocumentType(tipoDocumento) : null;
+    const standardTipo = docRecord ? docRecord.name : tipoDocumento;
+    const categoria = docRecord ? docRecord.categoria : (metadata.categoria || "Anagrafica");
+
+    // 2. Cartella personale del beneficiario
+    const folderInfo = DriveManager.getOrCreateBeneficiarioFolder(targetCF);
+    const folder = DriveApp.getFolderById(folderInfo.id);
+
+    // 3. Estrazione mimeType ed estensione
+    let mimeType = "image/jpeg";
+    const mimeMatch = base64Data.match(/^data:([a-zA-Z0-9.+-]+\/[a-zA-Z0-9.+-]+);base64,/);
+    if (mimeMatch) {
+      mimeType = mimeMatch[1];
+    }
+    const cleanBase64 = base64Data.replace(/^data:[a-zA-Z0-9.+-]+\/[a-zA-Z0-9.+-]+;base64,/, "");
+    const decodedBytes = Utilities.base64Decode(cleanBase64);
+    const ext = mimeType.includes("pdf") ? "pdf" : (mimeType.includes("png") ? "png" : "jpg");
+
+    const nomePersona = `${ben.nome || ben.name || ""} ${ben.cognome || ben.surname || ""}`.trim();
+    let fileName = metadata.fileName || "";
+    if (!fileName && typeof buildDocumentFileName === "function") {
+      fileName = buildDocumentFileName(
+        {
+          tipo: standardTipo,
+          dataScadenza: metadata.dataScadenza || "",
+          dataEmissione: metadata.dataEmissione || "",
+          originalName: metadata.originalName || ""
+        },
+        nomePersona,
+        ext
+      );
+    }
+    if (!fileName) {
+      fileName = `${standardTipo} - ${nomePersona}.${ext}`;
+    }
+
+    // 4. Salva il file unificato su Drive
+    const blob = Utilities.newBlob(decodedBytes, mimeType, fileName);
+    const file = folder.createFile(blob);
+    const fileId = file.getId();
+    const fileUrl = file.getUrl();
+
+    // 5. Cestina i file originali frammentati e rimuove i relativi record dal foglio
+    const trashedOld = [];
+    if (Array.isArray(oldFileIds)) {
+      for (let i = 0; i < oldFileIds.length; i++) {
+        const oldId = oldFileIds[i];
+        if (oldId && oldId !== fileId) {
+          try {
+            const oldFile = DriveApp.getFileById(oldId);
+            if (oldFile && !oldFile.isTrashed()) {
+              oldFile.setTrashed(true);
+              trashedOld.push(oldId);
+            }
+          } catch (eTrash) {
+            Logger.log(`saveMergedDocument - Errore cestinamento vecchio file ${oldId}: ${eTrash.message}`);
+          }
+          try {
+            if (typeof DocumentoRepository !== "undefined") {
+              DocumentoRepository.removeByDriveId(oldId);
+            }
+          } catch (eRepo) {
+            Logger.log(`saveMergedDocument - Errore rimozione record vecchio file ${oldId}: ${eRepo.message}`);
+          }
+        }
+      }
+    }
+
+    // 6. Registra il nuovo file su 'Documenti' con qualità '🟢 OTTIMALE'
+    let docId = "";
+    if (typeof DocumentoRepository !== "undefined") {
+      const addRes = DocumentoRepository.add({
+        intestatario: targetCF,
+        tipo: standardTipo,
+        categoria: categoria,
+        valore: metadata.valore !== undefined ? metadata.valore : null,
+        dataEmissione: metadata.dataEmissione || "",
+        dataScadenza: metadata.dataScadenza || "",
+        qualita: "🟢 OTTIMALE",
+        idDrive: fileId,
+        note: metadata.note || "Fronte e retro unificati e ottimizzati su pagina singola"
+      });
+      if (addRes && addRes.success && addRes.data) {
+        docId = addRes.data.id;
+      }
+    }
+
+    // 7. Ricalcola la qualità sintetica del fascicolo del beneficiario
+    let updatedQuality = "🟢 OTTIMALE";
+    try {
+      if (typeof DocumentoRepository !== "undefined" && typeof evaluateBeneficiaryDocQuality === "function") {
+        const benDocs = DocumentoRepository.getByCF(targetCF);
+        updatedQuality = evaluateBeneficiaryDocQuality(ben, benDocs);
+        BeneficiarioRepository.updateDriveInfo(targetCF, { qualitaDocumenti: updatedQuality });
+      }
+    } catch (eQual) {
+      Logger.log(`saveMergedDocument - Errore ricalcolo qualità beneficiario: ${eQual.message}`);
+    }
+
+    try {
+      SpreadsheetApp.flush();
+    } catch (eFlush) {}
+
+    return {
+      success: true,
+      fileId: fileId,
+      fileUrl: fileUrl,
+      fileName: fileName,
+      docId: docId,
+      qualitaDocumenti: updatedQuality,
+      trashedOldFiles: trashedOld,
+      message: `Documento unificato '${fileName}' salvato con successo (qualità 🟢 OTTIMALE).`
+    };
+  }
+
+  /**
    * Salva un file documento (Base64) nella corretta cartella Google Drive (cartella nucleo o sottocartella personale)
    * e registra contestualmente il record nel foglio relazionale 'Documenti'.
    * 
