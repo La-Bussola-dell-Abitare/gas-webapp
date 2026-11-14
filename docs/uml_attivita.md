@@ -204,7 +204,7 @@ flowchart TD
     
     subgraph UserReview ["Revisione Interattiva dell'Operatore"]
         direction TB
-        Tab1[1. File & Cartelle: Spostamenti e Ridenominazioni + Anteprime]
+        Tab1[1. File & Cartelle: Spostamenti e Nomi Standard tipi noti; file sconosciuti preservati]
         Tab2[2. Duplicati: Confronto visivo anteprime + Scelta Cestina/Archivia/Mantieni]
         Tab3[3. Foglio Documenti: Campi editabili, anteprima file e rimozione orfane]
         Tab4[4. Anagrafica IA: Anteprima diff editabile e documento sorgente]

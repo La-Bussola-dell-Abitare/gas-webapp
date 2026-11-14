@@ -579,17 +579,29 @@ class DriveReconciler {
       const fId = item.fileId;
       let docRec = (typeof findDocumentType === "function") ? findDocumentType(fName) : null;
 
+      // Se il file è già censito nel foglio 'Documenti' con un tipo standard valido, usiamolo come fonte di verità
+      const trackedDoc = existingTrackedDocs.find(d => d.idDrive === fId);
+      if ((!docRec || docRec.id === "ALTRO" || docRec.name === "Altro" || docRec.name === "Altro Documento") && trackedDoc && trackedDoc.tipo) {
+        const fromSheet = (typeof findDocumentType === "function") ? findDocumentType(trackedDoc.tipo) : null;
+        if (fromSheet && fromSheet.id !== "ALTRO") {
+          docRec = fromSheet;
+        }
+      }
+
       // Se deep scan IA è attivo e il documento è non classificato o richiesto
       let aiExtracted = null;
-      if (deepAIScan && aiScansCount < maxAIFiles && (docRec.name === "Altro" || /scansione|allegato|img|doc|nuovo/i.test(fName))) {
+      if (deepAIScan && aiScansCount < maxAIFiles && (!docRec || docRec.id === "ALTRO" || docRec.name === "Altro" || docRec.name === "Altro Documento" || /scansione|allegato|img|doc|nuovo/i.test(fName))) {
         try {
           if (typeof DocumentIntelligence !== "undefined" && DocumentIntelligence.isAvailable()) {
             const aiRes = DocumentIntelligence.analyzeBlobs([item.file.getBlob()]);
             if (aiRes && aiRes.success && aiRes.data) {
               aiExtracted = aiRes.data;
               aiScansCount++;
-              if (aiExtracted.tipoDocumento && aiExtracted.tipoDocumento !== "Altro") {
-                docRec = findDocumentType(aiExtracted.tipoDocumento);
+              if (aiExtracted.tipoDocumento && aiExtracted.tipoDocumento !== "Altro" && aiExtracted.tipoDocumento !== "Altro Documento") {
+                const fromAI = (typeof findDocumentType === "function") ? findDocumentType(aiExtracted.tipoDocumento) : null;
+                if (fromAI && fromAI.id !== "ALTRO") {
+                  docRec = fromAI;
+                }
               }
             }
           }
@@ -597,6 +609,9 @@ class DriveReconciler {
           Logger.log("Errore Deep AI Scan file " + fName + ": " + aiErr.message);
         }
       }
+
+      // Determina se il documento è sconosciuto / generico non classificato
+      const isDocUnknown = !docRec || docRec.id === "ALTRO" || docRec.name === "Altro" || docRec.name === "Altro Documento";
 
       // Identifica l'appartenenza a un membro specifico
       let targetMem = null;
@@ -625,7 +640,7 @@ class DriveReconciler {
       const assignedMemCF = assignedMem ? (assignedMem.cf || "").toUpperCase() : "";
 
       // 8a. Controllo file fuori posto (MISPLACED_FILE)
-      const docScope = docRec ? docRec.scope : "persona";
+      const docScope = (isDocUnknown || !docRec) ? "entrambi" : (docRec.scope || "persona");
       let isMisplaced = false;
       let targetFolderId = "";
       let targetFolderName = "";
@@ -674,14 +689,17 @@ class DriveReconciler {
       }
 
       // 8b. Controllo ridenominazione standard (NON_STANDARD_FILENAME)
-      const extMatch = fName.match(/\.([a-zA-Z0-9]+)$/);
-      const ext = extMatch ? extMatch[1] : "pdf";
+      // REQUISITO: Se non sappiamo con certezza che tipo di documento sia (documento sconosciuto / ALTRO / "Altro Documento"),
+      // NON dobbiamo rinominarlo in "Altro Documento - ...", ma lasciarlo esattamente com'è con il suo nome originale.
       let expectedFileName = fName;
 
-      if (typeof buildDocumentFileName === "function") {
+      if (!isDocUnknown && typeof buildDocumentFileName === "function") {
+        const extMatch = fName.match(/\.([a-zA-Z0-9]+)$/);
+        const ext = extMatch ? extMatch[1] : "pdf";
         const docOpt = {
-          tipo: docRec ? docRec.name : "Documento",
-          dataScadenza: (aiExtracted && aiExtracted.datiDocumento && aiExtracted.datiDocumento.dataScadenza) || ""
+          tipo: docRec.name,
+          dataScadenza: (aiExtracted && aiExtracted.datiDocumento && aiExtracted.datiDocumento.dataScadenza) || (trackedDoc && trackedDoc.dataScadenza) || "",
+          originalName: fName
         };
         expectedFileName = buildDocumentFileName(
           docOpt,

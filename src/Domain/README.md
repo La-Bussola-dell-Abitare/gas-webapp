@@ -72,7 +72,8 @@ Costituisce l'autorità unica per tutte le tipologie di documenti gestite dallo 
     $\rightarrow$ `"Carta d'Identità (scad. 2034) - Mario Rossi.pdf"`
   - *Esempio:* `buildDocumentFileName({ tipo: "ISEE", anno: 2026 }, "Franco Rossi", "pdf")`
     $\rightarrow$ `"Attestazione ISEE 2026 - Franco Rossi.pdf"`
-  - *Flessibilità & Resilienza:* accetta come terzo parametro sia l'estensione stringa (es. `"jpg"`, `"pdf"`) sia un oggetto opzioni `{ dataScadenza, dataEmissione, originalName }`, estraendo automaticamente l'estensione reale dal file originario ed evitando errori di tipo a runtime. In assenza di record di catalogo, ricorre a un fallback elegante `"<Tipo> - <Persona>.<ext>"`.
+  - *Flessibilità & Resilienza:* accetta come terzo parametro sia l'estensione stringa (es. `"jpg"`, `"pdf"`) sia un oggetto opzioni `{ dataScadenza, dataEmissione, originalName }`, estraendo automaticamente l'estensione reale dal file originario ed evitando errori di tipo a runtime.
+  - *Preservazione file non classificati:* per documenti di tipologia generica (`ALTRO` / `"Altro Documento"`), qualora sia fornito un `originalName`, la funzione preserva fedelmente il nome file originale evitando di sovrascriverlo forzatamente con `"Altro Documento - <Persona>.<ext>"`.
 
 - **Funzioni di Matching Esposte**:
   - `findDocumentType(query)`: individua il record di dominio anche da testi sporchi o nomi di file arbitrari (es. `scan_ci_mario.pdf` $\rightarrow$ `CARTA_IDENTITA`).

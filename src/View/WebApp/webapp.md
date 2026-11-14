@@ -75,7 +75,7 @@ flowchart TD
   - Modificare l'anagrafica o rimuovere il componente.
 - **Diagnostica Drive Integrata (`#modal-diagnostica-drive`)**: Il pulsante `🔍 Diagnostica` su ogni card apre una suite interattiva a 4 schede per l'audit e la riconciliazione selettiva:
   - **Switch Deep Scan IA (Gemini Flash)**: attiva l'analisi OCR del contenuto dei documenti per estrarre metadati certi e scadenze.
-  - **Scheda 1: 📁 File & Cartelle**: rileva sottocartelle personali mancanti, cartelle con nomi invertiti (`Rossi Mario`), refusi o nomi parziali, file fuori posto (radice vs cartella personale) e file con nomi non conformi allo standard `buildDocumentFileName`, permettendo all'operatore di approvare o modificare i nomi con checkbox interattive.
+  - **Scheda 1: 📁 File & Cartelle**: rileva sottocartelle personali mancanti, cartelle con nomi invertiti (`Rossi Mario`), refusi o nomi parziali, file fuori posto (radice vs cartella personale) e file con nomi non conformi allo standard `buildDocumentFileName`, permettendo all'operatore di approvare o modificare i nomi con checkbox interattive. I file non riconosciuti o generici (`ALTRO`) mantengono intatto il loro nome originale e non vengono proposti per la ridenominazione.
   - **Scheda 2: 📑 Gestione Duplicati**: visualizza coppie o gruppi di file rilevati con architettura Two-Tier:
     - **`EXACT_HASH` (Clone Bit-a-Bit 100%)**: badge rosso con impronta digitale (`<i class="bi bi-fingerprint"></i> Hash MD5 Identico - Clone 100%`) e visualizzazione dell'hash MD5 abbreviato nei metadati tecnici (estratto nativamente da Drive API v3 senza scaricare byte).
     - **`EXACT`**: duplicati per stessa dimensione in byte e nome normalizzato (file speciali o Google Docs senza checksum).

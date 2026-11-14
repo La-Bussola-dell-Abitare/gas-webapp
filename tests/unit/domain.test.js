@@ -85,5 +85,23 @@ describe('Domain/documents.js - Catalogo SSOT Documenti & Naming Standard', () =
       );
       assert.strictEqual(name, 'Firma Autografa - Mario Rossi.png');
     });
+
+    it('preserva il nome originale quando il tipo è ALTRO / non classificato e originalName è specificato', () => {
+      const name = buildDocumentFileName(
+        { tipo: 'Altro Documento', originalName: 'ricevuta_affitto_novembre.pdf' },
+        'Mario Rossi',
+        'pdf'
+      );
+      assert.strictEqual(name, 'ricevuta_affitto_novembre.pdf');
+    });
+
+    it('genera Altro Documento con persona solo se originalName è assente', () => {
+      const name = buildDocumentFileName(
+        { tipo: 'Altro Documento' },
+        'Mario Rossi',
+        'pdf'
+      );
+      assert.strictEqual(name, 'Altro Documento - Mario Rossi.pdf');
+    });
   });
 });

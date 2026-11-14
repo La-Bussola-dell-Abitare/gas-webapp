@@ -197,4 +197,91 @@ describe('DriveReconciler.js - Metadati MD5 e Deduplicazione Two-Tier', () => {
       assert.strictEqual(renamed[0].newName, 'Nuovo Nome Conforme');
     });
   });
+
+  describe('Audit Nomenclatura e File Sconosciuti (NON_STANDARD_FILENAME)', () => {
+    it('non propone ridenominazione per file non riconosciuti (ALTRO / sconosciuti), lasciandoli inalterati', () => {
+      loadScript('src/Domain/documents.js');
+
+      // Mock BeneficiarioRepository
+      global.BeneficiarioRepository = {
+        getAll: () => [{
+          idNucleo: '1',
+          cf: 'RSSMRA80A01H501Z',
+          nome: 'Mario',
+          cognome: 'Rossi',
+          rapportoIntestatario: 'intestatario'
+        }]
+      };
+
+      // Mock DocumentoRepository
+      global.DocumentoRepository = {
+        getAll: () => []
+      };
+
+      // Mock DriveManager
+      global.DriveManager = {
+        getOrCreateNucleoFolder: () => ({ id: 'folder-root-1', url: 'https://drive.google.com/folder-root-1' })
+      };
+
+      // Mock Files
+      const fileRecognized = {
+        isTrashed: () => false,
+        getId: () => 'f-ci',
+        getName: () => 'ci.pdf',
+        getSize: () => 12345,
+        getMimeType: () => 'application/pdf',
+        getLastUpdated: () => new Date()
+      };
+
+      const fileUnknown = {
+        isTrashed: () => false,
+        getId: () => 'f-ricevuta',
+        getName: () => 'ricevuta_bonifico.pdf',
+        getSize: () => 54321,
+        getMimeType: () => 'application/pdf',
+        getLastUpdated: () => new Date()
+      };
+
+      // Mock Folder Iterator
+      const createIter = (items) => {
+        let idx = 0;
+        return {
+          hasNext: () => idx < items.length,
+          next: () => items[idx++]
+        };
+      };
+
+      // Mock Folder
+      const subFolderMario = {
+        isTrashed: () => false,
+        getId: () => 'fld-mario',
+        getName: () => 'Mario Rossi',
+        getFiles: () => createIter([fileRecognized, fileUnknown]),
+        getFolders: () => createIter([])
+      };
+
+      const rootFolder = {
+        isTrashed: () => false,
+        getId: () => 'folder-root-1',
+        getName: () => '1 - Mario Rossi',
+        getFiles: () => createIter([]),
+        getFolders: () => createIter([subFolderMario])
+      };
+
+      global.DriveApp = {
+        getFolderById: (id) => (id === 'fld-mario' ? subFolderMario : rootFolder)
+      };
+
+      const audit = DriveReconciler.auditNucleo('1');
+
+      // 1. Il file non riconosciuto NON deve avere una issue NON_STANDARD_FILENAME
+      const unknownRenameIssue = audit.issues.find(i => i.fileId === 'f-ricevuta' && i.type === 'NON_STANDARD_FILENAME');
+      assert.strictEqual(unknownRenameIssue, undefined, 'I file sconosciuti non devono essere rinominati in Altro Documento');
+
+      // 2. Il file riconosciuto con nome non standard ("ci.pdf" per Carta d'Identità) DEVE essere segnalato
+      const recognizedRenameIssue = audit.issues.find(i => i.fileId === 'f-ci' && i.type === 'NON_STANDARD_FILENAME');
+      assert.ok(recognizedRenameIssue, 'I file riconosciuti non conformi devono proporre la ridenominazione standard');
+      assert.strictEqual(recognizedRenameIssue.suggestedNewName, 'Carta d\'Identità - Mario Rossi.pdf');
+    });
+  });
 });

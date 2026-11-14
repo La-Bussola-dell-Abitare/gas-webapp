@@ -478,6 +478,13 @@ function buildDocumentFileName(doc, persona, ext = "pdf") {
 
   const queryType = docInput.tipo || docInput.name || docInput.id || (typeof doc === "string" ? doc : "Documento");
   const docRecord = findDocumentType(queryType);
+
+  // Se il documento è non classificato / generico (ALTRO) ed è disponibile un nome originale,
+  // preserviamo intatto il nome file originale senza forzare "Altro Documento - Persona.ext"
+  if (docRecord && (docRecord.id === "ALTRO" || docRecord.name === "Altro" || docRecord.name === "Altro Documento") && (docInput.originalName || docInput.fileName)) {
+    return String(docInput.originalName || docInput.fileName).trim();
+  }
+
   const tipoLabel = docRecord ? docRecord.name : (String(queryType).trim() || "Documento");
 
   let dettaglio = "";
