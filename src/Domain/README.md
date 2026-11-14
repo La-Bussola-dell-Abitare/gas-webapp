@@ -99,6 +99,6 @@ Gestisce la logica formale e algoritmica del Codice Fiscale italiano:
 
 ### `Places/` — Informazioni Geografiche Nazionali e Internazionali
 Contiene i value object per la geolocalizzazione:
-- `City.js`: classe geografica per la geocodifica, CAP, provincia e codice catastale dei comuni italiani e delle città estere.
+- `0_City.js`: classe geografica per la geocodifica, CAP, provincia e codice catastale dei comuni italiani e delle città estere (prefisso '0_' per priorità alfabetica in GAS V8).
 - `Address.js`: value object immutabile che formalizza via, numero civico, CAP e comune di residenza/domicilio.
 - `Elenco-comuni-italiani.csv`: database storico dei codici catastali Belfiore.

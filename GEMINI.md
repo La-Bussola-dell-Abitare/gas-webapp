@@ -7,7 +7,7 @@ Per le linee guida complete di sviluppo, documentazione continua e convenzioni a
 - **Documentazione Continua**: Ogni modifica a codice/funzionalità deve essere accompagnata dall'aggiornamento immediato del file `README.md` o `Istruzioni.md` nella cartella specifica, spiegando le scelte architetturali adottate e i motivi per cui sono state scartate altre soluzioni.
 - **UML & Riferimenti**: Aggiornare contestualmente i diagrammi UML (`docs/uml_*.md`) e gli indici in `README.md` e `webapp.md`.
 - **SSOT**: Dominio centralizzato in `src/Domain/`.
-- **Concorrenza Apps Script**: Proteggere le scritture con `LockService` e aggregare le letture di bootstrap in `getInitialAppData`.
+- **Concorrenza Apps Script & Vincoli V8**: Proteggere le scritture con `LockService`, aggregare le letture di bootstrap in `getInitialAppData` e preservare i prefissi alfabetici `0_` per le classi base genitore (`0_Person.js`, `0_City.js`) per rispettare l'ordine di caricamento lessicale di GAS V8 ed evitare errori `ReferenceError: <Parent> is not defined`.
 - **Protocollo di Testing e Collaudo (SSOT)**:
   - **Deployment ID**: `AKfycbzkY426RSsiBF19i2GRLd69idx3GbMKj4fZQIcg2G3INwXVSjTiRd-4MEtmp9IA0MFwMw`
   - **Nucleo di Test**: **Nucleo #3 (Lorenzo Mazza)** tassativo per qualsiasi prova interattiva o manipolazione dati/Drive.

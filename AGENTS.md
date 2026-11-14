@@ -44,6 +44,7 @@ Se le modifiche impattano l'architettura, aggiornare tempestivamente i diagrammi
    - Evitare getter con caching su oggetti congelati con `Object.freeze`: usare pattern con cache mutabile esterna (`_CONFIG_DRIVE_CACHE`).
    - Evitare chiamate RPC multiple in parallelo all'avvio della WebApp per non saturare `LockService`: aggregare le chiamate di inizializzazione in un'unica funzione atomica (`getInitialAppData`).
    - Proteggere sempre le operazioni di scrittura concorrente (es. creazione nucleo, assegnazione ID incrementali) con `LockService.getScriptLock()`.
+   - **Ordine di Esecuzione Lessicale dei File e Class Inheritance**: in Google Apps Script V8 i file del progetto vengono eseguiti a runtime in ordine alfabetico. Poiché le dichiarazioni `class SubClass extends SuperClass` non beneficiano di hoisting, le classi base devono **obbligatoriamente** risiedere in un file con prefisso alfabetico precedente (`0_Person.js`, `0_City.js`) rispetto alle sottoclassi (`Beneficiario.js`, `Operatore.js`, `Address.js`), pena l'errore `ReferenceError: <SuperClass> is not defined`. Mai rimuovere i prefissi `0_` dalle classi genitore.
 
 3. **Convenzioni Link e Formattazione Markdown**:
    - Utilizzare sempre link cliccabili con protocollo `file:///` e forward slash (es. `[country.js](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Domain/country.js)`).

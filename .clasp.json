@@ -11,6 +11,9 @@
   "jsonExtensions": [
     ".json"
   ],
-  "filePushOrder": [],
+  "filePushOrder": [
+    "Models/Person/0_Person.js",
+    "Domain/Places/0_City.js"
+  ],
   "skipSubdirectories": false
 }
