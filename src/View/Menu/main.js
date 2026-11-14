@@ -467,53 +467,66 @@ function getActiveContextDataRPC() {
 }
 
 /**
- * Endpoint RPC per rilevare discrepanze tra Google Drive e foglio Beneficiari.
+ * Endpoint RPC per rilevare i nuclei familiari su Google Drive non ancora catalogati a foglio.
+ * @param {Object} [options={}] Opzioni di scansione (es. deepAIScan)
+ * @return {{ success: boolean; uncatalogedNuclei: any[]; totalDriveFolders: number; catalogedFolders: number; errors: string[] }}
  */
-function getDriveImportDiffDataRPC() {
-  const diffItems = [];
+function getDriveImportDiffDataRPC(options = {}) {
   try {
-    const allBeneficiari = BeneficiarioRepository.getAll();
-    // Campiona o confronta metadati
-    for (const b of allBeneficiari.slice(0, 50)) {
-      if (b.idCartella && typeof DriveApp !== "undefined") {
-        try {
-          const folder = DriveApp.getFolderById(b.idCartella);
-          const folderName = folder.getName();
-          const expectedName = `${b.nome} ${b.cognome}`.trim();
-          if (folderName.toLowerCase() !== expectedName.toLowerCase()) {
-            diffItems.push({
-              beneficiario: `${b.nome} ${b.cognome}`,
-              cf: b.cf,
-              campo: "Nome Cartella",
-              valoreSheet: expectedName,
-              valoreDrive: folderName
-            });
-          }
-        } catch (e) { }
-      }
+    if (typeof DriveDiscoveryService !== "undefined" && typeof DriveDiscoveryService.getUncatalogedDriveNuclei === "function") {
+      const res = DriveDiscoveryService.getUncatalogedDriveNuclei(options);
+      // Sanitizzazione preventiva per serializzatore RPC Apps Script
+      return JSON.parse(JSON.stringify(res));
     }
+    return {
+      success: false,
+      uncatalogedNuclei: [],
+      totalDriveFolders: 0,
+      catalogedFolders: 0,
+      errors: ["Modulo DriveDiscoveryService non disponibile."]
+    };
   } catch (err) {
     Logger.log("getDriveImportDiffDataRPC error: " + err.message);
+    return {
+      success: false,
+      uncatalogedNuclei: [],
+      totalDriveFolders: 0,
+      catalogedFolders: 0,
+      errors: [err.message || String(err)]
+    };
   }
-  return { success: true, items: diffItems };
 }
 
 /**
- * Endpoint RPC per applicare i dati importati da Drive.
+ * Endpoint RPC per importare nei fogli i nuclei e beneficiari selezionati dall'operatore.
+ * @param {Array<any>} items Elenco dei nuclei approvati per l'importazione
+ * @return {{ success: boolean; importedNucleiCount: number; importedBeneficiariCount: number; importedDocumentsCount: number; actionsApplied: string[]; errors: string[] }}
  */
 function applyDriveImportDiffRPC(items) {
-  let updatedCount = 0;
-  if (Array.isArray(items)) {
-    for (const item of items) {
-      if (item.campo === "Nome Cartella" && item.cf && typeof BeneficiarioRepository !== "undefined") {
-        try {
-          // Normalizza o aggiorna se necessario
-          updatedCount++;
-        } catch (e) { }
-      }
+  try {
+    if (typeof DriveDiscoveryService !== "undefined" && typeof DriveDiscoveryService.importNuclei === "function") {
+      const res = DriveDiscoveryService.importNuclei(items);
+      return JSON.parse(JSON.stringify(res));
     }
+    return {
+      success: false,
+      importedNucleiCount: 0,
+      importedBeneficiariCount: 0,
+      importedDocumentsCount: 0,
+      actionsApplied: [],
+      errors: ["Modulo DriveDiscoveryService non disponibile."]
+    };
+  } catch (err) {
+    Logger.log("applyDriveImportDiffRPC error: " + err.message);
+    return {
+      success: false,
+      importedNucleiCount: 0,
+      importedBeneficiariCount: 0,
+      importedDocumentsCount: 0,
+      actionsApplied: [],
+      errors: [err.message || String(err)]
+    };
   }
-  return { success: true, updatedCount };
 }
 
 /**

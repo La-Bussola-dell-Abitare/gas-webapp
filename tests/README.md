@@ -24,6 +24,7 @@ tests/
 │   ├── codiceFiscale.test.js # Test suite per Models/CodiceFiscale.js (CIN, sesso, data nascita, omocodie)
 │   ├── documentoModel.test.js# Test suite per Models/Documenti/Documento.js (semafori scadenze, normalizzazione date)
 │   ├── domain.test.js        # Test suite per Domain/documents.js (catalogo SSOT, findDocumentType, buildDocumentFileName)
+│   ├── driveDiscovery.test.js# Test suite per Service/GDrive/DriveDiscoveryService.js (scansione radice Drive, importazione atomica)
 │   └── utils.test.js         # Test suite per Utils/Utils.js (Levenshtein, analyzeFolderName, normalizzatori di testo)
 └── README.md                 # Questo documento
 ```

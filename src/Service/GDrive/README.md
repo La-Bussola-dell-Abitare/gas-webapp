@@ -60,6 +60,19 @@ Tutti i file risiedono all'interno della cartella radice configurata in `CONFIG.
 - **`reconcileNucleo(nucleoId, options)`**: Wrapper di retrocompatibilità che esegue l'audit rapido e applica le bonifiche standard o il piano approvato.
 - **`auditArchive()`**: Scansione sintetica globale su tutti i nuclei censiti.
 
+### 2.3 `DriveDiscoveryService.js` — Motore di Discovery e Importazione Fascicoli da Drive (Drive &rarr; Sheets)
+Implementa la logica inversa di scoperta da Google Drive verso i fogli di calcolo:
+- **`getUncatalogedDriveNuclei(options)`**: Scansiona la cartella radice [`CONFIG.FOLDER_BENEFICIARI_ROOT_ID`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Utils/Config.js), ignora le cartelle di servizio (`_Archivio`, `_Template`, cestinate) e confronta ciascuna cartella con i record di *Nuclei Familiari* e *Beneficiari*. Per ogni cartella non ancora catalogata:
+  - Estrae l'ID nucleo se presente nel nome (es. `12 - Mario Rossi`) o calcola il prossimo progressivo libero.
+  - Rileva l'intestatario dal nome cartella.
+  - Esplora le sottocartelle mappando ciascun componente della famiglia.
+  - Rileva i documenti presenti nella radice e nelle sottocartelle, estraendo opzionalmente i dati anagrafici con Gemini Flash OCR.
+- **`importNuclei(approvedList)`**: Esecuzione atomica transazionale (protetta da `LockService.getScriptLock`):
+  - Inserisce la riga nel foglio *Nuclei Familiari* collegando l'`idCartella`.
+  - Inserisce le righe nel foglio *Beneficiari* per intestatario e componenti.
+  - Inserisce tutti i file nel foglio *Documenti* collegando l'`idDrive`.
+  - Normalizza facoltativamente la cartella su Google Drive nel formato canonico `<ID> - <Nome Intestatario>`.
+
 ---
 
 ## 3. Scelte Architetturali Adottate

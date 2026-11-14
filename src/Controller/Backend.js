@@ -1073,6 +1073,40 @@ function auditArchive() {
 }
 
 /**
+ * Scansiona la cartella radice di Google Drive e rileva i nuclei non catalogati nei fogli.
+ * @param {Record<string, any>} [options={}] Opzioni di scansione (deepAIScan, limit)
+ * @return {Record<string, any>}
+ */
+function getUncatalogedDriveNuclei(options = {}) {
+  try {
+    if (typeof DriveDiscoveryService === "undefined") {
+      throw new Error("Modulo DriveDiscoveryService non disponibile.");
+    }
+    return JSON.parse(JSON.stringify(DriveDiscoveryService.getUncatalogedDriveNuclei(options)));
+  } catch (err) {
+    Logger.log("Errore getUncatalogedDriveNuclei: " + (err instanceof Error ? err.message : String(err)));
+    return { success: false, totalDriveFolders: 0, catalogedFolders: 0, uncatalogedNuclei: [], errors: [err.message || String(err)] };
+  }
+}
+
+/**
+ * Importa transazionalmente i nuclei selezionati da Google Drive nei fogli.
+ * @param {Array<Record<string, any>>} approvedList
+ * @return {Record<string, any>}
+ */
+function importUncatalogedDriveNuclei(approvedList) {
+  try {
+    if (typeof DriveDiscoveryService === "undefined") {
+      throw new Error("Modulo DriveDiscoveryService non disponibile.");
+    }
+    return JSON.parse(JSON.stringify(DriveDiscoveryService.importNuclei(approvedList)));
+  } catch (err) {
+    Logger.log("Errore importUncatalogedDriveNuclei: " + (err instanceof Error ? err.message : String(err)));
+    return { success: false, importedNucleiCount: 0, importedBeneficiariCount: 0, importedDocumentsCount: 0, actionsApplied: [], errors: [err.message || String(err)] };
+  }
+}
+
+/**
  * Analizza un documento caricato tramite Google Gemini (Vision & OCR)
  * estraendo automaticamente i dati anagrafici e i metadati documentali in formato JSON.
  * 

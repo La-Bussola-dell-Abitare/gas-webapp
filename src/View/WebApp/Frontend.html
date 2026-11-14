@@ -835,6 +835,9 @@
                   <button type="button" class="btn btn-primary btn-sm font-outfit" onclick="openAddNucleoModal()">
                     + Aggiungi Nucleo
                   </button>
+                  <button type="button" class="btn btn-outline-primary btn-sm font-outfit" onclick="openDriveDiscoveryModal()" title="Cerca e importa i nuclei presenti su Google Drive non ancora catalogati nei fogli">
+                    <i class="bi bi-cloud-arrow-down me-1"></i>Importa da Drive
+                  </button>
                 </div>
                 <div class="d-flex align-items-center" style="min-width: 250px;">
                   <input type="text" class="form-control form-control-sm" id="search-nuclei"
@@ -1845,6 +1848,50 @@
               <i class="bi bi-question-circle me-1"></i>Problemi di caricamento? Clicca qui per aprire in Drive ↗
             </a>
             <button type="button" class="btn btn-secondary btn-sm py-1 px-3" data-bs-dismiss="modal">Chiudi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Discovery e Importazione Nuclei da Google Drive -->
+  <div class="modal fade" id="modal-drive-discovery" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white py-2">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-cloud-arrow-down fs-5"></i>
+            <h5 class="modal-title font-outfit fs-6 fw-bold m-0 text-white">Discovery & Importazione Nuclei da Google Drive</h5>
+          </div>
+          <div class="d-flex align-items-center gap-3 ms-auto me-2">
+            <div class="form-check form-switch m-0 d-flex align-items-center gap-2" title="Attiva estrazione OCR dati persona da documenti con IA">
+              <input class="form-check-input" type="checkbox" id="wa-discovery-deep-ai-toggle" onchange="loadDriveDiscoveryWebApp()">
+              <label class="form-check-label text-xs fw-semibold text-white" for="wa-discovery-deep-ai-toggle">
+                <i class="bi bi-stars me-1"></i>Analisi IA Gemini Flash
+              </label>
+            </div>
+            <button type="button" class="btn btn-light btn-xs py-1 px-2 fw-semibold text-primary" onclick="loadDriveDiscoveryWebApp()" title="Riesegui scansione cartella radice Drive">
+              <i class="bi bi-arrow-clockwise me-1"></i>Aggiorna
+            </button>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-3" id="modal-drive-discovery-body">
+          <div class="text-center py-5" id="wa-discovery-spinner">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted font-outfit small">Scansione cartella radice Google Drive e verifica cartelle non catalogate in corso...</p>
+          </div>
+          <div id="wa-discovery-content" class="d-none"></div>
+        </div>
+        <div class="modal-footer bg-light py-2 justify-content-between" id="modal-drive-discovery-footer">
+          <div class="text-xs text-muted" id="wa-discovery-selection-summary">
+            Nessun nucleo selezionato.
+          </div>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Chiudi</button>
+            <button type="button" class="btn btn-success btn-sm fw-bold" id="btn-wa-discovery-import" disabled onclick="applySelectedDriveImportsWebApp(this)">
+              <i class="bi bi-check2-circle me-1"></i>Importa Selezionati
+            </button>
           </div>
         </div>
       </div>
@@ -7163,7 +7210,245 @@
         })
         .auditArchive();
     }
-</script>
+
+    // =========================================================================
+    // DISCOVERY E IMPORTAZIONE NUCLEI DA GOOGLE DRIVE
+    // =========================================================================
+    let waDiscoveryItems = [];
+
+    function openDriveDiscoveryModal() {
+      const modalEl = document.getElementById('modal-drive-discovery');
+      if (modalEl) {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+        loadDriveDiscoveryWebApp();
+      }
+    }
+
+    function loadDriveDiscoveryWebApp() {
+      const spinner = document.getElementById('wa-discovery-spinner');
+      const content = document.getElementById('wa-discovery-content');
+      const importBtn = document.getElementById('btn-wa-discovery-import');
+
+      if (spinner) spinner.classList.remove('d-none');
+      if (content) content.classList.add('d-none');
+      if (importBtn) importBtn.disabled = true;
+
+      const deepAI = document.getElementById('wa-discovery-deep-ai-toggle') ? document.getElementById('wa-discovery-deep-ai-toggle').checked : false;
+
+      google.script.run
+        .withSuccessHandler(renderDriveDiscoveryWebApp)
+        .withFailureHandler(err => {
+          if (spinner) spinner.classList.add('d-none');
+          showToast('Errore durante la scansione Drive: ' + (err.message || err), 'danger');
+        })
+        .getUncatalogedDriveNuclei({ deepAIScan: deepAI });
+    }
+
+    function renderDriveDiscoveryWebApp(res) {
+      const spinner = document.getElementById('wa-discovery-spinner');
+      const content = document.getElementById('wa-discovery-content');
+
+      if (spinner) spinner.classList.add('d-none');
+      if (content) content.classList.remove('d-none');
+
+      if (!res || !res.uncatalogedNuclei || res.uncatalogedNuclei.length === 0) {
+        content.innerHTML = `
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-check2-circle text-success fs-1 d-block mb-2"></i>
+            <h5 class="fw-bold font-outfit text-dark m-0">Tutte le cartelle di Google Drive sono già catalogate!</h5>
+            <p class="text-xs text-muted mt-1">Non è stato trovato nessun fascicolo nucleo non censito nella cartella radice.</p>
+          </div>
+        `;
+        const summaryEl = document.getElementById('wa-discovery-selection-summary');
+        if (summaryEl) summaryEl.innerText = 'Archivio sincronizzato al 100%.';
+        return;
+      }
+
+      waDiscoveryItems = res.uncatalogedNuclei;
+
+      let html = `
+        <div class="alert alert-light border py-2 px-3 small d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <span>Cartelle esaminate: <strong>${res.totalDriveFolders || waDiscoveryItems.length}</strong></span>
+            <span class="text-success"><i class="bi bi-check-circle me-1"></i>Già a foglio: <strong>${res.catalogedFolders || 0}</strong></span>
+            <span class="text-warning text-dark"><i class="bi bi-exclamation-circle me-1"></i>Non catalogate: <strong>${waDiscoveryItems.length}</strong></span>
+          </div>
+          <span class="badge bg-primary fs-7">${waDiscoveryItems.length} nuclei trovati su Drive</span>
+        </div>
+
+        <div class="table-responsive border rounded bg-white" style="max-height: 480px; overflow-y: auto;">
+          <table class="table table-sm table-hover align-middle mb-0 text-xs">
+            <thead class="table-light sticky-top">
+              <tr>
+                <th style="width: 36px;" class="text-center">
+                  <input type="checkbox" class="form-check-input" id="check-all-wa-discovery" checked onchange="toggleSelectAllWADiscovery(this.checked)">
+                </th>
+                <th>Cartella Google Drive</th>
+                <th style="width: 80px;">ID Nucleo</th>
+                <th>Intestatario Proposto (Nome e Cognome)</th>
+                <th style="width: 140px;">Codice Fiscale</th>
+                <th>Componenti & File</th>
+                <th class="text-end" style="width: 90px;">Azione</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      waDiscoveryItems.forEach((item, idx) => {
+        const sug = item.suggestedData || {};
+        const memberBadges = (item.members || []).map(m => `<span class="badge bg-light text-dark border me-1">${escapeHtml(m.name)}</span>`).join('');
+        const rootDocBadges = (item.rootDocuments || []).length > 0 ? `<span class="badge bg-info-subtle text-info-emphasis border me-1">${item.rootDocuments.length} doc nucleo</span>` : '';
+
+        html += `
+          <tr id="row-wa-disc-${idx}">
+            <td class="text-center">
+              <input type="checkbox" class="wa-disc-checkbox form-check-input" data-idx="${idx}" checked onchange="updateWADiscoverySummary()">
+            </td>
+            <td>
+              <div class="fw-bold font-monospace text-dark">${escapeHtml(item.folderName)}</div>
+              <a href="${item.folderUrl}" target="_blank" class="text-primary text-decoration-none text-xs">
+                <i class="bi bi-box-arrow-up-right me-1"></i>Apri su Drive ↗
+              </a>
+            </td>
+            <td>
+              <input type="text" class="form-control form-control-xs py-0 px-1 text-center font-monospace fw-bold" id="wa-disc-id-${idx}" value="${escapeHtml(sug.id || '')}">
+            </td>
+            <td>
+              <div class="row g-1">
+                <div class="col-6">
+                  <input type="text" class="form-control form-control-xs py-0 px-2" placeholder="Nome" id="wa-disc-nome-${idx}" value="${escapeHtml(sug.nome || '')}">
+                </div>
+                <div class="col-6">
+                  <input type="text" class="form-control form-control-xs py-0 px-2" placeholder="Cognome" id="wa-disc-cognome-${idx}" value="${escapeHtml(sug.cognome || '')}">
+                </div>
+              </div>
+            </td>
+            <td>
+              <input type="text" class="form-control form-control-xs py-0 px-2 font-monospace" placeholder="Codice Fiscale" id="wa-disc-cf-${idx}" value="${escapeHtml(sug.cf || '')}">
+            </td>
+            <td>
+              <div class="mb-1">${memberBadges || '<span class="text-muted fst-italic">Nessuna sottocartella</span>'}</div>
+              <div>${rootDocBadges} <span class="badge bg-secondary-subtle text-secondary-emphasis">${item.totalFiles || 0} file</span></div>
+            </td>
+            <td class="text-end">
+              <button type="button" class="btn btn-outline-primary btn-xs py-1 px-2 fw-semibold text-nowrap" onclick="applySingleDriveImportWebApp(${idx}, this)" title="Importa subito questo nucleo">
+                <i class="bi bi-lightning-fill me-1"></i>Importa
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      html += `
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      content.innerHTML = html;
+      updateWADiscoverySummary();
+    }
+
+    function toggleSelectAllWADiscovery(checked) {
+      document.querySelectorAll('.wa-disc-checkbox').forEach(cb => cb.checked = checked);
+      updateWADiscoverySummary();
+    }
+
+    function updateWADiscoverySummary() {
+      const selected = document.querySelectorAll('.wa-disc-checkbox:checked').length;
+      const btn = document.getElementById('btn-wa-discovery-import');
+      if (btn) {
+        btn.disabled = selected === 0;
+        btn.innerHTML = `<i class="bi bi-check2-circle me-1"></i>Importa Selezionati (${selected})`;
+      }
+      const summaryEl = document.getElementById('wa-discovery-selection-summary');
+      if (summaryEl) {
+        summaryEl.innerText = `${selected} nucleo/i selezionato/i su ${waDiscoveryItems.length}.`;
+      }
+    }
+
+    function getPreparedWADiscoveryItem(idx) {
+      const baseItem = waDiscoveryItems[idx];
+      const sug = Object.assign({}, baseItem.suggestedData || {});
+
+      const idInput = document.getElementById(`wa-disc-id-${idx}`);
+      const nomeInput = document.getElementById(`wa-disc-nome-${idx}`);
+      const cognomeInput = document.getElementById(`wa-disc-cognome-${idx}`);
+      const cfInput = document.getElementById(`wa-disc-cf-${idx}`);
+
+      if (idInput) sug.id = idInput.value.trim();
+      if (nomeInput) sug.nome = nomeInput.value.trim();
+      if (cognomeInput) sug.cognome = cognomeInput.value.trim();
+      if (cfInput) sug.cf = cfInput.value.trim().toUpperCase();
+
+      sug.intestatario = sug.cf || `${sug.nome} ${sug.cognome}`.trim();
+
+      return Object.assign({}, baseItem, { suggestedData: sug });
+    }
+
+    function applySingleDriveImportWebApp(idx, btnEl) {
+      const itemToApply = getPreparedWADiscoveryItem(idx);
+      const oldHtml = btnEl.innerHTML;
+      btnEl.disabled = true;
+      btnEl.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+      google.script.run
+        .withSuccessHandler(res => {
+          btnEl.disabled = false;
+          btnEl.innerHTML = oldHtml;
+          if (res && res.success) {
+            showToast(`Nucleo #${itemToApply.suggestedData.id} importato con successo! (${res.importedBeneficiariCount} beneficiari, ${res.importedDocumentsCount} documenti)`, 'success');
+            const row = document.getElementById(`row-wa-disc-${idx}`);
+            if (row) row.remove();
+            waDiscoveryItems.splice(idx, 1);
+            updateWADiscoverySummary();
+            reloadData();
+          } else {
+            showToast('Errore durante l\'importazione: ' + ((res && res.errors && res.errors.join(', ')) || 'Errore sconosciuto'), 'danger');
+          }
+        })
+        .withFailureHandler(err => {
+          btnEl.disabled = false;
+          btnEl.innerHTML = oldHtml;
+          showToast('Errore RPC: ' + (err.message || err), 'danger');
+        })
+        .importUncatalogedDriveNuclei([itemToApply]);
+    }
+
+    function applySelectedDriveImportsWebApp(btnEl) {
+      const selectedCheckboxes = document.querySelectorAll('.wa-disc-checkbox:checked');
+      const selectedIndices = Array.from(selectedCheckboxes).map(cb => parseInt(cb.dataset.idx, 10));
+      const itemsToApply = selectedIndices.map(idx => getPreparedWADiscoveryItem(idx));
+
+      btnEl.disabled = true;
+      btnEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Importazione...';
+
+      google.script.run
+        .withSuccessHandler(res => {
+          btnEl.disabled = false;
+          btnEl.innerHTML = '<i class="bi bi-check2-circle me-1"></i>Importa Selezionati';
+          if (res && res.success) {
+            showToast(`Importazione completata con successo! ${res.importedNucleiCount} nuclei, ${res.importedBeneficiariCount} beneficiari, ${res.importedDocumentsCount} documenti.`, 'success');
+            const modalEl = document.getElementById('modal-drive-discovery');
+            if (modalEl) {
+              const modal = bootstrap.Modal.getInstance(modalEl);
+              if (modal) modal.hide();
+            }
+            reloadData();
+          } else {
+            showToast('Importazione parziale o con errori: ' + ((res && res.errors && res.errors.join(', ')) || 'Errore sconosciuto'), 'warning');
+            loadDriveDiscoveryWebApp();
+          }
+        })
+        .withFailureHandler(err => {
+          btnEl.disabled = false;
+          btnEl.innerHTML = '<i class="bi bi-check2-circle me-1"></i>Importa Selezionati';
+          showToast('Errore RPC: ' + (err.message || err), 'danger');
+        })
+        .importUncatalogedDriveNuclei(itemsToApply);
+    }
+  </script>
 </body>
 
 </html>

@@ -73,6 +73,13 @@ flowchart TD
   - Aprire la cartella personale Google Drive del singolo membro.
   - Verificare lo stato della firma autografa (badge verde o arancione) e acquisirla.
   - Modificare l'anagrafica o rimuovere il componente.
+- **Discovery & Importazione Nuclei da Google Drive (`#modal-drive-discovery`)**:
+  - Pulsante dedicato `📥 Importa da Drive` nella toolbar della scheda *Nuclei e Persone*.
+  - Scansiona la cartella radice [`CONFIG.FOLDER_BENEFICIARI_ROOT_ID`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Utils/Config.js) alla ricerca di fascicoli fisici non ancora catalogati a foglio.
+  - Tabella interattiva che elenca per ogni cartella non catalogata: ID rilevato o progressivo suggerito, intestatario e componenti dedotti dalle sottocartelle, documenti di nucleo e personali, e link diretto per aprire la cartella Drive.
+  - Campi editabili (ID, Nome, Cognome, CF) per verificare o correggere i dati prima dell'importazione.
+  - Switch opzionale *Analisi IA Gemini Flash* per estrarre OCR da documenti di identità in tempo reale.
+  - Importazione granulare (`⚡ Importa` sulla riga) o massiva (`⚡ Importa Selezionati`), con creazione automatica e transazionale delle righe in *Nuclei Familiari*, *Beneficiari* e *Documenti*, e ridenominazione canonica della cartella Drive in `<ID> - <Nome Intestatario>`.
 - **Diagnostica Drive Integrata (`#modal-diagnostica-drive`)**: Il pulsante `🔍 Diagnostica` su ogni card apre una suite interattiva a 4 schede per l'audit e la riconciliazione selettiva:
   - **Switch Deep Scan IA (Gemini Flash)**: attiva l'analisi OCR del contenuto dei documenti per estrarre metadati certi e scadenze.
   - **Scheda 1: 📁 File & Cartelle**: rileva sottocartelle personali mancanti, cartelle con nomi invertiti (`Rossi Mario`), refusi o nomi parziali, file fuori posto (radice vs cartella personale) e file con nomi non conformi allo standard `buildDocumentFileName`, permettendo all'operatore di approvare o modificare i nomi con checkbox interattive. I file non riconosciuti o generici (`ALTRO`) mantengono intatto il loro nome originale e non vengono proposti per la ridenominazione.
