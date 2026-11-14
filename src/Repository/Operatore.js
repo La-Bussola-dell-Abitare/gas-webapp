@@ -10,11 +10,13 @@
  */
 class OperatoreRepository {
     /**
-     * Restituisce l'oggetto Sheet corrispondente al foglio "Operatori".
+     * Restituisce l'oggetto Sheet corrispondente al foglio operatori attivo (priorità a '_DatiOperatori', fallback a 'Operatori').
      * @return {GoogleAppsScript.Spreadsheet.Sheet | null} Il foglio Operatori o null se inesistente.
      */
     static sheet() {
-        return SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Operatori");
+        const ss = SpreadsheetApp.getActiveSpreadsheet();
+        if (!ss) return null;
+        return ss.getSheetByName("_DatiOperatori") || ss.getSheetByName("Operatori");
     }
 
     /**
@@ -76,7 +78,10 @@ class OperatoreRepository {
             operatore: findHeaderIndex(headers, ["operatore"]),
             qualifica: findHeaderIndex(headers, ["qualifica"]),
             ruolo: findHeaderIndex(headers, ["ruolo"]),
-            firma: findHeaderIndex(headers, ["firma", "firma id"])
+            firma: findHeaderIndex(headers, ["firma", "firma id"]),
+            email: findHeaderIndex(headers, ["email", "mail"]),
+            stato: findHeaderIndex(headers, ["stato", "attivo"]),
+            oreSettimanali: findHeaderIndex(headers, ["ore", "ore settimanali"])
         };
     }
 }

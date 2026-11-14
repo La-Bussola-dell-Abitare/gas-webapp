@@ -191,62 +191,75 @@ Il progetto adotta un'architettura enterprise a livelli, insolitamente pulita e 
 flowchart TD
     subgraph View ["Presentazione (View)"]
         UI["Frontend.html (Bootstrap 5 SPA)"]
-        Sidebar["Menu/main.js (Google Sheets UI)"]
+        Sidebar["Menu/main.js (Google Sheets UI & onEdit)"]
     end
 
     subgraph Controller ["Livello Controller"]
         Backend["Controller/Backend.js (doGet e RPC API)"]
     end
 
-    subgraph Domain ["Single Source of Truth (SSOT)"]
-        Countries["Domain/country.js (196 Nazioni, Prefissi, Bandiere)"]
-        Documents["Domain/documents.js (20 Tipi, Archetipi, Naming)"]
+    subgraph Domain ["Single Source of Truth (SSOT & Standard)"]
+        Countries["Domain/country.js (196 Nazioni, Prefissi, Bandiere, =LISTA_STATI)"]
+        Education["Domain/education.js (ISCED 2011 / EQF, =LISTA_TITOLI_STUDIO)"]
+        Documents["Domain/documents.js (Catalogo Documentale, Archetipi, Naming)"]
+        CF["Domain/CodiceFiscale.js (Validazione, CIN, Omocodie)"]
+        Places["Domain/Places/ (City, Address, Belfiore)"]
     end
 
-    subgraph Service ["Livello di Servizio"]
+    subgraph Service ["Livello di Servizio Applicativo"]
+        SyncService["Service/Sync/DomainSyncService (Sync Fogli _Dati* -> Two-Tier)"]
         DriveMgr["Service/GDrive/DriveManager (Alberatura e Firme)"]
         DriveRec["Service/GDrive/DriveReconciler (Audit e Bonifica)"]
         DocAI["Service/Document/DocumentIntelligence (Gemini Flash Latest Multi-File)"]
-        DocGen["Service/Document/ (FoglioFirme / Diario)"]
+        DocGen["Service/Template/ (DocumentTemplateEngine, FoglioFirme, Diario, Scheda)"]
+        ValService["Service/Validation/DataIntegrityService"]
     end
 
-    subgraph Model ["Modello e Dominio"]
+    subgraph Model ["Modello OOP Entità Database"]
         Person["Person / Beneficiario / Operatore"]
         Nucleo["NucleoFamiliare"]
         Incontro["Incontro"]
-        CF["CodiceFiscale e City"]
-        Constants["Domain Constants ed Enum"]
+        DocModel["Documento (Record relazionale e semafori)"]
     end
 
     subgraph Repository ["Persistenza (Repository)"]
         BenRepo["BeneficiarioRepository"]
-        OpRepo["OperatoreRepository"]
+        OpRepo["OperatoreRepository (_DatiOperatori)"]
         IncRepo["IncontroRepository"]
-        DocRepo["FoglioFirme / Diario / Scheda Segnalazione"]
+        DocRepo["DocumentoRepository"]
+        LookupRepo["LookupRepository (Two-Tier DATI_BUNDLE)"]
     end
 
-    subgraph Storage ["Google Workspace (Database e File System)"]
-        GSheets[("Google Sheets (Tabelle Dati)")]
-        GDocs["Google Docs (Modelli e Documenti Generati)"]
+    subgraph Storage ["Google Workspace (Database, Storage & Properties)"]
+        GSheets[("Google Sheets (Fogli Operativi & _Dati*)")]
+        GProps[("ScriptProperties & CacheService (L1/L2)")]
+        GDocs["Google Docs (Template & Documenti Generati)"]
         GDrive["Google Drive (Fascicoli e Cartelle)"]
     end
 
     UI -->|"google.script.run"| Backend
-    Sidebar -->|"Apri Sidebar"| UI
+    Sidebar -->|"onOpen / onEdit"| SyncService
     Backend --> Model
     Backend --> Repository
     Service --> Repository
-    Repository --> Storage
+    SyncService --> GProps
+    Repository --> GSheets
+    Repository --> GProps
 ```
 
-### 3.1 Model-View-Controller (MVC)
-1. **Model (`src/Models/` e `src/Domain/`):**
-   - Incapsula entità del dominio (`Person`, `Beneficiario`, `Operatore`, `NucleoFamiliare`, `Incontro`, `CodiceFiscale`, `City`, `Address`).
-   - Gestisce la validazione delle regole aziendali, l'ereditarietà OOP (`Beneficiario extends Person`, `Operatore extends Person`), la decodifica del codice catastale e il parsing anagrafico.
-2. **View (`src/View/`):**
-   - [`Frontend.html`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/Frontend.html): Single Page Application (SPA) reattiva senza framework pesanti (Vanilla JS + Bootstrap 5 + font Outfit + CSS personalizzato).
+### 3.1 Model-View-Controller (MVC) e Architettura DDD
+1. **Domain (`src/Domain/`):**
+   - Standard universali e value objects immutabili (`country.js`, `education.js`, `documents.js`, `CodiceFiscale.js`, `Places/City.js`, `Places/Address.js`).
+   - Fornisce le custom formula native per Google Sheets (`=LISTA_STATI_MONDIALI()`, `=LISTA_TITOLI_STUDIO()`, `=CF_*`).
+2. **Model (`src/Models/`):**
+   - Incapsula esclusivamente le entità persistenti del database relazionale dei fogli (`Person`, `Beneficiario`, `Operatore`, `NucleoFamiliare`, `Incontro`, `Documento`).
+   - Gestisce la validazione delle regole aziendali, l'ereditarietà OOP (`Beneficiario extends Person`, `Operatore extends Person`) e i metodi di idratazione/serializzazione.
+3. **Service (`src/Service/`):**
+   - Orchestrazione applicativa, intelligenza documentale con IA Gemini Flash (`Document/`), templating Google Docs (`Template/`), audit di integrità relazionale (`Validation/`) e sincronizzazione dei dati di sportello (`Sync/DomainSyncService.js`).
+4. **View (`src/View/`):**
+   - [`Frontend.html`](file:///d:/@Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/Frontend.html): Single Page Application (SPA) reattiva senza framework pesanti (Vanilla JS + Bootstrap 5 + font Outfit + CSS personalizzato).
    - Comunica in modo asincrono con il server tramite l'API standard `google.script.run`.
-   - [`src/View/Menu/main.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/Menu/main.js): Inietta menu personalizzati nella barra degli strumenti di Google Sheets all'evento `onOpen()`.
+   - [`src/View/Menu/main.js`](file:///d:/@Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/Menu/main.js): Inietta menu personalizzati nella barra degli strumenti di Google Sheets all'evento `onOpen()` e intercetta le modifiche manuali sui fogli di configurazione all'evento `onEdit(e)`.
    - Consulta [**Requisiti e Funzionamento Web App**](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/View/WebApp/webapp.md) ([`src/View/WebApp/webapp.md`](src/View/WebApp/webapp.md)) per le specifiche della UI.
 3. **Controller (`src/Controller/Backend.js`):**
    - Fornisce l'endpoint web `doGet(e)` con `HtmlService`.

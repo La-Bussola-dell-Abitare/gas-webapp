@@ -11,11 +11,11 @@
  */
 class LookupRepository {
     /**
-     * Chiave utilizzata per la memorizzazione dei valori in CacheService.
+     * Chiave utilizzata per la memorizzazione dei valori in CacheService e ScriptProperties.
      * @type {string}
      */
     static get CACHE_KEY() {
-        return "LOOKUP_VALUES_V2";
+        return "DATI_BUNDLE";
     }
 
     /**
@@ -80,7 +80,7 @@ class LookupRepository {
     /**
      * Restituisce i valori predefiniti di dominio (Single Source of Truth)
      * da utilizzare come fallback quando i Named Ranges non sono definiti o accessibili.
-     * @return {Record<string, string[]>}
+     * @return {Record<string, any>}
      */
     static getDefaults() {
         return {
@@ -101,67 +101,80 @@ class LookupRepository {
 
     /**
      * Recupera l'insieme completo di tutti i valori ammessi per i form della Web App.
-     * Interroga prima la cache; in caso di cache miss o se richiesto l'aggiornamento forzato,
-     * legge i Named Ranges dal foglio Google e ricorre ai valori di Dominio come fallback.
+     * Architettura a Doppio Canale ad altissima reattività:
+     * - Dati generali universali: letti istantaneamente in RAM dai moduli src/Domain/ (0 ms).
+     * - Dati di sportello operativi: letti da CacheService (L1, ~2 ms) o ScriptProperties (L2, ~15 ms).
+     * Zero chiamate a SpreadsheetApp a runtime.
      * 
-     * @param {boolean} [forceRefresh=false] - Se true, invalida la cache e forza la rilettura dal foglio.
-     * @return {Record<string, string[]>} Dizionario contenente le liste di valori per ogni categoria.
+     * @param {boolean} [forceRefresh=false] - Se true, forza la risincronizzazione da ScriptProperties.
+     * @return {Record<string, any>} Dizionario contenente le liste di valori per ogni categoria.
      */
     static getAll(forceRefresh = false) {
-        const cache = CacheService.getScriptCache();
+        const defaults = LookupRepository.getDefaults();
+        let sportelloLookups = null;
 
-        if (!forceRefresh && cache) {
-            const cached = cache.get(LookupRepository.CACHE_KEY);
-            if (cached) {
-                try {
-                    const parsed = JSON.parse(cached);
-                    if (parsed && parsed.prefissiTelefonici && Object.keys(parsed.prefissiTelefonici).length > 0) {
-                        return parsed;
+        // 1. Lettura L1 (Cache RAM)
+        if (!forceRefresh && typeof CacheService !== "undefined" && CacheService.getScriptCache) {
+            try {
+                const cache = CacheService.getScriptCache();
+                if (cache) {
+                    const cached = cache.get(LookupRepository.CACHE_KEY);
+                    if (cached) {
+                        sportelloLookups = JSON.parse(cached);
                     }
-                    Logger.log("LookupRepository - Cache priva di prefissi telefonici, rigenerazione.");
+                }
+            } catch (e) {
+                Logger.log("LookupRepository - Cache parsing error L1: " + e);
+            }
+        }
+
+        // 2. Lettura L2 (ScriptProperties persistente)
+        if (!sportelloLookups && typeof PropertiesService !== "undefined" && PropertiesService.getScriptProperties) {
+            try {
+                const props = PropertiesService.getScriptProperties().getProperty(LookupRepository.CACHE_KEY);
+                if (props) {
+                    sportelloLookups = JSON.parse(props);
+                    // Ripristino Cache L1
+                    try {
+                        const cache = CacheService.getScriptCache();
+                        if (cache) cache.put(LookupRepository.CACHE_KEY, props, LookupRepository.CACHE_TTL);
+                    } catch (e) {}
+                }
+            } catch (e) {
+                Logger.log("LookupRepository - Properties parsing error L2: " + e);
+            }
+        }
+
+        // 3. Fallback di prima inizializzazione se Properties è ancora vuota
+        if (!sportelloLookups) {
+            if (typeof DomainSyncService !== "undefined" && typeof DomainSyncService.syncAllLookupsToProperties === "function") {
+                try {
+                    sportelloLookups = DomainSyncService.syncAllLookupsToProperties();
                 } catch (e) {
-                    Logger.log("LookupRepository - Cache parsing error, rilettura dal foglio.");
+                    Logger.log("LookupRepository - Errore auto-sync iniziale: " + e);
                 }
             }
         }
 
-        const defaults = LookupRepository.getDefaults();
+        const sl = sportelloLookups || {};
 
-        /**
-         * @param {string} rangeName
-         * @param {string[]} defaultValues
-         * @return {string[]}
-         */
-        const pick = (rangeName, defaultValues) => {
-            const sheetValues = LookupRepository.getNamedRangeValues(rangeName);
-            return sheetValues.length > 0 ? sheetValues : defaultValues;
-        };
+        return {
+            // Dati di sportello (da ScriptProperties / Cache)
+            abitazione: (sl.abitazione && sl.abitazione.length > 0) ? sl.abitazione : defaults.abitazione,
+            servizi: (sl.servizi && sl.servizi.length > 0) ? sl.servizi : defaults.servizi,
+            criticita: (sl.criticita && sl.criticita.length > 0) ? sl.criticita : defaults.criticita,
+            relazioni: (sl.relazioni && sl.relazioni.length > 0) ? sl.relazioni : defaults.relazioni,
+            statiCivili: (sl.statiCivili && sl.statiCivili.length > 0) ? sl.statiCivili : defaults.statiCivili,
+            statiLavorativi: (sl.statiLavorativi && sl.statiLavorativi.length > 0) ? sl.statiLavorativi : defaults.statiLavorativi,
+            tipiDocumenti: (sl.tipiDocumenti && sl.tipiDocumenti.length > 0) ? sl.tipiDocumenti : defaults.tipiDocumenti,
 
-        const lookups = {
-            abitazione: pick("Abitazione", defaults.abitazione),
-            servizi: pick("Sportello_Servizi", defaults.servizi),
-            criticita: pick("Criticità", defaults.criticita),
-            relazioni: pick("Relazioni", defaults.relazioni),
-            statiCivili: pick("StatoCivile", defaults.statiCivili),
-            statiLavorativi: pick("StatoLavorativo", defaults.statiLavorativi),
-            titoliStudio: pick("TitoliStudio", defaults.titoliStudio),
-            stati: pick("Stati", defaults.stati),
-            tipiDocumenti: pick("TipiDocumenti", defaults.tipiDocumenti),
+            // Dati universali (0ms direttamente dai moduli di dominio in memoria)
+            titoliStudio: defaults.titoliStudio,
+            stati: defaults.stati,
             prefissiTelefonici: defaults.prefissiTelefonici,
             topPrefissi: defaults.topPrefissi,
             countries: defaults.countries
         };
-
-        // Memorizzazione in CacheService
-        if (cache) {
-            try {
-                cache.put(LookupRepository.CACHE_KEY, JSON.stringify(lookups), LookupRepository.CACHE_TTL);
-            } catch (err) {
-                Logger.log(`LookupRepository - Errore salvataggio cache: ${err instanceof Error ? err.message : String(err)}`);
-            }
-        }
-
-        return lookups;
     }
 
     /**
@@ -169,9 +182,19 @@ class LookupRepository {
      * @return {void}
      */
     static clearCache() {
-        const cache = CacheService.getScriptCache();
-        if (cache) {
-            cache.remove(LookupRepository.CACHE_KEY);
+        if (typeof CacheService !== "undefined" && CacheService.getScriptCache) {
+            try {
+                const cache = CacheService.getScriptCache();
+                if (cache) {
+                    cache.remove(LookupRepository.CACHE_KEY);
+                    cache.remove("LOOKUP_VALUES_V2");
+                    cache.remove("DATI_BENEFICIARI");
+                    cache.remove("DATI_DOCUMENTI");
+                    cache.remove("DATI_SPORTELLI");
+                    cache.remove("DATI_OPERATORI");
+                    cache.remove("DATI_ORARI");
+                }
+            } catch (e) {}
         }
     }
 }

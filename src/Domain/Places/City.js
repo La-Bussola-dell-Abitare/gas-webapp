@@ -1,9 +1,9 @@
 /**
- * @file 0_City.js
+ * @file City.js
  * @description Modello geografico per la rappresentazione, geocodifica e validazione dei Comuni italiani
  * e delle città estere. Interroga la cache interna di Apps Script (CacheService) e servizi remoti
  * (comuni-json e OpenStreetMap Nominatim) per estrarre provincia, CAP, codice catastale e nazione.
- * @module Models/Places/City
+ * @module Domain/Places/City
  */
 
 /**

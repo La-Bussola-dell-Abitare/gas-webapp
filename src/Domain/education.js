@@ -74,3 +74,16 @@ const TitoliStudio = Object.freeze(/** @type {const} */([
  * Tipo unione per un titolo di studio valido.
  * @typedef {typeof TitoliStudio[number]} TitoloDiStudio
  */
+
+/**
+ * Restituisce i titoli di studio standard per le formule di Google Sheets (array spill nativo).
+ * Utilizzabile direttamente nelle celle come formula: =LISTA_TITOLI_STUDIO()
+ * @customfunction
+ * @return {string[][]} Matrice a colonna singola dei titoli di studio.
+ */
+function LISTA_TITOLI_STUDIO() {
+  if (typeof TitoliStudio !== "undefined" && Array.isArray(TitoliStudio)) {
+    return TitoliStudio.map(t => [t]);
+  }
+  return [["Diploma di scuola superiore"]];
+}

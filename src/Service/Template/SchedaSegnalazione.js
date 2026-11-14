@@ -2,7 +2,7 @@
  * @file SchedaSegnalazione.js
  * @description Modello e gestione documentale delle Schede di Segnalazione per il passaggio al Secondo Livello.
  * Permette la creazione da template Google Docs, la denominazione standardizzata, l'estrazione in PDF e la ricerca filtrata.
- * @module Models/Documenti/SchedaSegnalazione
+ * @module Service/Template/SchedaSegnalazione
  */
 
 /**

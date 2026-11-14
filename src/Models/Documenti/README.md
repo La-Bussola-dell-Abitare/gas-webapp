@@ -2,9 +2,9 @@
 
 ## 1. Responsabilità Architetturale
 
-La cartella `src/Models/Documenti` gestisce la duplice natura documentale del sistema:
-1. **Fascicolo Relazionale e Gestione Scadenze** ([`Documento.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Documenti/Documento.js)): Modella i singoli documenti posseduti o presentati dai beneficiari (CIE, Permessi di Soggiorno, ISEE, Patenti, Buste Paga, Firme), tracciando date di scadenza, valori economici (€) e collegamenti a Google Drive.
-2. **Generazione e Templating Google Docs** ([`main.js`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Documenti/main.js)): Fornisce il motore di clonazione e compilazione di template ufficiali (Fogli Firme, Diari Giornalieri, Schede di Segnalazione), gestendo segnaposto testuali, caselle spuntate (checkbox) e inserimento di immagini (firme autografe digitali).
+La cartella `src/Models/Documenti` modella l'entità di persistenza relazionale del fascicolo documentale:
+- **Fascicolo Relazionale e Gestione Scadenze** ([`Documento.js`](file:///d:/@Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Models/Documenti/Documento.js)): Modella i singoli documenti posseduti o presentati dai beneficiari (CIE, Permessi di Soggiorno, ISEE, Patenti, Buste Paga, Firme), tracciando date di scadenza, valori economici (€) e collegamenti a Google Drive.
+- I motori di generazione e compilazione template Google Docs risiedono invece nel modulo dedicato applicativo [`src/Service/Template/`](file:///d:/@Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Service/Template/README.md).
 
 ---
 

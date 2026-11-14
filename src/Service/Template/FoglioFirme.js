@@ -3,7 +3,7 @@
  * @description Modello che rappresenta l'entità Foglio Firme Individuale.
  * Raccoglie e attesta gli incontri e le ore di colloquio intercorse mensilmente tra uno specifico
  * operatore e un beneficiario dello sportello "La Bussola dell'Abitare".
- * @module Models/Documenti/FoglioFirme
+ * @module Service/Template/FoglioFirme
  */
 
 /**

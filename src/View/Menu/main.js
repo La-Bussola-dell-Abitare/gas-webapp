@@ -26,6 +26,8 @@ function onOpen(e) {
       .addSeparator()
       .addItem("🧹 Pulisci e Normalizza Dati Foglio", "cleanCurrentSheetData")
       .addItem("🛡️ Crea Snapshot di Sicurezza Database", "createDatabaseSnapshot")
+      .addSeparator()
+      .addItem("🔄 Sincronizza Lookups & Fogli Dati", "syncAllLookupsCommand")
       .addToUi();
 
     // 2. Menu Beneficiari & Nuclei
@@ -57,6 +59,46 @@ function onOpen(e) {
 
   } catch (err) {
     Logger.log("onOpen - Errore registrazione menu: " + (err instanceof Error ? err.message : String(err)));
+  }
+}
+
+/**
+ * Trigger semplice di Google Apps Script eseguito alla modifica manuale di una cella.
+ * Intercetta le modifiche sui fogli di configurazione nascosti (_Dati*) per mantenere
+ * sincronizzate ScriptProperties, Cache e i Named Ranges.
+ * @param {GoogleAppsScript.Events.SheetsOnEdit} e
+ */
+function onEdit(e) {
+  try {
+    if (typeof DomainSyncService !== "undefined" && typeof DomainSyncService.handleEdit === "function") {
+      DomainSyncService.handleEdit(e);
+    }
+  } catch (err) {
+    Logger.log("onEdit - Errore sincronizzazione: " + (err instanceof Error ? err.message : String(err)));
+  }
+}
+
+/**
+ * Comando manuale per forzare la risincronizzazione completa di tutti i fogli dati nascosti
+ * nelle ScriptProperties e nella Cache di Apps Script.
+ */
+function syncAllLookupsCommand() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (typeof DomainSyncService !== "undefined" && typeof DomainSyncService.syncAllLookupsToProperties === "function") {
+      DomainSyncService.syncAllLookupsToProperties();
+      if (typeof LookupRepository !== "undefined" && typeof LookupRepository.clearCache === "function") {
+        LookupRepository.clearCache();
+      }
+      if (ss && ss.toast) {
+        ss.toast("Sincronizzazione tabelle dati completata con successo!", "✅ Sincronizzazione Lookups", 5);
+      }
+    }
+  } catch (err) {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (ss && ss.toast) {
+      ss.toast("Errore: " + err, "❌ Errore Sync", 8);
+    }
   }
 }
 

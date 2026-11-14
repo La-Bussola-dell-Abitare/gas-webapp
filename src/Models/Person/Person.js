@@ -1,5 +1,5 @@
 /**
- * @file 0_Person.js
+ * @file Person.js
  * @description Modello base OOP che definisce l'entità Persona.
  * Contiene le proprietà anagrafiche fondamentali condivise sia dai beneficiari che dagli operatori
  * (nome, cognome, data e luogo di nascita, codice fiscale, contatti, firma).

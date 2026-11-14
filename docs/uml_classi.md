@@ -36,6 +36,14 @@ classDiagram
         +getDocumentsByCategory(categoria)$ DocumentRecord[]
     }
 
+    class EducationCatalog {
+        <<SSOT Domain>>
+        +string[] TitoliStudio
+        +ISCED ISCED
+        +EQF EQF
+        +LISTA_TITOLI_STUDIO()$ string[][]
+    }
+
     %% =========================================================================
     %% MODELLO PERSONA ED EREDITARIETÀ
     %% =========================================================================
@@ -263,8 +271,11 @@ classDiagram
     }
 
     class LookupRepository {
+        +CACHE_KEY$ string
+        +CACHE_TTL$ number
         +getAll(forceRefresh)$ Object
         +getDefaults()$ Object
+        +clearCache()$ void
     }
 
     BeneficiarioRepository ..> Beneficiario : gestisce
@@ -305,6 +316,22 @@ classDiagram
         +auditBeneficiari(options)$ Object
         +autoHeal(selectedIssueIds, options)$ Object
         -_getBenColIndexes(headers)$ Object
+    }
+
+    class DomainSyncService {
+        +KEYS$ Object
+        +SHEETS$ Object
+        +saveTwoTier(key, value)$ void
+        +getTwoTier(key)$ string
+        +syncBeneficiari(ss)$ Object
+        +syncDocumenti(ss)$ Object[]
+        +syncSportelli(ss)$ Object
+        +syncOperatori(ss)$ Object[]
+        +syncOrari(ss)$ Object[]
+        +syncBundle(ben, doc, spo)$ Object
+        +syncAllLookupsToProperties()$ Object
+        +autoAdjustNamedRange(sheet, name, col)$ void
+        +handleEdit(e)$ void
     }
 
     DriveReconciler ..> DriveManager : sposta/crea

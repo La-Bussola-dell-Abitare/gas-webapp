@@ -2,7 +2,7 @@
  * @file Address.js
  * @description Modello per la gestione e la formalizzazione degli indirizzi di residenza e domicilio.
  * Associa una via/piazza a un'istanza della classe City e al relativo CAP.
- * @module Models/Places/Address
+ * @module Domain/Places/Address
  */
 
 /**

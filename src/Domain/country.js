@@ -351,3 +351,16 @@ function formatE164(prefix, localNumber) {
 
   return `${pref} ${num}`;
 }
+
+/**
+ * Restituisce la matrice dei paesi del mondo per le formule di Google Sheets (array spill nativo).
+ * Utilizzabile direttamente nelle celle come formula: =LISTA_STATI_MONDIALI()
+ * @customfunction
+ * @return {string[][]} Matrice a colonna singola dei nomi degli stati mondiali.
+ */
+function LISTA_STATI_MONDIALI() {
+  if (typeof StatiMondiali !== "undefined" && Array.isArray(StatiMondiali)) {
+    return StatiMondiali.map(s => [s]);
+  }
+  return [["Italia"]];
+}

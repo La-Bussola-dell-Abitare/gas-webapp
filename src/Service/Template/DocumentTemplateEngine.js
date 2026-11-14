@@ -1,9 +1,9 @@
 /**
- * @file main.js
+ * @file DocumentTemplateEngine.js
  * @description Modulo di utilità e manipolazione per Google Docs e Google Drive.
  * Fornisce funzioni per la clonazione di template Google Docs, la sostituzione avanzata di segnaposto
  * testuali, caselle di spunta (checkbox) e immagini (firme autografe), nonché il popolamento dinamico di tabelle.
- * @module Models/Documenti/Main
+ * @module Service/Template/DocumentTemplateEngine
  */
 
 /**

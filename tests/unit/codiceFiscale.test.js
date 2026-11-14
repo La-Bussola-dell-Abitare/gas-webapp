@@ -2,11 +2,11 @@ const { describe, it, before } = require('node:test');
 const assert = require('node:assert');
 const { loadScript } = require('../loadSrc.js');
 
-describe('Models/CodiceFiscale.js - Calcolo, Validazione e Omocodie', () => {
+describe('Domain/CodiceFiscale.js - Calcolo, Validazione e Omocodie', () => {
   before(() => {
     global.CacheService = { getScriptCache: () => null };
     global.Logger = { log: () => {} };
-    loadScript('src/Models/CodiceFiscale.js');
+    loadScript('src/Domain/CodiceFiscale.js');
   });
 
   describe('Validazione e Carattere di Controllo (CIN)', () => {

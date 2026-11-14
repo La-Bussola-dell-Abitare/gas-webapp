@@ -610,3 +610,61 @@ sequenceDiagram
     Dbg->>UI: navigator.clipboard.writeText(reportMarkdown)
     UI->>Op: Mostra Toast: "Report diagnostico copiato negli appunti!"
 ```
+
+---
+
+## 11. Sequenza 11: Architettura a Doppio Canale per Valori di Convalida (Lookups) e Sincronizzazione onEdit
+
+Descrive il flusso ad altissima reattività:
+1. All'avvio della WebApp (`getInitialAppData`), i dati generali universali sono letti direttamente in RAM dai moduli `Domain/` (**0 ms**), mentre i dati di sportello sono recuperati da `CacheService` / `ScriptProperties` (**2-15 ms**), senza alcuna chiamata a `SpreadsheetApp`.
+2. Alle modifiche manuali sui fogli `_Dati*`, il trigger `onEdit(e)` esegue la sincronizzazione chirurgica aggiornando ScriptProperties, Cache RAM e ridimensionando automaticamente i Named Ranges.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin as Operatore / Admin
+    actor Utente as Beneficiario / Operatore WebApp
+    participant Sheet as Fogli Nascosti (_Dati*)
+    participant Trigger as Menu/main.js (onEdit)
+    participant Sync as DomainSyncService
+    participant Props as ScriptProperties (L2) & Cache (L1)
+    participant WebApp as Frontend.html (SPA)
+    participant Ctrl as Backend.js (getInitialAppData)
+    participant LookupRepo as LookupRepository
+    participant Domain as Domain Static Memory
+
+    %% FASE 1: AVVIO WEBAPP (0 CHIAMATE SPREADSHEETAPP)
+    Note over Utente,Domain: FASE 1: Bootstrap Reattivo WebApp
+    Utente->>WebApp: Apertura Web App
+    WebApp->>Ctrl: google.script.run.getInitialAppData()
+    activate Ctrl
+    Ctrl->>LookupRepo: getAll()
+    activate LookupRepo
+
+    LookupRepo->>Props: Cache.get("DATI_BUNDLE") / Props.getProperty("DATI_BUNDLE")
+    Props-->>LookupRepo: JSON string { abitazione, servizi, criticita, ... }
+    
+    LookupRepo->>Domain: Lettura in memoria (Stati, ISO, Prefissi, Titoli Studio)
+    Domain-->>LookupRepo: Array statici congelati (0 ms)
+
+    LookupRepo-->>Ctrl: lookups combinati (RAM + Two-Tier)
+    deactivate LookupRepo
+    Ctrl-->>WebApp: payload iniziale con dbLookups (nessuna lettura da celle)
+    deactivate Ctrl
+    WebApp->>Utente: Rendering istantaneo form e dropdown
+
+    %% FASE 2: AGGIORNAMENTO FOGLIO E SYNC AUTOMATICO
+    Note over Admin,Sheet: FASE 2: Modifica Configurazione nei Fogli Nascosti
+    Admin->>Sheet: Inserisce nuova riga in _DatiBeneficiari o _DatiDocumenti
+    Sheet->>Trigger: onEdit(e)
+    activate Trigger
+    Trigger->>Sync: handleEdit(e)
+    activate Sync
+    Sync->>Sheet: Legge dati aggiornati dal foglio modificato
+    Sync->>Sync: autoAdjustNamedRange(sheet, rangeName, colIndex)
+    Sync->>Props: Aggiorna chiave granulare (es. DATI_BENEFICIARI)
+    Sync->>Props: Aggiorna chiave aggregata DATI_BUNDLE & DATI_LAST_SYNC
+    deactivate Sync
+    deactivate Trigger
+    Note over Sync,Props: Named Range ridimensionato e Storage Two-Tier allineato
+```

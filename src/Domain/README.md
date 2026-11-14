@@ -78,3 +78,27 @@ Costituisce l'autorità unica per tutte le tipologie di documenti gestite dallo 
   - `findDocumentType(query)`: individua il record di dominio anche da testi sporchi o nomi di file arbitrari (es. `scan_ci_mario.pdf` $\rightarrow$ `CARTA_IDENTITA`).
   - `getDocumentCategories()`: restituisce le categorie distinte per i filtri della UI.
   - `getDocumentsByCategory(cat)`: elenca i documenti appartenenti a una categoria.
+
+---
+
+### `education.js` — Standard UNESCO ISCED & EQF per Titoli di Studio
+Standardizza i titoli di studio secondo le classificazioni internazionali (UNESCO ISCED 2011 ed European Qualifications Framework EQF).
+- Espone l'elenco immutabile `TitoliStudio` per dropdown e convalidazioni anagrafiche.
+- Espone la formula per Google Sheets: `=LISTA_TITOLI_STUDIO()` con espansione ad array spill nativo.
+
+---
+
+### `CodiceFiscale.js` — Value Object Matematico & Decodifica Omocodie
+Gestisce la logica formale e algoritmica del Codice Fiscale italiano:
+- Verifica e calcolo del carattere di controllo (CIN).
+- Gestione ufficiale dell'omocodia (sostituzione cifre con caratteri alfabetici secondo le tabelle dell'Agenzia delle Entrate).
+- Estrazione di data di nascita, sesso e codice catastale Belfiore del comune di nascita.
+- Fornisce formule per celle di Google Sheets: `=CF_VALIDO()`, `=CF_DATA_NASCITA()`, `=CF_SESSO()`, `=CF_COMUNE()`.
+
+---
+
+### `Places/` — Informazioni Geografiche Nazionali e Internazionali
+Contiene i value object per la geolocalizzazione:
+- `City.js`: classe geografica per la geocodifica, CAP, provincia e codice catastale dei comuni italiani e delle città estere.
+- `Address.js`: value object immutabile che formalizza via, numero civico, CAP e comune di residenza/domicilio.
+- `Elenco-comuni-italiani.csv`: database storico dei codici catastali Belfiore.

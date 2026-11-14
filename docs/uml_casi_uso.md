@@ -50,6 +50,7 @@ flowchart LR
             UC15(["UC15: Diagnostica e Bonifica Cartella Drive"])
             UC16(["UC16: Smart Form-Filling con IA (Gemini)"])
             UC17(["UC17: Gestione Fascicolo & Scadenze"])
+            UC18(["UC18: Sincronizzazione Lookups & Fogli Dati"])
         end
 
         subgraph ModuloAppuntamenti ["Agenda e Presenze"]

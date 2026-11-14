@@ -2,7 +2,7 @@
  * @file DiarioGiornaliero.js
  * @description Modello che rappresenta l'entità Diario Giornaliero dello sportello sociale.
  * Traccia l'accesso, le ore lavorate e le attività svolte dagli operatori nel corso di ogni singola giornata.
- * @module Models/Documenti/DiarioGiornaliero
+ * @module Service/Template/DiarioGiornaliero
  */
 
 /**

@@ -36,16 +36,17 @@ Gestisce la persistenza del fascicolo relazionale sul foglio **`Documenti`**.
 ---
 
 ### `LookupRepository.js` — `LookupRepository`
-Fornisce i valori controllati per i menu a tendina della Web App (Stati Civili, Condizioni Lavorative, Titoli di Studio, Tipologie di Richiesta, Qualifiche).
-- Legge i dati dai **Named Ranges** dello Spreadsheet Google.
-- Memorizza i valori in cache in memoria (`_LOOKUPS_CACHE`) per azzerare i tempi di caricamento delle aperture successive.
-- Fornisce un set completo di valori di fallback immutabili (`getDefaults()`) qualora i Named Ranges non siano definiti nel foglio.
+Fornisce i valori controllati per i menu a tendina della Web App secondo l'architettura a **Doppio Canale**:
+- **Dati Generali Universali** (*Stati, Cittadinanze, ISO, Prefissi ITU, Titoli di Studio UNESCO ISCED*): letti istantaneamente in RAM dai moduli di `src/Domain/` (**0 ms**).
+- **Dati Operativi di Sportello** (*Abitazione, Servizi, Criticità, Relazioni, Stati Civili, Status Lavorativi, Tipi Documento*): letti tramite architettura Two-Tier da **`CacheService` (L1, ~2 ms)** e **`ScriptProperties` (L2, ~15 ms)** alla chiave `DATI_BUNDLE`.
+- **Zero chiamate a `SpreadsheetApp`** a runtime per il popolamento iniziale della WebApp.
 
 ---
 
 ### `Operatore.js` — `OperatoreRepository`
-Accede al foglio **`Operatori`** per recuperare l'elenco del personale, le qualifiche e i ruoli di sportello.
-- `getAll()`: restituisce la lista delle istanze `Operatore`.
+Accede al foglio configurazione **`_DatiOperatori`** (con fallback retrocompatibile su `Operatori`) per recuperare l'elenco del personale, le qualifiche e i ruoli di sportello.
+- `sheet()`: risolve prioritariamente `_DatiOperatori`.
+- `getAll()`: restituisce la lista delle istanze `Operatore` mappando anche email, stato (attivo/disattivo) e ore settimanali.
 - `getByName(name)`: ricerca puntuale per nome operatore.
 
 ---
