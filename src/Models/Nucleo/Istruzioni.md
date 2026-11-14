@@ -67,5 +67,6 @@ Il metodo `submitNucleoCompleto` gestisce la creazione del nucleo secondo due mo
 
 - **`getAll()`**: restituisce l'elenco di tutte le istanze `NucleoFamiliare` lette dal foglio.
 - **`generateNextId()`**: scansiona la colonna `ID`, individua il massimo intero esistente e restituisce `max + 1`.
-- **`add(data)`**: inserisce o aggiorna un nucleo gestendo la mappatura dinamica delle colonne.
+- **`add(data)`**: inserisce o aggiorna un nucleo gestendo la mappatura dinamica delle colonne. Se `data.id` è fornito, tenta prima l'aggiornamento della riga esistente oppure preserva l'ID esplicito senza rigenerarlo.
+- **`save(data)`**: alias di persistenza per `add(data)`, impiegato per uniformità dai servizi di import e sincronizzazione (es. `DriveDiscoveryService`).
 - **`updateDriveInfo(id, { idCartella })`**: memorizza l'ID della cartella Google Drive nel foglio.

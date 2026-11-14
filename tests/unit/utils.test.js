@@ -90,6 +90,7 @@ describe('Utils.js - Funzioni di Utilità e Fuzzy Matching', () => {
 
     it('normalizza indirizzi mantenendo CAP e numeri civici intatti', () => {
       assert.strictEqual(normalizeAddress('VIA DEI MILLE 10/A, 00185 ROMA (RM)'), 'Via dei Mille 10/A, 00185 Roma (RM)');
+      assert.strictEqual(normalizeAddress('VIA DEI CONDOTTI 15, 00187 ROMA RM'), 'Via dei Condotti 15, 00187 Roma (RM)');
     });
 
     it('normalizza il Codice Fiscale a 16 caratteri alfanumerici maiuscoli', () => {

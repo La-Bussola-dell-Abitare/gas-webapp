@@ -7281,29 +7281,41 @@
           <table class="table table-sm table-hover align-middle mb-0 text-xs">
             <thead class="table-light sticky-top">
               <tr>
-                <th style="width: 36px;" class="text-center">
-                  <input type="checkbox" class="form-check-input" id="check-all-wa-discovery" checked onchange="toggleSelectAllWADiscovery(this.checked)">
+                <th style="width: 44px;" class="text-center">
+                  <input type="checkbox" class="form-check-input" id="check-all-wa-discovery" onchange="toggleSelectAllWADiscovery(this.checked)" title="Seleziona / Deseleziona tutti">
                 </th>
                 <th>Cartella Google Drive</th>
                 <th style="width: 80px;">ID Nucleo</th>
                 <th>Intestatario Proposto (Nome e Cognome)</th>
-                <th style="width: 140px;">Codice Fiscale</th>
+                <th style="width: 150px;">Codice Fiscale</th>
                 <th>Componenti & File</th>
-                <th class="text-end" style="width: 90px;">Azione</th>
+                <th class="text-end" style="width: 100px;">Azione</th>
               </tr>
             </thead>
             <tbody>
       `;
 
-      waDiscoveryItems.forEach((item, idx) => {
+      waDiscoveryItems.forEach((item) => {
         const sug = item.suggestedData || {};
         const memberBadges = (item.members || []).map(m => `<span class="badge bg-light text-dark border me-1">${escapeHtml(m.name)}</span>`).join('');
         const rootDocBadges = (item.rootDocuments || []).length > 0 ? `<span class="badge bg-info-subtle text-info-emphasis border me-1">${item.rootDocuments.length} doc nucleo</span>` : '';
 
+        // Badge dati anagrafici estratti da IA (se presenti)
+        let aiDetails = '';
+        if (sug.dataNascita || sug.luogoNascita) {
+          aiDetails += `<span class="badge bg-light text-secondary border me-1"><i class="bi bi-calendar3 me-1"></i>${escapeHtml(sug.dataNascita || '')} ${escapeHtml(sug.luogoNascita || '')}</span>`;
+        }
+        if (sug.residenza) {
+          aiDetails += `<span class="badge bg-light text-secondary border me-1"><i class="bi bi-geo-alt me-1"></i>${escapeHtml(sug.residenza)}</span>`;
+        }
+        if (sug.isee != null) {
+          aiDetails += `<span class="badge bg-success-subtle text-success-emphasis border me-1">ISEE € ${escapeHtml(String(sug.isee))}</span>`;
+        }
+
         html += `
-          <tr id="row-wa-disc-${idx}">
+          <tr id="row-wa-disc-${item.folderId}" data-folder-id="${escapeHtml(item.folderId)}">
             <td class="text-center">
-              <input type="checkbox" class="wa-disc-checkbox form-check-input" data-idx="${idx}" checked onchange="updateWADiscoverySummary()">
+              <input type="checkbox" class="wa-disc-checkbox form-check-input" data-folder-id="${escapeHtml(item.folderId)}" onchange="updateWADiscoverySummary()">
             </td>
             <td>
               <div class="fw-bold font-monospace text-dark">${escapeHtml(item.folderName)}</div>
@@ -7312,27 +7324,28 @@
               </a>
             </td>
             <td>
-              <input type="text" class="form-control form-control-xs py-0 px-1 text-center font-monospace fw-bold" id="wa-disc-id-${idx}" value="${escapeHtml(sug.id || '')}">
+              <input type="text" class="input-wa-disc-id form-control form-control-xs py-0 px-1 text-center font-monospace fw-bold" value="${escapeHtml(sug.id || '')}">
             </td>
             <td>
-              <div class="row g-1">
+              <div class="row g-1 mb-1">
                 <div class="col-6">
-                  <input type="text" class="form-control form-control-xs py-0 px-2" placeholder="Nome" id="wa-disc-nome-${idx}" value="${escapeHtml(sug.nome || '')}">
+                  <input type="text" class="input-wa-disc-nome form-control form-control-xs py-0 px-2" placeholder="Nome" value="${escapeHtml(sug.nome || '')}">
                 </div>
                 <div class="col-6">
-                  <input type="text" class="form-control form-control-xs py-0 px-2" placeholder="Cognome" id="wa-disc-cognome-${idx}" value="${escapeHtml(sug.cognome || '')}">
+                  <input type="text" class="input-wa-disc-cognome form-control form-control-xs py-0 px-2" placeholder="Cognome" value="${escapeHtml(sug.cognome || '')}">
                 </div>
               </div>
+              ${aiDetails ? `<div class="mt-1">${aiDetails}</div>` : ''}
             </td>
             <td>
-              <input type="text" class="form-control form-control-xs py-0 px-2 font-monospace" placeholder="Codice Fiscale" id="wa-disc-cf-${idx}" value="${escapeHtml(sug.cf || '')}">
+              <input type="text" class="input-wa-disc-cf form-control form-control-xs py-0 px-2 font-monospace" placeholder="Codice Fiscale" value="${escapeHtml(sug.cf || '')}">
             </td>
             <td>
               <div class="mb-1">${memberBadges || '<span class="text-muted fst-italic">Nessuna sottocartella</span>'}</div>
               <div>${rootDocBadges} <span class="badge bg-secondary-subtle text-secondary-emphasis">${item.totalFiles || 0} file</span></div>
             </td>
             <td class="text-end">
-              <button type="button" class="btn btn-outline-primary btn-xs py-1 px-2 fw-semibold text-nowrap" onclick="applySingleDriveImportWebApp(${idx}, this)" title="Importa subito questo nucleo">
+              <button type="button" class="btn btn-outline-primary btn-xs py-1 px-2 fw-semibold text-nowrap" onclick="applySingleDriveImportWebApp('${escapeHtml(item.folderId)}', this)" title="Importa subito SOLO questo nucleo">
                 <i class="bi bi-lightning-fill me-1"></i>Importa
               </button>
             </td>
@@ -7352,6 +7365,8 @@
 
     function toggleSelectAllWADiscovery(checked) {
       document.querySelectorAll('.wa-disc-checkbox').forEach(cb => cb.checked = checked);
+      const masterCheck = document.getElementById('check-all-wa-discovery');
+      if (masterCheck) masterCheck.checked = checked;
       updateWADiscoverySummary();
     }
 
@@ -7368,27 +7383,32 @@
       }
     }
 
-    function getPreparedWADiscoveryItem(idx) {
-      const baseItem = waDiscoveryItems[idx];
+    function getPreparedWADiscoveryItemByFolderId(folderId) {
+      const baseItem = waDiscoveryItems.find(x => x.folderId === folderId);
+      if (!baseItem) return null;
+
       const sug = Object.assign({}, baseItem.suggestedData || {});
+      const tr = document.getElementById(`row-wa-disc-${folderId}`);
+      if (tr) {
+        const idInput = tr.querySelector('.input-wa-disc-id');
+        const nomeInput = tr.querySelector('.input-wa-disc-nome');
+        const cognomeInput = tr.querySelector('.input-wa-disc-cognome');
+        const cfInput = tr.querySelector('.input-wa-disc-cf');
 
-      const idInput = document.getElementById(`wa-disc-id-${idx}`);
-      const nomeInput = document.getElementById(`wa-disc-nome-${idx}`);
-      const cognomeInput = document.getElementById(`wa-disc-cognome-${idx}`);
-      const cfInput = document.getElementById(`wa-disc-cf-${idx}`);
-
-      if (idInput) sug.id = idInput.value.trim();
-      if (nomeInput) sug.nome = nomeInput.value.trim();
-      if (cognomeInput) sug.cognome = cognomeInput.value.trim();
-      if (cfInput) sug.cf = cfInput.value.trim().toUpperCase();
+        if (idInput) sug.id = idInput.value.trim();
+        if (nomeInput) sug.nome = nomeInput.value.trim();
+        if (cognomeInput) sug.cognome = cognomeInput.value.trim();
+        if (cfInput) sug.cf = cfInput.value.trim().toUpperCase();
+      }
 
       sug.intestatario = sug.cf || `${sug.nome} ${sug.cognome}`.trim();
-
       return Object.assign({}, baseItem, { suggestedData: sug });
     }
 
-    function applySingleDriveImportWebApp(idx, btnEl) {
-      const itemToApply = getPreparedWADiscoveryItem(idx);
+    function applySingleDriveImportWebApp(folderId, btnEl) {
+      const itemToApply = getPreparedWADiscoveryItemByFolderId(folderId);
+      if (!itemToApply) return;
+
       const oldHtml = btnEl.innerHTML;
       btnEl.disabled = true;
       btnEl.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
@@ -7399,9 +7419,9 @@
           btnEl.innerHTML = oldHtml;
           if (res && res.success) {
             showToast(`Nucleo #${itemToApply.suggestedData.id} importato con successo! (${res.importedBeneficiariCount} beneficiari, ${res.importedDocumentsCount} documenti)`, 'success');
-            const row = document.getElementById(`row-wa-disc-${idx}`);
+            const row = document.getElementById(`row-wa-disc-${folderId}`);
             if (row) row.remove();
-            waDiscoveryItems.splice(idx, 1);
+            waDiscoveryItems = waDiscoveryItems.filter(x => x.folderId !== folderId);
             updateWADiscoverySummary();
             reloadData();
           } else {
@@ -7418,8 +7438,14 @@
 
     function applySelectedDriveImportsWebApp(btnEl) {
       const selectedCheckboxes = document.querySelectorAll('.wa-disc-checkbox:checked');
-      const selectedIndices = Array.from(selectedCheckboxes).map(cb => parseInt(cb.dataset.idx, 10));
-      const itemsToApply = selectedIndices.map(idx => getPreparedWADiscoveryItem(idx));
+      if (selectedCheckboxes.length === 0) {
+        showToast('Seleziona almeno un nucleo da importare spuntando la relativa casella.', 'warning');
+        return;
+      }
+
+      const itemsToApply = Array.from(selectedCheckboxes)
+        .map(cb => getPreparedWADiscoveryItemByFolderId(cb.dataset.folderId))
+        .filter(Boolean);
 
       btnEl.disabled = true;
       btnEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Importazione...';

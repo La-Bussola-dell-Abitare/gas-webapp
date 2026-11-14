@@ -97,6 +97,9 @@ class NucleoFamiliare {
       sheet = ss.getSheetByName("Nucleo Familiare");
     }
     if (!sheet) {
+      sheet = ss.getSheetByName("Nuclei");
+    }
+    if (!sheet) {
       throw new Error("Foglio 'Nuclei Familiari' non trovato.");
     }
 
@@ -108,19 +111,16 @@ class NucleoFamiliare {
     let targetRowIdx = -1;
     let targetId = data.id ? data.id.toString().trim() : "";
 
-    if (targetId) {
-      const dataValues = sheet.getDataRange().getValues();
-      if (dataValues.length > 1) {
-        const tempHeaders = dataValues[0].map(h => h.toString().trim().toLowerCase());
-        const tempIdx = NucleoFamiliare._getColIndexes(tempHeaders);
-        if (tempIdx.id >= 0) {
-          for (let i = 1; i < dataValues.length; i++) {
-            if (dataValues[i][tempIdx.id].toString().trim() === targetId) {
-              isUpdate = true;
-              targetRowIdx = i + 1;
-              break;
-            }
-          }
+    const dataValues = sheet.getDataRange().getValues();
+    const headers = dataValues.length > 0 ? dataValues[0].map(h => h.toString().trim().toLowerCase()) : [];
+    const idx = NucleoFamiliare._getColIndexes(headers);
+
+    if (targetId && dataValues.length > 1 && idx.id >= 0) {
+      for (let i = 1; i < dataValues.length; i++) {
+        if (dataValues[i][idx.id].toString().trim() === targetId) {
+          isUpdate = true;
+          targetRowIdx = i + 1;
+          break;
         }
       }
     }
@@ -129,8 +129,8 @@ class NucleoFamiliare {
     let firstEmptyRowIdx = -1;
     for (let r = 1; r < dataValues.length; r++) {
       const row = dataValues[r];
-      const idVal = tempIdx.id >= 0 && tempIdx.id < row.length ? safeString(row[tempIdx.id]).trim() : "";
-      const intestVal = tempIdx.intestatario >= 0 && tempIdx.intestatario < row.length ? safeString(row[tempIdx.intestatario]).trim() : "";
+      const idVal = idx.id >= 0 && idx.id < row.length ? safeString(row[idx.id]).trim() : "";
+      const intestVal = idx.intestatario >= 0 && idx.intestatario < row.length ? safeString(row[idx.intestatario]).trim() : "";
       if (!idVal && !intestVal) {
         firstEmptyRowIdx = r + 1;
         break;
@@ -140,13 +140,11 @@ class NucleoFamiliare {
       firstEmptyRowIdx = dataValues.length + 1;
     }
 
-    const nextId = isUpdate ? targetId : NucleoFamiliare.generateNextId();
+    const nextId = targetId || NucleoFamiliare.generateNextId();
     const newRowIdx = isUpdate ? targetRowIdx : firstEmptyRowIdx;
     if (newRowIdx > sheet.getMaxRows()) {
       sheet.insertRowAfter(sheet.getMaxRows());
     }
-    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => h.toString().trim().toLowerCase());
-    const idx = NucleoFamiliare._getColIndexes(headers);
 
     // Salvataggio dei dati nelle rispettive colonne trovate
     if (idx.id >= 0) sheet.getRange(newRowIdx, idx.id + 1).setValue(nextId);
@@ -222,6 +220,15 @@ class NucleoFamiliare {
       message: isUpdate ? "Nucleo Familiare aggiornato con successo (ID " + nextId + ")." : "Nucleo Familiare registrato con successo con ID " + nextId + ".",
       id: nextId
     };
+  }
+
+  /**
+   * Alias di persistenza per add(data), utilizzato dai service di sincronizzazione e discovery.
+   * @param {Record<string, any>} data - Dati del nucleo familiare da salvare o aggiornare
+   * @return {{ success: boolean; message: string; id: string }}
+   */
+  static save(data) {
+    return NucleoFamiliare.add(data);
   }
 
   /**

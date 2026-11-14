@@ -668,3 +668,110 @@ sequenceDiagram
     deactivate Trigger
     Note over Sync,Props: Named Range ridimensionato e Storage Two-Tier allineato
 ```
+
+---
+
+## 12. Sequenza 12: Discovery da Google Drive, Scansione Multimodale IA ed Importazione Selettiva (Drive &rarr; Sheets)
+
+Illustra il flusso di scoperta dei fascicoli non catalogati da Google Drive verso i fogli di calcolo:
+1. L'operatore avvia la discovery con o senza l'opzione di analisi OCR profonda con Gemini Flash.
+2. `DriveDiscoveryService` scansiona la radice e le sottocartelle personali, applicando l'OCR sui documenti d'identità e ISEE.
+3. Le anagrafiche e gli indirizzi vengono normalizzati con le regole di Title Case / Proper Case della lingua italiana.
+4. L'operatore seleziona selettivamente un singolo nucleo (isolato per `data-folder-id`) oppure una selezione multipla, registrando atomicamente nucleo, beneficiari completi di dati anagrafici e documenti con scadenze.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Op as Operatore Sociale
+    participant UI as WebApp / DialogDriveImport
+    participant Ctrl as Backend.js (RPC)
+    participant Disc as DriveDiscoveryService
+    participant GDrive as Google Drive (Folder/Files)
+    participant AI as DocumentIntelligence (Gemini Flash)
+    participant Norm as Utils (Proper Case / Address)
+    participant Lock as LockService (ScriptLock)
+    participant Nucleo as NucleoFamiliare (Model)
+    participant BenRepo as BeneficiarioRepository
+    participant DocRepo as DocumentoRepository
+    participant Sheets as Google Sheets
+
+    Op->>UI: Clicca su "📥 Importa da Drive"
+    Op->>UI: Attiva switch "Analisi IA Gemini Flash" (opzionale)
+    UI->>Ctrl: google.script.run.getUncatalogedDriveNuclei({ deepAIScan: true })
+    activate Ctrl
+
+    Ctrl->>Disc: getUncatalogedDriveNuclei(options)
+    activate Disc
+
+    Disc->>GDrive: getFolderById(ROOT_ID).getFolders()
+    GDrive-->>Disc: Iterator cartelle fisiche
+
+    loop Per ogni cartella Drive
+        Disc->>Disc: Verifica presenza ID o intestatario in Nuclei & Beneficiari
+        alt Cartella non ancora catalogata
+            Disc->>Norm: normalizeProperCase(folderName)
+            Norm-->>Disc: Intestatario normalizzato
+            Disc->>GDrive: Cartella.getFiles() & Cartella.getFolders()
+            
+            opt Se deepAIScan = true
+                Disc->>AI: analyzeBlobs([docBlob])
+                activate AI
+                AI-->>Disc: Dati anagrafici completi (CF, nascita, residenza, ISEE)
+                deactivate AI
+                Disc->>Norm: normalizeCity(luogoNascita), normalizeAddress(residenza)
+                Norm-->>Disc: Campi geografici normalizzati
+            end
+        end
+    end
+
+    Disc-->>Ctrl: { success: true, uncatalogedNuclei: [...] }
+    deactivate Disc
+    Ctrl-->>UI: Elenco cartelle non catalogate (checkbox deselezionate)
+    deactivate Ctrl
+
+    UI->>Op: Rendering tabella con badge IA e campi editabili
+
+    alt Caso A: Importazione Singolo Nucleo Isolato (⚡ Importa)
+        Op->>UI: Clicca su "⚡ Importa" sulla riga specifica (data-folder-id)
+        UI->>UI: Estrae dati solo dalla riga bersaglio (itemToApply)
+    else Caso B: Importazione Multipla Selezionata
+        Op->>UI: Spunta le checkbox dei soli nuclei desiderati
+        Op->>UI: Clicca su "⚡ Importa Selezionati"
+        UI->>UI: Raccoglie i soli elementi con checkbox attiva
+    end
+
+    UI->>Ctrl: google.script.run.importDriveNuclei(payloadToImport)
+    activate Ctrl
+
+    Ctrl->>Disc: importNuclei(approvedList)
+    activate Disc
+
+    Disc->>Lock: getScriptLock().waitLock(30000)
+    
+    loop Per ciascun nucleo approvato
+        Disc->>Nucleo: save(nucleoData)
+        Nucleo->>Sheets: appendRow / save (foglio "Nuclei Familiari")
+        
+        loop Per intestatario e componenti
+            Disc->>BenRepo: add(beneficiarioCompleto)
+            BenRepo->>Sheets: appendRow (con dati anagrafici, nascita, residenza, CF)
+        end
+
+        loop Per documenti di nucleo e personali
+            Disc->>DocRepo: add(documentoPayload)
+            DocRepo->>Sheets: appendRow (con scadenze, emissione, valore e ID Drive)
+        end
+
+        Disc->>GDrive: folder.setName("<ID> - <Nome Intestatario>")
+    end
+
+    Disc->>Lock: releaseLock()
+    Disc-->>Ctrl: { success: true, importedNucleiCount, ... }
+    deactivate Disc
+
+    Ctrl-->>UI: { success: true }
+    deactivate Ctrl
+
+    UI->>UI: Rimuove le sole righe importate dalla tabella
+    UI->>Op: Toast di successo e aggiornamento conteggi
+```

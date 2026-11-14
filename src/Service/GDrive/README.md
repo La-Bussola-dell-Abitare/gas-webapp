@@ -64,14 +64,15 @@ Tutti i file risiedono all'interno della cartella radice configurata in `CONFIG.
 Implementa la logica inversa di scoperta da Google Drive verso i fogli di calcolo:
 - **`getUncatalogedDriveNuclei(options)`**: Scansiona la cartella radice [`CONFIG.FOLDER_BENEFICIARI_ROOT_ID`](file:///d:/Lorenzo/Public/#Work/Azzurra84/Bussola%20dell'Abitare/gas-webapp/src/Utils/Config.js), ignora le cartelle di servizio (`_Archivio`, `_Template`, cestinate) e confronta ciascuna cartella con i record di *Nuclei Familiari* e *Beneficiari*. Per ogni cartella non ancora catalogata:
   - Estrae l'ID nucleo se presente nel nome (es. `12 - Mario Rossi`) o calcola il prossimo progressivo libero.
-  - Rileva l'intestatario dal nome cartella.
-  - Esplora le sottocartelle mappando ciascun componente della famiglia.
-  - Rileva i documenti presenti nella radice e nelle sottocartelle, estraendo opzionalmente i dati anagrafici con Gemini Flash OCR.
+  - Rileva l'intestatario dal nome cartella e applica la normalizzazione grammaticale italiana Proper Case (`normalizeProperCase`).
+  - Esplora le sottocartelle mappando ciascun componente della famiglia, con normalizzazione Proper Case su nome, cognome e cittadinanza.
+  - **Scansione IA Estesa (`deepAIScan: true`)**: analizza sia i file nella radice del nucleo che i file nelle sottocartelle personali tramite Google Gemini Flash (`DocumentIntelligence.analyzeBlobs`). Estrae il set anagrafico completo (`nome`, `cognome`, `codiceFiscale`, `dataNascita`, `luogoNascita`, `sesso`, `cittadinanza`, `residenza`, `domicilio`), il valore ISEE e i metadati documentali (`numeroDocumento`, `dataEmissione`, `dataScadenza`, `valore`).
+  - Applica le regole di normalizzazione linguistica SSOT: `normalizeProperCase` per nomi/cognomi, `normalizeCity` per luoghi di nascita e `normalizeAddress` per residenza/domicilio.
 - **`importNuclei(approvedList)`**: Esecuzione atomica transazionale (protetta da `LockService.getScriptLock`):
-  - Inserisce la riga nel foglio *Nuclei Familiari* collegando l'`idCartella`.
-  - Inserisce le righe nel foglio *Beneficiari* per intestatario e componenti.
-  - Inserisce tutti i file nel foglio *Documenti* collegando l'`idDrive`.
-  - Normalizza facoltativamente la cartella su Google Drive nel formato canonico `<ID> - <Nome Intestatario>`.
+  - Inserisce o aggiorna la riga nel foglio *Nuclei Familiari* (invocando `NucleoFamiliare.save` o `NucleoFamiliare.add`) collegando l'`idCartella`.
+  - Inserisce o collega le righe nel foglio *Beneficiari* per intestatario e componenti (invocando `BeneficiarioRepository.add` popolando tutti i campi anagrafici estratti da IA: `nome`, `cognome`, `cf`, `dataNascita`, `luogoNascita`, `cittadinanza`, `residenza`, `domicilio`, `idNucleo`, `rapportoIntestatario`, `idCartella`). Se il beneficiario è già censito, ne aggiorna l'associazione senza duplicarlo.
+  - Inserisce tutti i file nel foglio *Documenti* collegando l'`idDrive` (con controllo di unicità per evitare duplicazione di record già presenti, registrando `valore`, `dataEmissione`, `dataScadenza` e note su numero documento).
+  - Normalizza facoltativamente la cartella su Google Drive nel formato canonico `<ID> - <Nome Intestatario>` in Proper Case.
 
 ---
 
@@ -122,6 +123,12 @@ Implementa la logica inversa di scoperta da Google Drive verso i fogli di calcol
 - **Perché integrare l'anteprima interna e il link diretto a Google Drive per ogni file?**
   *Motivazione*: Consente all'operatore di verificare visivamente il documento (confronto fianco a fianco tra originale e duplicato, controllo del documento prima di censirlo nel foglio, verifica del documento sorgente da cui Gemini ha estratto un dato) senza consumare banda o memoria server, sfruttando l'endpoint `/preview` e `/view` nativo di Google Drive.
 
+- **Perché deselezionare di default le checkbox e isolare l'importazione del singolo nucleo per `data-folder-id`?**
+  *Motivazione e alternative scartate*: Mantenere tutte le checkbox selezionate per impostazione predefinita comportava il rischio critico che l'operatore, cliccando il pulsante di importazione massiva, catalogasse indiscriminatamente dozzine di cartelle non ancora verificate. Inoltre, affidarsi all'indice di array sequenziale `idx` con mutazioni `splice(idx, 1)` provocava disallineamenti dell'interfaccia quando veniva importato un singolo nucleo intermedio. L'uso di `data-folder-id` e di selettori DOM mirati rende ogni riga autonoma, indipendente e sicura.
+
+- **Perché applicare la scansione IA anche ai file di radice e persistere l'intera anagrafica nei fogli?**
+  *Motivazione*: Molte cartelle nucleo contengono copie dei documenti di identità o certificati ISEE direttamente al primo livello (radice) anziché nelle sottocartelle dei singoli membri. Limitare la scansione OCR alle sole sottocartelle escludeva la quasi totalità dei documenti d'identità dei nuclei monoparentali. L'estrazione multimodale completa su tutti i campi anagrafici (`dataNascita`, `luogoNascita`, `cittadinanza`, `residenza`) e la loro scrittura in `BeneficiarioRepository.add` automatizza interamente il caricamento dell'anagrafica senza costringere l'operatore a inserimenti manuali.
+
 ---
 
 ## 5. Esempi di Utilizzo
@@ -135,14 +142,22 @@ Logger.log("Anomalie rilevate: " + rep.issues.length);
 const fileInfo = DriveReconciler.inspectFileWithAI("1cBAWWPnRZNhj1xubIM89inMehvB-sFiE");
 Logger.log("Tipo rilevato da IA: " + fileInfo.data.tipoDocumento);
 
-// 3. Esecuzione Piano Parziale o per Singolo Caso (Granular Execution)
+// 3. Discovery con Scansione IA e Normalizzazione Grammaticale Proper Case
+const discovery = DriveDiscoveryService.getUncatalogedDriveNuclei({ deepAIScan: true });
+Logger.log("Nuclei da importare rilevati: " + discovery.uncatalogedNuclei.length);
+
+// 4. Importazione di un Singolo Nucleo Approvato
+const importResult = DriveDiscoveryService.importNuclei([discovery.uncatalogedNuclei[0]]);
+Logger.log("Nucleo importato: " + importResult.importedNucleiCount + ", Beneficiari: " + importResult.importedBeneficiariCount);
+
+// 5. Esecuzione Piano Parziale o per Singolo Caso (Granular Execution)
 const singleRenamePlan = {
   fileRenames: [{ fileId: "file456", newName: "Carta d'Identità (scad. 2034) - Mario Rossi.pdf" }]
 };
 const resSingle = DriveReconciler.executeApprovedPlan(12, singleRenamePlan);
 Logger.log("Singola azione applicata: " + resSingle.actionsApplied[0]);
 
-// 4. Esecuzione Piano di Bonifica Approvato Completo
+// 6. Esecuzione Piano di Bonifica Approvato Completo
 const approvedPlan = {
   folderRenames: [{ folderId: "fld123", newName: "Mario Rossi" }],
   fileMoves: [{ fileId: "file456", targetFolderId: "fld123" }],

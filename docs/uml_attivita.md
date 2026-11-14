@@ -291,3 +291,51 @@ flowchart TD
     CheckSemMatch -- "No" --> EndAudit([Fine Rilevamento Duplicati])
     FlagSemantic --> EndAudit
 ```
+
+---
+
+## 7. Attività 7: Processo di Discovery, Estrazione Multimodale IA e Importazione Controllata (Drive &rarr; Sheets)
+
+Descrive il flusso decisionale e operativo con cui le cartelle presenti su Google Drive non ancora catalogate nei fogli di calcolo vengono scoperte, ispezionate con Google Gemini Flash multimodale, normalizzate secondo le regole grammaticali italiane e importate in modo sicuro e atomico.
+
+```mermaid
+flowchart TD
+    Start([Operatore clicca 'Importa da Drive']) --> SelectMode{Attivare scansione profonda IA?<br/>deepAIScan}
+    
+    SelectMode -- "Sì" --> SetDeepAI[Flag deepAIScan = true]
+    SelectMode -- "No" --> SetFastScan[Flag deepAIScan = false<br/>Solo nomi cartelle e metadati file]
+    
+    SetDeepAI --> ScanFolders[Scansione cartelle radice in CONFIG.FOLDER_BENEFICIARI_ROOT_ID]
+    SetFastScan --> ScanFolders
+
+    ScanFolders --> FilterSystem{Cartella di sistema o già catalogata?<br/>_Archivio, _Template o ID presente}
+    FilterSystem -- "Sì" --> SkipFolder[Ignora cartella]
+    FilterSystem -- "No" --> ParseFolder[Estrazione intestatario e componenti da sottocartelle]
+
+    ParseFolder --> NormNames[Applicazione Title Case / Proper Case<br/>normalizeProperCase su intestatario e componenti]
+    
+    NormNames --> CheckAIScan{deepAIScan attivo?}
+    CheckAIScan -- "Sì" --> InspectDocs[OCR Multimodale Gemini Flash su file di radice e sottocartelle]
+    InspectDocs --> ExtractFullBio[Estrazione CF, data/luogo nascita, residenza, cittadinanza, ISEE, scadenze]
+    ExtractFullBio --> NormGeo[Normalizzazione luoghi e indirizzi con normalizeCity e normalizeAddress]
+    NormGeo --> RenderUI[Presentazione fascicoli nella modale interattiva]
+    CheckAIScan -- "No" --> RenderUI
+
+    RenderUI --> InitCheckboxes[Inizializzazione checkbox: tutte DESELEZIONATE per sicurezza]
+    InitCheckboxes --> UserChoice{Modalità di importazione scelta}
+
+    UserChoice -- "Click 'Importa' su singola riga" --> SingleImport[Isolamento record per data-folder-id<br/>Importazione immediata del solo fascicolo selezionato]
+    UserChoice -- "Spunta caselle + 'Importa Selezionati'" --> BatchImport[Rilevamento delle sole righe spuntate manualmente]
+
+    SingleImport --> StartLock[Acquisizione LockService.getScriptLock]
+    BatchImport --> StartLock
+
+    StartLock --> SaveNucleo[Inserimento/aggiornamento riga in 'Nuclei Familiari' con idCartella]
+    SaveNucleo --> SaveMembers[Inserimento/collegamento beneficiari in 'Beneficiari' con anagrafica completa]
+    SaveMembers --> SaveDocs[Inserimento file in 'Documenti' con ID Drive e scadenze]
+    SaveDocs --> RenameDrive[Ridenominazione cartella Drive nel formato canonico '<ID> - <Nome Intestatario>']
+    RenameDrive --> ReleaseLock[Rilascio LockService]
+
+    ReleaseLock --> UpdateUI[Rimozione visiva delle righe importate dalla tabella e notifica Toast]
+    UpdateUI --> End([Fine Importazione Fascicoli])
+```

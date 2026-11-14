@@ -97,6 +97,9 @@ function normalizeAddress(str) {
   if (!str) return "";
   let s = String(str).trim().replace(/\s+/g, " ");
 
+  // Normalizza eventuale sigla provincia finale senza parentesi (es. "Roma RM" -> "Roma (RM)")
+  s = s.replace(/\s+([a-zA-Z]{2})([.,;])?$/, (m, p, punct) => ` (${p.toUpperCase()})${punct || ""}`);
+
   const words = s.split(" ");
   return words.map((w, idx) => {
     let trailingPunct = "";
